@@ -7,13 +7,36 @@
 
 | Modül | Durum |
 |---|---|
-| Faz 0 — Altyapı | 🔨 Devam ediyor |
+| Faz 0 — Altyapı | ✅ Tamamlandı (2026-07-03) |
 | 1 — Kimlik & Profil | ⬜ Başlamadı |
 | 2 — Takım & Kadro | ⬜ Başlamadı |
 | 3 — Maç Organizasyonu | ⬜ Başlamadı |
 | 4-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-03 (2) — Faz 0 tamamlandı: monorepo iskeleti
+
+- Kök repo `git init` (main); ilk commit: 143 dosya.
+- **api/**: Laravel 12.62 + Sanctum (install:api) + Pest + Pint + Larastan (level 6)
+  + Sail (mysql, redis). `/api/v1/health` endpoint'i zarf formatıyla; 3 test yeşil,
+  Pint ve Larastan temiz. Test ortamı sqlite :memory:. `app/Actions/{Auth,Team,Match}`
+  ve `app/Http/Controllers/Api/V1` klasör yapısı hazır.
+- **mobile/**: Expo SDK 57 (RN 0.86, TS strict, expo-router) + TanStack Query,
+  Zustand, axios, expo-secure-store. `src/features/{auth,team,match}` + `src/shared`
+  yapısı. Şablonun bozuk web kalıntıları temizlendi (global.css importu,
+  use-color-scheme.web.ts); lint + tsc yeşil. Not: web hedeflenmiyor,
+  `*.web.*` dosyaları tsconfig'de exclude.
+- CI: `.github/workflows/api-ci.yml` (pint+larastan+pest) ve `mobile-ci.yml` (lint+tsc).
+- Not: migration hiç çalıştırılmadı (yerel MySQL yok); geliştirme DB'si Sail ile:
+  `cd api && ./vendor/bin/sail up -d && sail artisan migrate`
+
+### Kod stili kararı (kullanıcı, 2026-07-03)
+- **PHP değişkenleri PascalCase** (`$PricePerPlayer`), controller/sınıf PascalCase,
+  metotlar camelCase, DB tabloları snake_case. api-conventions.md §8'e işlendi.
+
+### Sonraki adım
+- Modül 1: docs/features/01-auth-profile.md implementasyonu.
 
 ## 2026-07-03 — Proje başlangıcı + doküman seti
 

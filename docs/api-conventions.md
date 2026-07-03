@@ -91,7 +91,21 @@ Başarılı — liste (cursor pagination):
   (API üzerinden proxy yükleme YOK — VPS bant genişliğini korur.)
 - Limitler: görsel max 10 MB (jpg/png/webp/heic), video v2'de tanımlanacak.
 
-## 8. Test Standardı
+## 8. PHP Kod Stili (kullanıcı kararı — 2026-07-03)
+
+| Öğe | Stil | Örnek |
+|---|---|---|
+| Sınıf/Controller/Action adları | PascalCase | `MatchController`, `CreateMatch` |
+| **PHP değişkenleri** | **PascalCase** | `$PricePerPlayer`, `$Request`, `$Match` |
+| Metot adları | camelCase (PSR-4 autoload/framework uyumu) | `store()`, `rsvp()` |
+| DB tablo/kolon adları | snake_case (Laravel/Eloquent uyumu) | `match_participants`, `price_per_player` |
+| JSON API alanları | snake_case (Bölüm 2) | `starts_at` |
+
+> Not: Değişkenlerde PascalCase bu projenin bilinçli tercihi (ekosistem standardı
+> camelCase'dir). Kod üretirken ve review'da bu kurala uyulur; framework'ten gelen
+> scaffold kodu dokunulduğu yerde bu stile çekilir.
+
+## 9. Test Standardı
 
 - Her endpoint için en az: happy path + yetki reddi + validasyon hatası
   Pest feature testi. CI'da `php artisan test` yeşil olmadan merge yok.

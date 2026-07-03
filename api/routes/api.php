@@ -9,8 +9,8 @@ Route::prefix('v1')->group(function () {
     ]));
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/me', fn (Request $request) => response()->json([
-            'data' => $request->user(),
+        Route::get('/me', fn (Request $Request) => response()->json([
+            'data' => $Request->user(),
         ]));
     });
 });

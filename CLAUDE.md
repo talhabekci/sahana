@@ -26,4 +26,6 @@ Halı saha oyuncuları için sosyal ağ. Monorepo: `api/` (Laravel 12) + `mobile
 - Mobil: Expo + TypeScript strict, expo-router, TanStack Query + Zustand
 - DB: MySQL 8, zamanlar UTC/ISO 8601, JSON alanlar snake_case
 - Controller ince, iş mantığı `app/Actions/<Modül>/` altında
+- **PHP değişkenleri PascalCase** (`$PricePerPlayer`, `$Request`) — kullanıcı kararı;
+  tablolar snake_case, metotlar camelCase (api-conventions.md §8)
 - Her endpoint: happy path + yetki + validasyon Pest testi olmadan bitmiş sayılmaz
