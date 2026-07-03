@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -44,6 +45,17 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => 'Kimlik doğrulaması gerekli.',
                     'code' => 'unauthenticated',
                 ], 401);
+            }
+        });
+
+        // Laravel, policy authorize() reddini render callback'lerine gelmeden
+        // önce AccessDeniedHttpException'a çevirir (Handler::prepareException).
+        $Exceptions->render(function (AccessDeniedHttpException $Exception, Request $Request) {
+            if ($Request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Bu işlem için yetkin yok.',
+                    'code' => 'forbidden',
+                ], 403);
             }
         });
 
