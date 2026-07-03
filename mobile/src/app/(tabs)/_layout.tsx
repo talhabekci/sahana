@@ -30,6 +30,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="teams"
+        options={{
+          title: 'Takımlar',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="shield-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profil',

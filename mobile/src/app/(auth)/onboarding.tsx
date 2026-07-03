@@ -13,6 +13,8 @@ import {
 
 import { getCities, updateMe } from '@/features/auth/api';
 import { PitchPositionPicker } from '@/features/auth/PitchPositionPicker';
+import { acceptInvite } from '@/features/team/api';
+import { usePendingInviteStore } from '@/features/team/pendingInviteStore';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
@@ -40,6 +42,8 @@ export default function Onboarding() {
   const [CityId, setCityId] = useState<number | null>(null);
   const [CitySearch, setCitySearch] = useState('');
   const [Error_, setError] = useState<string | null>(null);
+  const PendingInviteCode = usePendingInviteStore((State) => State.code);
+  const setPendingInviteCode = usePendingInviteStore((State) => State.setCode);
 
   const Step = STEPS[StepIndex];
 
@@ -62,7 +66,21 @@ export default function Onboarding() {
         level: Level ?? 3,
         city_id: CityId ?? 34,
       }),
-    onSuccess: () => Router.replace('/(tabs)/profile'),
+    onSuccess: async () => {
+      if (PendingInviteCode != null) {
+        try {
+          const Team = await acceptInvite(PendingInviteCode);
+          setPendingInviteCode(null);
+          Router.replace(`/team/${Team.id}`);
+
+          return;
+        } catch {
+          setPendingInviteCode(null);
+        }
+      }
+
+      Router.replace('/(tabs)/profile');
+    },
     onError: (E) => setError(toApiFailure(E).message),
   });
 

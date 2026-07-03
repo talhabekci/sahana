@@ -5,6 +5,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { requestOtp, verifyOtp } from '@/features/auth/api';
 import { useAuthStore } from '@/features/auth/store';
+import { acceptInvite } from '@/features/team/api';
+import { usePendingInviteStore } from '@/features/team/pendingInviteStore';
 import { toApiFailure } from '@/shared/api/client';
 import { OtpInput } from '@/shared/ui/OtpInput';
 import { Screen } from '@/shared/ui/Screen';
@@ -23,6 +25,8 @@ export default function Otp() {
   const Router = useRouter();
   const { identifier } = useLocalSearchParams<{ identifier: string }>();
   const setToken = useAuthStore((State) => State.setToken);
+  const PendingInviteCode = usePendingInviteStore((State) => State.code);
+  const setPendingInviteCode = usePendingInviteStore((State) => State.setCode);
 
   const [Code, setCode] = useState('');
   const [Error_, setError] = useState<string | null>(null);
@@ -43,10 +47,26 @@ export default function Otp() {
       await setToken(token);
 
       if (is_new_user) {
+        // Yeni kullanıcı önce profilini tamamlamalı; bekleyen davet varsa
+        // onboarding bitince kabul edilir (features/auth onboarding.tsx).
         Router.replace('/(auth)/onboarding');
-      } else {
-        Router.replace('/(tabs)/profile');
+
+        return;
       }
+
+      if (PendingInviteCode != null) {
+        try {
+          const Team = await acceptInvite(PendingInviteCode);
+          setPendingInviteCode(null);
+          Router.replace(`/team/${Team.id}`);
+
+          return;
+        } catch {
+          setPendingInviteCode(null);
+        }
+      }
+
+      Router.replace('/(tabs)/profile');
     },
     onError: (E) => {
       const Failure = toApiFailure(E);

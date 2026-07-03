@@ -72,6 +72,12 @@ join/[inviteCode]       → davet karşılama (deep link)
 - [ ] Kaptan takımdan ayrılamaz — önce devretmeli (422 + net mesaj)
 
 ## Açık Sorular
-- [ ] Davet linki altyapısı: Expo deep link + universal links yeterli mi,
-      Branch.io gibi servis gerekir mi? (Faz 0'da POC)
+- [x] ~~Davet linki altyapısı~~ → v1'de `Linking.createURL('join/{code}')` (Expo
+      deep link) + QR; "yüklü değilse store'a" yönlendirmesi gerçek universal
+      link/Branch.io gerektirir — bunun için domain/hosting olmadığından ertelendi.
+      Şimdilik: uygulama zaten kuruluysa link/QR sorunsuz çalışır.
 - [ ] Misafir oyuncu pulu, ileride gerçek kullanıcıya dönüştürülebilmeli mi?
+- [ ] Kadro tahtası etkileşimi: mevcut implementasyon "sürükle (yeniden konumla) +
+      dokun (oyuncu ata)" modeli. Spec'in "bench'ten sürükle-bırak" tarifinden
+      farklı ama aynı kabul kriterlerini karşılıyor — kullanıcı testinde
+      doğrulanacak.

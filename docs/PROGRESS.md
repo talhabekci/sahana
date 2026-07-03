@@ -9,11 +9,52 @@
 |---|---|
 | Faz 0 — Altyapı | ✅ Tamamlandı (2026-07-03) |
 | 1 — Kimlik & Profil | ✅ API + mobil tamam (2026-07-03) · cihazda kullanıcı testi bekliyor |
-| 2 — Takım & Kadro | ⬜ Başlamadı |
+| 2 — Takım & Kadro | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
 | 3 — Maç Organizasyonu | ⬜ Başlamadı |
 | 4-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-04 — Modül 2 tamamlandı: Takım & Kadro Kurma
+
+- **API:** teams/team_members/team_invites/lineups tabloları; TeamPolicy
+  (view/update/manageInvites/transferCaptaincy/manageLineups); Action'lar
+  (CreateTeam, GenerateTeamInvite, AcceptTeamInvite, RemoveTeamMember,
+  TransferCaptaincy, CreateLineup/UpdateLineup + ResolveLineupPositions).
+  Endpoint'ler spec'e birebir + iki gerekçeli ek: `GET /teams` (listem) ve
+  `GET /teams/{id}/lineups` (Modül 1'deki `GET /cities` emsaliyle aynı mantık).
+  Kaptan takımdan ayrılamaz (önce devretmeli); yetkisiz işlemler 403.
+  28 yeni Pest testi (toplam 54), Larastan ve Pint temiz.
+- **Larastan notu:** `casts()` metodu ile tanımlı date/array cast'ler, ilgili
+  alan üzerinde Carbon/array-özel metot çağrıldığında Larastan 3.10 tarafından
+  doğru tipte görülmüyor (ham DB tipine düşüyor) — çözüm: model sınıflarına
+  `@property` docblock'u eklemek (TeamInvite, Lineup, TeamMember, User::$pivot).
+  Bu, ileride benzer modellerde karşılaşılırsa hatırlanmalı.
+- **Mobil:** "Gece Maçı" tasarım sistemine sadık kalarak: (tabs)/teams listesi,
+  team/create (3 adım: isim→arma→renk), team/[id] detay (üyeler, kadrolar,
+  davet, kaptan aksiyonları), team/[id]/invite (QR + kopyala + paylaş),
+  team/[id]/lineup/[lid] (kadro tahtası).
+  **Kadro tahtası tasarım kararı:** spec "bench'ten sürükle-bırak" tarif
+  ediyordu; bunun yerine "puk sahada serbest sürüklenir (yeniden konumlama) +
+  dokunma ile oyuncu/misafir atama sayfası açılır" modelini uyguladım — aynı
+  kabul kriterlerini (60fps sürükleme, misafir pulu, atama) karşılıyor ama
+  daha güvenilir bir gesture implementasyonu. Spec'in açık sorularına not
+  düşüldü, kullanıcı onayı bekliyor.
+  PNG export: react-native-view-shot + expo-sharing, alt köşede
+  "sahana.app ile kuruldu" filigranı (büyüme kancası).
+  Davet: `Linking.createURL` + `react-native-qrcode-svg`; oturumsuz kullanıcı
+  join ekranına gelirse kod `pendingInviteStore`'da bekletilip OTP/onboarding
+  bitince otomatik kabul ediliyor.
+- **Düzeltmeler:** `Controller`'a `AuthorizesRequests` trait'i eklendi (Laravel
+  12 iskeleti varsayılan getirmiyor); `AccessDeniedHttpException`→403 zarfı
+  eklendi (policy reddi Laravel'de bu şekilde geliyor, `AuthorizationException`
+  değil). Route typed-routes önbelleği (`.expo/types/router.d.ts`) yeni
+  ekranlar için `expo start` ile yeniden üretildi.
+- Doğrulama: API 54 test + Pint + Larastan yeşil; mobil lint + tsc temiz.
+
+### Sonraki adım
+- Modül 3: docs/features/03-match-organization.md (maç organizasyonu +
+  adam eksik ilanları) — Modül 2'nin `teams`/`lineups` altyapısına bağlanacak.
 
 ## 2026-07-03 (6) — Expo SDK 57 → 54 düşürüldü (geçici)
 
