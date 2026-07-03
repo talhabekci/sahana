@@ -8,12 +8,35 @@
 | Modül | Durum |
 |---|---|
 | Faz 0 — Altyapı | ✅ Tamamlandı (2026-07-03) |
-| 1 — Kimlik & Profil | ⬜ Başlamadı |
+| 1 — Kimlik & Profil | 🔨 API tamam (2026-07-03) · mobil ekranlar bekliyor |
 | 2 — Takım & Kadro | ⬜ Başlamadı |
 | 3 — Maç Organizasyonu | ⬜ Başlamadı |
 | 4-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-03 (4) — Modül 1 API tamamlandı
+
+- **Spec güncellemesi (kullanıcı kararı):** OTP kanalı telefon VEYA e-posta, tek
+  `identifier` alanı. E-posta OTP v1'de aktif; SMS `SmsSender` arayüzü arkasında
+  (LogSmsSender). Google/Apple girişi store anahtarları hazır olunca.
+- **Endpoint'ler:** POST /auth/otp, /auth/verify, /auth/logout; GET/PATCH/DELETE /me;
+  GET /players/{publicId}. Hepsi api-conventions zarfı ve hata formatıyla
+  (validation_failed, otp_expired, otp_invalid, otp_locked, otp_rate_limited,
+  unauthenticated, not_found kodları bootstrap/app.php'de render ediliyor).
+- **DB:** users alter (public_id ULID, phone, avatar_path, soft delete; name/email/
+  password nullable), cities (81 il, plaka=id, seed), player_profiles.
+- **KVKK:** DELETE /me anonimleştirir + soft delete; `users:purge` komutu 30 gün
+  sonra kalıcı siler (günlük schedule).
+- **Doğrulama:** 25 Pest testi + Pint + Larastan (1G memory) yeşil; e-posta OTP →
+  verify → PATCH /me akışı çalışan sunucuda uçtan uca test edildi.
+- Not: Lokal `.env` QUEUE_CONNECTION=sync (worker derdi yok); prod'da Redis+Horizon.
+- Not: Testte aynı senaryoda ikinci istek için `auth->forgetGuards()` gerekiyor
+  (guard, ilk isteğin kullanıcısını hatırlıyor).
+
+### Sonraki adım
+- Modül 1 mobil tarafı: (auth) ekranları — welcome, identifier girişi, OTP,
+  onboarding; token'ın SecureStore'a yazılması; /me profil ekranı.
 
 ## 2026-07-03 (3) — GitHub + lokal MySQL
 

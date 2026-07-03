@@ -1,14 +1,17 @@
 # Modül 1 — Kimlik & Oyuncu Profili
 
-> Durum: **Taslak** · MVP kapsamında · Bağımlılık: yok (ilk modül)
+> Durum: **Uygulanıyor** (API: 2026-07-03'te başladı) · MVP kapsamında · Bağımlılık: yok (ilk modül)
 
 ## Amaç
 Kullanıcının saniyeler içinde hesap açıp kendini "oyuncu" olarak tanımlaması.
 Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 
 ## Kapsam (v1)
-- Telefon numarası + SMS OTP ile kayıt/giriş (TR numaraları)
-- Google / Apple ile giriş (Apple, App Store zorunluluğu)
+- **Telefon VEYA e-posta + OTP** ile kayıt/giriş — tek `identifier` alanı
+  (kullanıcı kararı 2026-07-03: e-posta OTP v1'de aktif, maliyetsiz başlangıç;
+  SMS driver arayüzü arkasında hazır — lokalde log'a yazar, sağlayıcı seçilince açılır)
+- Google / Apple ile giriş (Apple, App Store zorunluluğu) —
+  **implementasyon store hesapları/anahtarlar hazır olunca**; endpoint tasarımı sabit
 - Oyuncu profili oluşturma ve düzenleme
 - Başkasının profilini görüntüleme (herkese açık kısmı)
 - Hesap silme (KVKK zorunluluğu)
@@ -32,7 +35,8 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 | positions | çoklu seçim | ✅ | kaleci, defans, orta saha, forvet (çoklu) |
 | foot | enum L/R/B | – | |
 | level | 1-5 | ✅ | Kendi beyanı; Modül 6'da reytingle dengelenir |
-| city / district | seçim | ✅ | İlan eşleşmesinin temeli |
+| city | seçim (81 il, seed) | ✅ | İlan eşleşmesinin temeli |
+| district | serbest metin | – | İlçe seed listesi v1.1'de seçime dönüşecek |
 | availability | JSON | – | Haftanın günleri + saat aralıkları |
 | bio | string(160) | – | |
 
@@ -50,8 +54,8 @@ player/[id]         → başka oyuncunun profili
 
 | Method | Endpoint | Açıklama |
 |---|---|---|
-| POST | /auth/otp | `{phone}` → SMS gönderir. Rate: 3/saat/numara |
-| POST | /auth/verify | `{phone, code}` → `{token, is_new_user}` |
+| POST | /auth/otp | `{identifier}` (telefon veya e-posta) → OTP gönderir. Rate: 3/saat/identifier + 10/saat/IP |
+| POST | /auth/verify | `{identifier, code}` → `{token, is_new_user}` |
 | POST | /auth/social | `{provider: google\|apple, id_token}` → `{token, is_new_user}` |
 | POST | /auth/logout | Token iptali |
 | GET | /me | Kendi profilim (tüm alanlar) |
@@ -59,7 +63,9 @@ player/[id]         → başka oyuncunun profili
 | DELETE | /me | Hesap silme (soft delete + 30 gün sonra purge job) |
 | GET | /players/{publicId} | Herkese açık profil |
 
-OTP kodu: 6 hane, 120 sn geçerli, Redis'te hash'lenmiş, 5 yanlış denemede kilit.
+OTP kodu: 6 hane, 120 sn geçerli, cache store'da hash'lenmiş (lokal: database
+driver, prod: Redis), 5 yanlış denemede kilit (429 `otp_locked`).
+E-posta OTP kuyruklu Mailable ile; SMS `SmsSender` arayüzü ile (lokal: log driver).
 
 ## Veri Modeli
 `users` (id, public_id, phone uniq nullable, name, avatar_path, provider alanları,
@@ -75,5 +81,8 @@ city_id, district_id, availability JSON, bio). Şehir/ilçe: statik seed tablosu
 - [ ] Pest: her endpoint için happy path + rate limit + validasyon testi
 
 ## Açık Sorular
+- [x] ~~OTP kanalı~~ → e-posta OTP v1'de aktif (kullanıcı kararı 2026-07-03)
 - [ ] SMS sağlayıcısı seçimi (Netgsm vs İleti Merkezi — fiyat/deliverability)
 - [ ] Kullanıcı adı (@handle) v1'de olsun mu, yoksa Modül 4 (sosyal) ile mi gelsin?
+- [ ] Avatar yükleme: R2 hesabı açılınca presigned URL akışıyla eklenecek
+      (api-conventions §7); o zamana dek profil fotoğrafsız
