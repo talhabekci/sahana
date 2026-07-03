@@ -58,7 +58,7 @@ kurulum derdi olmadan hızlı başlangıç yapılır.
 
 ### Diğer
 - **Git + GitHub**, CI olarak GitHub Actions (test + lint)
-- **Ortamlar:** local (Docker/Laravel Sail) → staging → production
+- **Ortamlar:** local (brew MySQL, `sahana` DB; Sail opsiyonel) → staging → production
 - **Hosting (başlangıç):** tek VPS (Hetzner/DigitalOcean) + R2; ölçek gelince ayrıştırılır
 
 ---

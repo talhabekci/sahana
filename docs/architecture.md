@@ -147,7 +147,7 @@ mobilde kullanıcı saat dilimine çevrilir. Detay: [api-conventions.md](api-con
 
 | Ortam | Amaç | API | Mobil |
 |---|---|---|---|
-| local | Geliştirme | Laravel Sail (Docker) | Expo Go / dev client |
+| local | Geliştirme | Lokal PHP + brew MySQL (`sahana` DB); Sail opsiyonel | Expo Go / dev client |
 | staging | Test + TestFlight/Internal track | VPS üzerinde ayrı container seti | EAS preview build |
 | production | Canlı | VPS | Store sürümleri + OTA |
 

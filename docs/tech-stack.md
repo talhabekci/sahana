@@ -90,7 +90,10 @@ Bu projede hepsi Modül 1-7 arasında lazım. Laravel'de birinci parti:
 
 ---
 
-## Veritabanı: MySQL 8
+## Veritabanı: MySQL
+
+> Lokal geliştirme: kullanıcının brew MySQL kurulumu (9.5, `sahana` veritabanı,
+> `root`/şifresiz) — Sail/Docker opsiyonel. Prod hedefi MySQL 8 uyumluluğu.
 
 - Konum bazlı "yakınımdaki ilanlar/sahalar" için `POINT` kolonu + `SPATIAL INDEX`
   ve `ST_Distance_Sphere` yeterli. PostGIS gerektirecek karmaşıklık ufukta yok.

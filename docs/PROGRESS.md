@@ -15,6 +15,15 @@
 
 ---
 
+## 2026-07-03 (3) — GitHub + lokal MySQL
+
+- Remote: https://github.com/talhabekci/sahana.git (`origin/main`).
+- Commit kuralı (kullanıcı talebi): mesajlarda Claude/co-author atfı YOK;
+  mevcut commit'lerden de temizlendi (filter-branch).
+- Lokal DB: Sail yerine kullanıcının brew MySQL'i (9.5) — `sahana` veritabanı,
+  `root`/şifresiz, `127.0.0.1`. Migration'lar çalıştı, testler yeşil.
+  `.env` + `.env.example` güncellendi; docs (ROADMAP, tech-stack, architecture) işlendi.
+
 ## 2026-07-03 (2) — Faz 0 tamamlandı: monorepo iskeleti
 
 - Kök repo `git init` (main); ilk commit: 143 dosya.
