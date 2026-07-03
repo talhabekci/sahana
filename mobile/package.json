@@ -3,7 +3,11 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@expo-google-fonts/barlow-condensed": "^0.4.1",
+    "@expo-google-fonts/manrope": "^0.4.2",
+    "@expo-google-fonts/space-mono": "^0.4.2",
     "@expo/ui": "~57.0.3",
+    "@expo/vector-icons": "^15.0.2",
     "@tanstack/react-query": "^5.101.2",
     "axios": "^1.18.1",
     "expo": "~57.0.2",

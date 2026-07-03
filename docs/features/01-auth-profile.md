@@ -43,7 +43,7 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 ## Ekranlar (expo-router)
 ```
 (auth)/welcome      → değer önerisi + "Telefonla devam et" / Google / Apple
-(auth)/phone        → numara girişi
+(auth)/identifier   → telefon/e-posta girişi (e-posta OTP kararı sonrası)
 (auth)/otp          → 6 haneli kod, 120sn geri sayım, tekrar gönder
 (auth)/onboarding   → isim → mevki(ler) → seviye → şehir (adım adım, atlanabilir alanlar hariç)
 (tabs)/profile      → kendi profilim + düzenle
@@ -62,6 +62,7 @@ player/[id]         → başka oyuncunun profili
 | PATCH | /me | Profil güncelleme |
 | DELETE | /me | Hesap silme (soft delete + 30 gün sonra purge job) |
 | GET | /players/{publicId} | Herkese açık profil |
+| GET | /cities | 81 il listesi (onboarding şehir seçimi) |
 
 OTP kodu: 6 hane, 120 sn geçerli, cache store'da hash'lenmiş (lokal: database
 driver, prod: Redis), 5 yanlış denemede kilit (429 `otp_locked`).

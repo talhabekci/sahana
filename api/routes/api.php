@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CityController;
 use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\PlayerController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/verify', [AuthController::class, 'verify']);
 
     Route::get('/players/{PublicId}', [PlayerController::class, 'show']);
+    Route::get('/cities', [CityController::class, 'index']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);

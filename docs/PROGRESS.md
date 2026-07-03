@@ -8,12 +8,38 @@
 | Modül | Durum |
 |---|---|
 | Faz 0 — Altyapı | ✅ Tamamlandı (2026-07-03) |
-| 1 — Kimlik & Profil | 🔨 API tamam (2026-07-03) · mobil ekranlar bekliyor |
+| 1 — Kimlik & Profil | ✅ API + mobil tamam (2026-07-03) · cihazda kullanıcı testi bekliyor |
 | 2 — Takım & Kadro | ⬜ Başlamadı |
 | 3 — Maç Organizasyonu | ⬜ Başlamadı |
 | 4-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-03 (5) — Modül 1 mobil ekranları tamamlandı
+
+- **Tasarım sistemi "Gece Maçı":** koyu çim zemini (#0B1F14), tebeşir saha
+  çizgileri motifi (PitchLines), tek aksan projektör limonu (#C9F24E).
+  Fontlar: Barlow Condensed (display), Manrope (gövde), Space Mono (kod/skor).
+  Token'lar `src/shared/ui/theme.ts` — ekranlarda ham hex yasak.
+- **İmza etkileşimler:** onboarding'de mevki seçimi mini saha üzerinde
+  (PitchPositionPicker); OTP girişi skorbord hücreleri (OtpInput).
+- **Akış:** welcome → identifier (tek alan: telefon/e-posta) → otp (120 sn
+  sayaç, otomatik gönderim, tekrar gönder) → onboarding (isim → mevki → seviye
+  → şehir, 4 adım) → (tabs)/profile. Token SecureStore'da; kök _layout auth
+  kapısı yönlendirmeyi yapıyor.
+- **Ekranlar:** (tabs) profil (forma kartı: isim, mevki çipleri, seviye rozeti,
+  çıkış + KVKK hesap silme) ve maçlar (Modül 3 için "yakında" boş durumu).
+- **Altyapı:** axios client (`EXPO_PUBLIC_API_URL`, varsayılan
+  http://127.0.0.1:8000/api/v1 — fiziksel cihazda LAN IP gerekir), API hata
+  zarfı normalize ediliyor (`toApiFailure`), TanStack Query + Zustand.
+- API'ye `GET /cities` eklendi (onboarding şehir seçimi; spec güncellendi).
+- Şablon artıkları silindi (components/hooks/constants, explore).
+  Doğrulama: mobil lint + tsc temiz; API 26 test + Pint + Larastan yeşil.
+
+### Sonraki adım
+- Cihazda/simülatörde kullanıcı testi: `php artisan serve` (api/) +
+  `npx expo start` (mobile/); OTP kodu `storage/logs/laravel.log`'a düşer.
+- Sonra Modül 2: docs/features/02-team-lineup.md (takım & kadro).
 
 ## 2026-07-03 (4) — Modül 1 API tamamlandı
 
