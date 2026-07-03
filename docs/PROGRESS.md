@@ -15,6 +15,18 @@
 
 ---
 
+## 2026-07-03 (6) — Expo SDK 57 → 54 düşürüldü (geçici)
+
+- **Neden:** Expo Go'nun SDK 57 sürümü Apple incelemesinde, App Store'daki
+  sürüm SDK 54 destekliyor; kullanıcı kendi iPhone'unda test etmek istedi.
+- expo@54.0.35 / expo-router@6 / RN 0.81.5; temiz npm install; expo-doctor
+  17/17, tsc + lint yeşil. Kod değişikliği gerekmedi.
+- **Geri yükseltme:** Expo Go 57 App Store'a düşünce `npm install expo@^57 &&
+  npx expo install --fix` ile dönülecek (not: SDK 57'nin react-server-dom
+  bağımlılıkları için node_modules temiz kurulum gerekebilir).
+- Cihaz testi için `mobile/.env` → EXPO_PUBLIC_API_URL=http://192.168.1.113:8000/api/v1
+  (Wi-Fi değişirse IP güncellenmeli).
+
 ## 2026-07-03 (5) — Modül 1 mobil ekranları tamamlandı
 
 - **Tasarım sistemi "Gece Maçı":** koyu çim zemini (#0B1F14), tebeşir saha
