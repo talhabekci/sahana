@@ -3,8 +3,12 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CityController;
 use App\Http\Controllers\Api\V1\LineupController;
+use App\Http\Controllers\Api\V1\ListingApplicationController;
+use App\Http\Controllers\Api\V1\MatchController;
 use App\Http\Controllers\Api\V1\MeController;
+use App\Http\Controllers\Api\V1\OpponentListingController;
 use App\Http\Controllers\Api\V1\PlayerController;
+use App\Http\Controllers\Api\V1\PlayerListingController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\TeamInviteController;
 use App\Http\Controllers\Api\V1\TeamMemberController;
@@ -42,5 +46,24 @@ Route::prefix('v1')->group(function () {
         Route::post('/teams/{Team}/lineups', [LineupController::class, 'store']);
         Route::get('/lineups/{Lineup}', [LineupController::class, 'show']);
         Route::patch('/lineups/{Lineup}', [LineupController::class, 'update']);
+
+        Route::get('/matches', [MatchController::class, 'index']);
+        Route::post('/matches', [MatchController::class, 'store']);
+        Route::get('/matches/{Match}', [MatchController::class, 'show']);
+        Route::patch('/matches/{Match}', [MatchController::class, 'update']);
+        Route::post('/matches/{Match}/confirm', [MatchController::class, 'confirm']);
+        Route::post('/matches/{Match}/cancel', [MatchController::class, 'cancel']);
+        Route::put('/matches/{Match}/rsvp', [MatchController::class, 'rsvp']);
+
+        Route::post('/matches/{Match}/listings', [PlayerListingController::class, 'store']);
+        Route::get('/listings', [PlayerListingController::class, 'index']);
+        Route::get('/listings/{Listing}', [PlayerListingController::class, 'show']);
+        Route::post('/listings/{Listing}/applications', [ListingApplicationController::class, 'store']);
+        Route::post('/applications/{Application}/approve', [ListingApplicationController::class, 'approve']);
+        Route::post('/applications/{Application}/reject', [ListingApplicationController::class, 'reject']);
+
+        Route::post('/opponent-listings', [OpponentListingController::class, 'store']);
+        Route::get('/opponent-listings', [OpponentListingController::class, 'index']);
+        Route::post('/opponent-listings/{Listing}/match', [OpponentListingController::class, 'matchListing']);
     });
 });

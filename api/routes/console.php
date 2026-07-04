@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // KVKK: 30 günden eski soft-delete hesapları kalıcı sil (spec: 01-auth-profile.md)
 Schedule::command('users:purge')->daily();
+
+// Saati geçen maçlar played, süresi dolan ilanlar expired (spec: 03-match-organization.md)
+Schedule::command('matches:sweep')->hourly();
