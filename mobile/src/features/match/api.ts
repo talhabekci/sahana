@@ -1,0 +1,200 @@
+import { Api } from '@/shared/api/client';
+
+export type MatchStatus = 'draft' | 'confirmed' | 'played' | 'cancelled';
+export type Rsvp = 'yes' | 'no' | 'maybe';
+
+export type MatchTeamSummary = {
+  id: string;
+  name: string;
+  badge_icon: string;
+  color_home: string;
+};
+
+export type MatchParticipant = {
+  id: string;
+  name: string | null;
+  rsvp: Rsvp | null;
+  source: 'team' | 'listing';
+};
+
+export type Match = {
+  id: string;
+  team?: MatchTeamSummary;
+  opponent_team?: MatchTeamSummary | null;
+  venue_text: string;
+  venue_lat: number | null;
+  venue_lng: number | null;
+  starts_at: string;
+  format: number;
+  price_per_player: number | null;
+  status: MatchStatus;
+  my_rsvp: Rsvp | null;
+  i_am_captain?: boolean;
+  rsvp_summary?: { yes: number; no: number; maybe: number; pending: number };
+  participants?: MatchParticipant[];
+  listings?: { id: string; status: string; needed_count: number; positions_needed: string[] }[];
+};
+
+export type ListingApplication = {
+  id: string;
+  note: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  applicant?: { id: string; name: string | null; avatar_path: string | null };
+};
+
+export type PlayerListing = {
+  id: string;
+  positions_needed: string[];
+  needed_count: number;
+  level_min: number;
+  level_max: number;
+  lat: number;
+  lng: number;
+  status: 'open' | 'filled' | 'expired';
+  expires_at: string;
+  distance_km?: number;
+  my_application_status?: 'pending' | 'approved' | 'rejected' | null;
+  match?: {
+    id: string;
+    starts_at: string;
+    venue_text: string;
+    format: number;
+    price_per_player: number | null;
+    team_name: string | null;
+  };
+  applications?: ListingApplication[];
+};
+
+export type OpponentListing = {
+  id: string;
+  note: string | null;
+  status: 'open' | 'matched' | 'expired';
+  team?: MatchTeamSummary;
+  match?: { id: string; starts_at: string; venue_text: string; format: number } | null;
+};
+
+export type CreateMatchPayload = {
+  team_id: string;
+  venue_text: string;
+  starts_at: string;
+  format: number;
+  price_per_player?: number | null;
+};
+
+export type CreateListingPayload = {
+  positions_needed: string[];
+  needed_count: number;
+  level_min: number;
+  level_max: number;
+  lat: number;
+  lng: number;
+};
+
+export async function listMatches(filter: 'upcoming' | 'past'): Promise<Match[]> {
+  const { data } = await Api.get<{ data: Match[] }>('/matches', { params: { filter } });
+
+  return data.data;
+}
+
+export async function createMatch(payload: CreateMatchPayload): Promise<Match> {
+  const { data } = await Api.post<{ data: Match }>('/matches', payload);
+
+  return data.data;
+}
+
+export async function getMatch(matchId: string): Promise<Match> {
+  const { data } = await Api.get<{ data: Match }>(`/matches/${matchId}`);
+
+  return data.data;
+}
+
+export async function confirmMatch(matchId: string): Promise<Match> {
+  const { data } = await Api.post<{ data: Match }>(`/matches/${matchId}/confirm`);
+
+  return data.data;
+}
+
+export async function cancelMatch(matchId: string): Promise<Match> {
+  const { data } = await Api.post<{ data: Match }>(`/matches/${matchId}/cancel`);
+
+  return data.data;
+}
+
+export async function submitRsvp(matchId: string, status: Rsvp): Promise<Match> {
+  const { data } = await Api.put<{ data: Match }>(`/matches/${matchId}/rsvp`, { status });
+
+  return data.data;
+}
+
+export async function createListing(matchId: string, payload: CreateListingPayload): Promise<PlayerListing> {
+  const { data } = await Api.post<{ data: PlayerListing }>(`/matches/${matchId}/listings`, payload);
+
+  return data.data;
+}
+
+export async function discoverListings(params: {
+  near?: string;
+  radius?: number;
+  position?: string;
+  date?: string;
+}): Promise<PlayerListing[]> {
+  const { data } = await Api.get<{ data: PlayerListing[] }>('/listings', { params });
+
+  return data.data;
+}
+
+export async function getListing(listingId: string): Promise<PlayerListing> {
+  const { data } = await Api.get<{ data: PlayerListing }>(`/listings/${listingId}`);
+
+  return data.data;
+}
+
+export async function applyToListing(listingId: string, note?: string): Promise<ListingApplication> {
+  const { data } = await Api.post<{ data: ListingApplication }>(
+    `/listings/${listingId}/applications`,
+    note != null && note !== '' ? { note } : {},
+  );
+
+  return data.data;
+}
+
+export async function decideApplication(
+  applicationId: string,
+  decision: 'approve' | 'reject',
+): Promise<ListingApplication> {
+  const { data } = await Api.post<{ data: ListingApplication }>(
+    `/applications/${applicationId}/${decision}`,
+  );
+
+  return data.data;
+}
+
+export async function createOpponentListing(payload: {
+  team_id: string;
+  match_id?: string | null;
+  note?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+}): Promise<OpponentListing> {
+  const { data } = await Api.post<{ data: OpponentListing }>('/opponent-listings', payload);
+
+  return data.data;
+}
+
+export async function discoverOpponentListings(params: {
+  near?: string;
+  radius?: number;
+}): Promise<OpponentListing[]> {
+  const { data } = await Api.get<{ data: OpponentListing[] }>('/opponent-listings', { params });
+
+  return data.data;
+}
+
+export async function matchOpponentListing(listingId: string, teamId: string): Promise<OpponentListing> {
+  const { data } = await Api.post<{ data: OpponentListing }>(
+    `/opponent-listings/${listingId}/match`,
+    { team_id: teamId },
+  );
+
+  return data.data;
+}

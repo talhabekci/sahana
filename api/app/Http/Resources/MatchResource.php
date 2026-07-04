@@ -56,6 +56,13 @@ class MatchResource extends JsonResource
                     'rsvp' => $Participant->rsvp,
                     'source' => $Participant->source,
                 ])->values()->all()),
+            'listings' => $this->whenLoaded('listings', fn (): array => $this->listings
+                ->map(fn ($Listing): array => [
+                    'id' => $Listing->public_id,
+                    'status' => $Listing->status,
+                    'needed_count' => $Listing->needed_count,
+                    'positions_needed' => $Listing->positions_needed,
+                ])->values()->all()),
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

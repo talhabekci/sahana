@@ -10,10 +10,43 @@
 | Faz 0 — Altyapı | ✅ Tamamlandı (2026-07-03) |
 | 1 — Kimlik & Profil | ✅ API + mobil tamam (2026-07-03) · cihazda kullanıcı testi bekliyor |
 | 2 — Takım & Kadro | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
-| 3 — Maç Organizasyonu | ⬜ Başlamadı |
+| 3 — Maç Organizasyonu | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
 | 4-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-04 (2) — Modül 3 tamamlandı: Maç Organizasyonu & Oyuncu Bulma
+
+- **API:** matches (FootballMatch modeli — `match` PHP'de ayrılmış sözcük),
+  match_participants, player_listings, listing_applications, opponent_listings.
+  Maç kur (takım üyeleri otomatik katılımcı) → RSVP (idempotent) → adam eksik
+  ilanı → başvuru → kaptan onayı (katılımcı ekle + sayaç düş + dolunca filled).
+  Rakip ilanı: aç → keşifte listele → rakip kaptan "maç yapalım" →
+  opponent_team_id dolar. matches:sweep (saatlik): geçmiş maçlar played,
+  süresi dolan ilanlar expired. MatchPolicy elle Gate::policy ile bağlı.
+- **Konum kararı (spec'e işlendi):** v1'de POINT yerine lat/lng decimal +
+  bileşik indeks + bounding-box; mesafe sıralaması PHP haversine (Support/Geo).
+  Gerekçe: test paketi sqlite; 10-50 km için doğruluk yeterli.
+- **Öğrenilen:** Eloquent `create()` DB varsayılanlarını (status kolonları)
+  bellekteki modele yansıtmaz — create sonrası `refresh()` gerekiyor
+  (üç action'da düzeltildi).
+- **Mobil:** matches sekmesi gerçek listeye dönüştü (Yaklaşan/Geçmiş +
+  durum/RSVP özeti kartları); match/create sihirbazı (takım, saha, 14 günlük
+  gün şeridi + saat çipleri, format, ücret — native date picker bağımlılığı
+  yok); match/[id] detay (üç durumlu RSVP, kadro listesi, kaptan aksiyonları:
+  onayla/iptal/adam-eksik/rakip ilanı); match/[id]/listing (ilan formu:
+  mevki çipleri + kişi stepper + seviye aralığı; başvuru onay/red);
+  listings keşfi (expo-location + İstanbul fallback, Adam Eksik / Rakip
+  Arayanlar sekmeleri, mesafe rozetli kartlar, tek dokunuş başvuru).
+- API 83 test + Pint + Larastan yeşil; mobil lint + tsc temiz.
+- **MVP tamam:** Modül 1+2+3 bitti — ROADMAP'e göre store'a çıkılabilir
+  seviye; öncesinde cihazda uçtan uca kullanıcı testi şart.
+
+### Sonraki adım
+- Kullanıcı cihaz testi (özellikle: maç kur → RSVP → ilan → başvuru → onay
+  zinciri iki hesapla).
+- Sonrası ROADMAP sırasına göre Modül 4 (Sosyal Katman) — veya kullanıcı
+  tercihiyle store hazırlığı (ikon, splash, EAS build, TestFlight).
 
 ## 2026-07-04 — Modül 2 tamamlandı: Takım & Kadro Kurma
 
