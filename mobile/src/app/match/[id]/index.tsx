@@ -1,12 +1,28 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 import {
+  addMatchVideo,
   cancelMatch,
   confirmMatch,
   createOpponentListing,
   getMatch,
+  listMatchVideos,
   Rsvp,
   submitRsvp,
 } from '@/features/match/api';
@@ -30,9 +46,28 @@ export default function MatchDetail() {
 
   const Match_ = useQuery({ queryKey: ['matches', id], queryFn: () => getMatch(id) });
 
+  const [VideoModalVisible, setVideoModalVisible] = useState(false);
+  const [VideoUrl, setVideoUrl] = useState('');
+
+  const Videos = useQuery({
+    queryKey: ['matches', id, 'videos'],
+    queryFn: () => listMatchVideos(id),
+    enabled: Match_.data?.status === 'played',
+  });
+
   const invalidate = () => {
     void QueryClient.invalidateQueries({ queryKey: ['matches'] });
   };
+
+  const AddVideo = useMutation({
+    mutationFn: () => addMatchVideo(id, VideoUrl.trim()),
+    onSuccess: () => {
+      setVideoModalVisible(false);
+      setVideoUrl('');
+      void QueryClient.invalidateQueries({ queryKey: ['matches', id, 'videos'] });
+    },
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
 
   const Rsvp_ = useMutation({
     mutationFn: (Status: Rsvp) => submitRsvp(id, Status),
@@ -163,6 +198,54 @@ export default function MatchDetail() {
           ))}
         </View>
 
+        {Data.status === 'played' && (
+          <>
+            <Text style={styles.sectionLabel}>VİDEOLAR</Text>
+
+            {Videos.isPending ? (
+              <ActivityIndicator color={Palette.lime} style={styles.videoSpinner} />
+            ) : (Videos.data ?? []).length === 0 ? (
+              <Text style={styles.emptyVideoText}>Henüz video eklenmedi.</Text>
+            ) : (
+              <View style={styles.videoList}>
+                {(Videos.data ?? []).map((Video_) => (
+                  <Pressable
+                    key={Video_.id}
+                    accessibilityRole="button"
+                    onPress={() => {
+                      if (Video_.url != null) {
+                        void WebBrowser.openBrowserAsync(Video_.url);
+                      }
+                    }}
+                    style={styles.videoRow}>
+                    {Video_.thumbnail_url != null ? (
+                      <Image source={{ uri: Video_.thumbnail_url }} style={styles.videoThumb} />
+                    ) : (
+                      <View style={[styles.videoThumb, styles.videoThumbPlaceholder]}>
+                        <Ionicons name="play-circle-outline" size={22} color={Palette.lime} />
+                      </View>
+                    )}
+                    <Text style={styles.videoTitle} numberOfLines={1}>
+                      {Video_.title ?? 'Maç videosu'}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+
+            {Data.i_am_participant === true && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setVideoModalVisible(true)}
+                style={styles.addVideoButton}
+                hitSlop={8}>
+                <Ionicons name="add-circle-outline" size={18} color={Palette.lime} />
+                <Text style={styles.addVideoText}>Video ekle</Text>
+              </Pressable>
+            )}
+          </>
+        )}
+
         {Data.i_am_captain === true && IsOpen && (
           <View style={styles.captainBlock}>
             <Text style={styles.sectionLabel}>KAPTAN</Text>
@@ -197,6 +280,34 @@ export default function MatchDetail() {
           </View>
         )}
       </ScrollView>
+
+      <Modal visible={VideoModalVisible} transparent animationType="slide">
+        <Pressable style={styles.modalBackdrop} onPress={() => setVideoModalVisible(false)} />
+        <View style={styles.modalSheet}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.modalTitle}>Video ekle</Text>
+          <Text style={styles.modalSub}>YouTube veya sosyalhalisaha video linkini yapıştır.</Text>
+
+          <TextInput
+            value={VideoUrl}
+            onChangeText={setVideoUrl}
+            placeholder="https://..."
+            placeholderTextColor={Palette.moss}
+            selectionColor={Palette.lime}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            style={styles.videoInput}
+          />
+
+          <Button
+            label="Ekle"
+            onPress={() => AddVideo.mutate()}
+            disabled={VideoUrl.trim().length < 8}
+            loading={AddVideo.isPending}
+          />
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -339,5 +450,95 @@ const styles = StyleSheet.create({
     color: Palette.clay,
     textAlign: 'center',
     paddingVertical: space(2),
+  },
+  videoSpinner: {
+    marginVertical: space(2),
+  },
+  emptyVideoText: {
+    fontFamily: Type.body,
+    fontSize: 14,
+    color: Palette.moss,
+  },
+  videoList: {
+    gap: space(2),
+  },
+  videoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(3),
+    backgroundColor: Palette.turf,
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    padding: space(2),
+  },
+  videoThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: Radius.s,
+    backgroundColor: Palette.turfRaised,
+  },
+  videoThumbPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoTitle: {
+    flex: 1,
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.chalk,
+  },
+  addVideoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    marginTop: space(3),
+  },
+  addVideoText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.lime,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalSheet: {
+    backgroundColor: Palette.turf,
+    borderTopLeftRadius: Radius.l,
+    borderTopRightRadius: Radius.l,
+    paddingHorizontal: space(5),
+    paddingTop: space(3),
+    paddingBottom: space(8),
+    gap: space(3),
+  },
+  modalHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Palette.lineFaint,
+    marginBottom: space(2),
+  },
+  modalTitle: {
+    fontFamily: Type.displaySemi,
+    fontSize: 22,
+    color: Palette.chalk,
+  },
+  modalSub: {
+    fontFamily: Type.body,
+    fontSize: 14,
+    color: Palette.moss,
+  },
+  videoInput: {
+    height: 48,
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    backgroundColor: Palette.turfRaised,
+    paddingHorizontal: space(4),
+    fontFamily: Type.body,
+    fontSize: 14,
+    color: Palette.chalk,
   },
 });

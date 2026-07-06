@@ -1,6 +1,6 @@
 import { Api } from '@/shared/api/client';
 
-export type PostType = 'text' | 'match_played' | 'lineup_shared';
+export type PostType = 'text' | 'match_played' | 'lineup_shared' | 'video_shared';
 
 export type PostAuthor = {
   id: string;
@@ -28,6 +28,13 @@ export type Post = {
     opponent_team_name: string | null;
   } | null;
   lineup?: { id: string; name: string } | null;
+  video?: {
+    id: string;
+    url: string | null;
+    provider: 'youtube' | 'sosyalhalisaha' | 'other';
+    title: string | null;
+    thumbnail_url: string | null;
+  } | null;
   likes_count: number;
   comments_count: number;
   i_liked: boolean;

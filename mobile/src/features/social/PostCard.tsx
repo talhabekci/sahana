@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Post } from './api';
 import { badgeIonicon } from '@/features/team/constants';
@@ -53,6 +54,34 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor }: Props) 
           <Text style={styles.autoKicker}>📋 KADRO PAYLAŞILDI</Text>
           <Text style={styles.autoText}>{post.lineup.name}</Text>
         </View>
+      )}
+
+      {post.type === 'video_shared' && post.video != null && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            if (post.video?.url != null) {
+              void WebBrowser.openBrowserAsync(post.video.url);
+            }
+          }}
+          style={styles.videoCard}>
+          {post.video.thumbnail_url != null ? (
+            <Image source={{ uri: post.video.thumbnail_url }} style={styles.videoThumbnail} />
+          ) : (
+            <View style={[styles.videoThumbnail, styles.videoThumbnailPlaceholder]}>
+              <Ionicons name="play-circle" size={36} color={Palette.lime} />
+            </View>
+          )}
+          <View style={styles.videoPlayBadge}>
+            <Ionicons name="play" size={14} color={Palette.limeInk} />
+          </View>
+          <View style={styles.videoInfo}>
+            <Text style={styles.autoKicker}>🎬 VİDEO PAYLAŞILDI</Text>
+            <Text style={styles.autoText} numberOfLines={1}>
+              {post.video.title ?? 'Maç videosunu izle'}
+            </Text>
+          </View>
+        </Pressable>
       )}
 
       <View style={styles.footer}>
@@ -137,6 +166,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Palette.chalk,
     marginTop: 2,
+  },
+  videoCard: {
+    marginTop: space(3),
+  },
+  videoThumbnail: {
+    width: '100%',
+    height: 160,
+    borderRadius: Radius.m,
+    backgroundColor: Palette.turfRaised,
+  },
+  videoThumbnailPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoPlayBadge: {
+    position: 'absolute',
+    top: space(3),
+    right: space(3),
+    width: 28,
+    height: 28,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.lime,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  videoInfo: {
+    marginTop: space(2),
   },
   footer: {
     flexDirection: 'row',

@@ -30,9 +30,23 @@ export type Match = {
   status: MatchStatus;
   my_rsvp: Rsvp | null;
   i_am_captain?: boolean;
+  i_am_participant?: boolean;
   rsvp_summary?: { yes: number; no: number; maybe: number; pending: number };
   participants?: MatchParticipant[];
   listings?: { id: string; status: string; needed_count: number; positions_needed: string[] }[];
+};
+
+export type VideoProvider = 'youtube' | 'sosyalhalisaha' | 'other';
+
+export type MatchVideo = {
+  id: string;
+  type: 'external_link' | 'uploaded';
+  provider: VideoProvider;
+  url: string | null;
+  title: string | null;
+  thumbnail_url: string | null;
+  uploader?: { id: string; name: string | null };
+  created_at: string;
 };
 
 export type ListingApplication = {
@@ -195,6 +209,18 @@ export async function matchOpponentListing(listingId: string, teamId: string): P
     `/opponent-listings/${listingId}/match`,
     { team_id: teamId },
   );
+
+  return data.data;
+}
+
+export async function listMatchVideos(matchId: string): Promise<MatchVideo[]> {
+  const { data } = await Api.get<{ data: MatchVideo[] }>(`/matches/${matchId}/videos`);
+
+  return data.data;
+}
+
+export async function addMatchVideo(matchId: string, url: string): Promise<MatchVideo> {
+  const { data } = await Api.post<{ data: MatchVideo }>(`/matches/${matchId}/videos`, { url });
 
   return data.data;
 }
