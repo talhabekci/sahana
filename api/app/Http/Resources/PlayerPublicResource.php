@@ -19,6 +19,8 @@ class PlayerPublicResource extends JsonResource
      */
     public function toArray(Request $Request): array
     {
+        $CurrentUser = $Request->user();
+
         return [
             'id' => $this->public_id,
             'name' => $this->name,
@@ -31,6 +33,14 @@ class PlayerPublicResource extends JsonResource
                 'district' => $this->profile?->district,
                 'bio' => $this->profile?->bio,
             ]),
+            'followers_count' => $this->followers_count ?? $this->followers()->count(),
+            'following_count' => $this->following_count ?? $this->following()->count(),
+            'is_following' => $CurrentUser !== null && $CurrentUser->id !== $this->id
+                ? $CurrentUser->isFollowing($this->resource)
+                : null,
+            'is_blocked' => $CurrentUser !== null && $CurrentUser->id !== $this->id
+                ? $CurrentUser->hasBlocked($this->resource)
+                : null,
         ];
     }
 }

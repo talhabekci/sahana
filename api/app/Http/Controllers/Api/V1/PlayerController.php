@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PlayerPublicResource;
+use App\Http\Resources\PostResource;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PlayerController extends Controller
 {
@@ -13,8 +16,31 @@ class PlayerController extends Controller
         $User = User::query()
             ->where('public_id', $PublicId)
             ->with('profile.city')
+            ->withCount(['followers', 'following'])
             ->firstOrFail();
 
         return new PlayerPublicResource($User);
+    }
+
+    /** Oyuncunun herkese açık gönderileri (engel varsa 404 gibi davranır). */
+    public function posts(Request $Request, string $PublicId): AnonymousResourceCollection
+    {
+        /** @var User $Viewer */
+        $Viewer = $Request->user();
+
+        $User = User::where('public_id', $PublicId)->firstOrFail();
+
+        if ($Viewer->isBlockedWith($User)) {
+            abort(404);
+        }
+
+        $Posts = $User->posts()
+            ->with(['user.profile', 'team', 'match.opponentTeam', 'lineup'])
+            ->withCount(['likes', 'comments'])
+            ->latest()
+            ->limit(30)
+            ->get();
+
+        return PostResource::collection($Posts);
     }
 }

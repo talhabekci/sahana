@@ -87,6 +87,12 @@ class FootballMatch extends Model
         return $this->hasMany(PlayerListing::class, 'match_id');
     }
 
+    /** @return BelongsTo<User, $this> */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function isCaptain(User $User): bool
     {
         return $this->team->isCaptain($User);

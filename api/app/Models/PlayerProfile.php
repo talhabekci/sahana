@@ -22,6 +22,7 @@ class PlayerProfile extends Model
         'district',
         'availability',
         'bio',
+        'auto_posts_enabled',
     ];
 
     /** @return array<string, string> */
@@ -31,6 +32,7 @@ class PlayerProfile extends Model
             'positions' => 'array',
             'availability' => 'array',
             'level' => 'integer',
+            'auto_posts_enabled' => 'boolean',
         ];
     }
 
