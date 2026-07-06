@@ -1,6 +1,6 @@
 # Modül 4 — Sosyal Katman (Feed)
 
-> Durum: **Uygulanıyor** (2026-07-04) · MVP sonrası · Bağımlılık: Modül 1-3
+> Durum: **Tamamlandı** (2026-07-06) · MVP sonrası · Bağımlılık: Modül 1-3
 
 ## Amaç
 Uygulamayı "araçtan" "her gün açılan yere" dönüştürmek: maç aktiviteleri,
@@ -92,12 +92,12 @@ gelince eklenir).
   geçiş kolay olacak şekilde tek bir `ProfanityFilter` sınıfında izole.
 
 ## Kabul Kriterleri
-- [ ] Takip + kendi takımlarının gönderileri feed'de kronolojik görünüyor
-- [ ] Maç `played` olunca ilgili takımın üyelerine otomatik kart düşüyor
-- [ ] Engellenen kullanıcının gönderileri feed'de görünmüyor
-- [ ] Küfürlü içerik 422 ile reddediliyor
-- [ ] Şikayet ve engelleme uçtan uca çalışıyor (policy + test)
-- [ ] Bir kullanıcı kendi gönderisini/yorumunu silebiliyor; başkasınınkini silemiyor
+- [x] Takip + kendi takımlarının gönderileri feed'de kronolojik görünüyor
+- [x] Maç `played` olunca ilgili takımın üyelerine otomatik kart düşüyor
+- [x] Engellenen kullanıcının gönderileri feed'de görünmüyor
+- [x] Küfürlü içerik 422 ile reddediliyor
+- [x] Şikayet ve engelleme uçtan uca çalışıyor (policy + test)
+- [x] Bir kullanıcı kendi gönderisini/yorumunu silebiliyor; başkasınınkini silemiyor
 
 ## Açık Sorular
 - [x] ~~Takım hesabı adına gönderi kim atabilir?~~ → Tüm üyeler (kullanıcı

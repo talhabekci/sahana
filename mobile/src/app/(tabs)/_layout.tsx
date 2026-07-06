@@ -21,6 +21,15 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: Palette.pitchNight },
       }}>
       <Tabs.Screen
+        name="feed"
+        options={{
+          title: 'Akış',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="newspaper-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="matches"
         options={{
           title: 'Maçlar',

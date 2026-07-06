@@ -1,0 +1,153 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { getFeed, likePost, Post, unlikePost } from '@/features/social/api';
+import { PostCard } from '@/features/social/PostCard';
+import { Button } from '@/shared/ui/Button';
+import { Screen } from '@/shared/ui/Screen';
+import { Palette, Type, space } from '@/shared/ui/theme';
+
+export default function Feed() {
+  const Router = useRouter();
+  const QueryClient = useQueryClient();
+
+  const Feed_ = useInfiniteQuery({
+    queryKey: ['feed'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => getFeed(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (LastPage) => LastPage.nextCursor ?? undefined,
+  });
+
+  const ToggleLike = useMutation({
+    mutationFn: ({ post }: { post: Post }) => (post.i_liked ? unlikePost(post.id) : likePost(post.id)),
+    onMutate: async ({ post }) => {
+      await QueryClient.cancelQueries({ queryKey: ['feed'] });
+
+      QueryClient.setQueryData(
+        ['feed'],
+        (Current: typeof Feed_.data) =>
+          Current != null && {
+            ...Current,
+            pages: Current.pages.map((Page) => ({
+              ...Page,
+              data: Page.data.map((Item) =>
+                Item.id === post.id
+                  ? {
+                      ...Item,
+                      i_liked: !Item.i_liked,
+                      likes_count: Item.likes_count + (Item.i_liked ? -1 : 1),
+                    }
+                  : Item,
+              ),
+            })),
+          },
+      );
+    },
+  });
+
+  const Posts = Feed_.data?.pages.flatMap((Page) => Page.data) ?? [];
+
+  return (
+    <Screen pitch pitchY={-160} bare>
+      <View style={styles.header}>
+        <Text style={styles.kicker}>AKIŞ</Text>
+        <Pressable accessibilityRole="button" onPress={() => Router.push('/search')} hitSlop={12}>
+          <Ionicons name="search-outline" size={22} color={Palette.chalk} />
+        </Pressable>
+      </View>
+
+      {Feed_.isPending ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={Palette.lime} />
+        </View>
+      ) : (
+        <FlatList
+          data={Posts}
+          keyExtractor={(Item) => Item.id}
+          contentContainerStyle={styles.list}
+          onEndReachedThreshold={0.4}
+          onEndReached={() => {
+            if (Feed_.hasNextPage === true && !Feed_.isFetchingNextPage) {
+              void Feed_.fetchNextPage();
+            }
+          }}
+          ListFooterComponent={
+            Feed_.isFetchingNextPage ? (
+              <ActivityIndicator color={Palette.lime} style={styles.footerSpinner} />
+            ) : null
+          }
+          renderItem={({ item }) => (
+            <PostCard
+              post={item}
+              onPress={() => Router.push(`/post/${item.id}`)}
+              onToggleLike={() => ToggleLike.mutate({ post: item })}
+              onPressAuthor={item.author != null ? () => Router.push(`/player/${item.author?.id}`) : undefined}
+            />
+          )}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyText}>
+                Henüz akışın boş. Takım arkadaşlarını takip et ya da ilk gönderini paylaş.
+              </Text>
+            </View>
+          }
+        />
+      )}
+
+      <View style={styles.footer}>
+        <Button label="Gönderi paylaş" onPress={() => Router.push('/post/create')} />
+      </View>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: space(4),
+    paddingHorizontal: space(6),
+  },
+  kicker: {
+    fontFamily: Type.mono,
+    fontSize: 13,
+    letterSpacing: 5,
+    color: Palette.lime,
+    marginBottom: space(3),
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  list: {
+    paddingHorizontal: space(6),
+    paddingBottom: space(6),
+  },
+  separator: {
+    height: space(3),
+  },
+  footerSpinner: {
+    marginVertical: space(4),
+  },
+  empty: {
+    paddingVertical: space(10),
+  },
+  emptyText: {
+    fontFamily: Type.body,
+    fontSize: 15,
+    lineHeight: 22,
+    color: Palette.moss,
+    textAlign: 'center',
+  },
+  footer: {
+    paddingHorizontal: space(6),
+    paddingVertical: space(4),
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Palette.lineFaint,
+  },
+});

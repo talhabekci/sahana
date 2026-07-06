@@ -11,9 +11,31 @@
 | 1 — Kimlik & Profil | ✅ API + mobil tamam (2026-07-03) · cihazda kullanıcı testi bekliyor |
 | 2 — Takım & Kadro | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
 | 3 — Maç Organizasyonu | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
-| 4-8 | ⬜ Başlamadı |
+| 4 — Sosyal Katman | ✅ API + mobil tamam (2026-07-06) · cihazda kullanıcı testi bekliyor |
+| 5-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-06 — Modül 4 tamamlandı: Sosyal Katman (mobil)
+
+- **Karar (kullanıcı):** Takıma etiketli gönderiyi herhangi bir takım üyesi
+  paylaşabilir (sadece kaptan değil). 04-social-feed.md'ye işlendi.
+- **Ekranlar:** (tabs)/feed (cursor-paginate akış, optimistic beğeni,
+  "Gönderi paylaş" CTA, arama ikonu), post/create (metin gönderi + opsiyonel
+  takım etiketleme çipleri, 500 karakter sayaç), post/[id] (detay + yorumlar,
+  yorum composer'ı, "..." menüsünden şikayet/sil), player/[id] (herkese açık
+  profil: takipçi/takip sayıları, takip et/çık, engelle/kaldır, engellenmiş
+  kullanıcının gönderileri gizlenir, şikayet), search/index (oyuncu/takım
+  sekmeli arama, 2+ karakterde tetiklenir).
+- **Bug fix (kendi hatam):** post/create.tsx'i ilk yazışımda gönderi metni
+  kutusu işlevsiz bir `Pressable` idi (boş `onPress`), gerçek metin girişi
+  yapılamıyordu — fark edip gerçek `TextInput`'a çevirdim.
+- Yazar adına dokunarak player/[id]'ye gitme feed + post detayına eklendi
+  (PostCard'a opsiyonel `onPressAuthor` prop'u).
+- Doğrulama: mobil lint + tsc temiz; Expo Router typed routes yeniden
+  üretildi (4 yeni rota: post/create, post/[id], player/[id], search).
+- API tarafı (migration/model/Action/controller/25 test) önceki oturumda
+  bitmiş ve commit edilmişti (b48176c).
 
 ## 2026-07-04 (5) — İki çökme düzeltmesi (takvim + splash screen)
 
