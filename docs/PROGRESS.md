@@ -15,6 +15,27 @@
 
 ---
 
+## 2026-07-04 (3) — Kadro tahtası çökme düzeltmesi + backlog dokümanı
+
+- **Bug fix:** Kadro tahtası ekranı (team/[id]/lineup/[lid]) açılırken hata
+  veriyordu. Kök neden: uygulama kökünde `GestureHandlerRootView` yoktu;
+  `PitchBoard`'daki `GestureDetector` (sürükleme) buna ihtiyaç duyuyor —
+  uygulamada gesture kullanan tek ekran orası olduğu için sorun sadece kadro
+  açılışında görünüyordu. `mobile/src/app/_layout.tsx`'e eklendi.
+- **docs/BACKLOG.md oluşturuldu:** Kullanıcının talep ettiği dört iyileştirme
+  buraya kaydedildi (henüz kodlanmadı): (1) kadro tahtasında serbest/özel
+  kadro kurma — preset'lere ek, (2) keşifte kullanıcının arama yarıçapını
+  seçebilmesi, (3) maç kurarken 14 günlük şerit dışında takvimden serbest
+  tarih seçimi, (4) push bildirimler (maç hatırlatma, rakip bulundu vb. —
+  zaten Modül 7'de planlı, öncelik sırası kullanıcıyla netleşecek).
+  CLAUDE.md Hızlı Referans'a eklendi.
+- Bağlantı hatası (mobil .env'deki IP ile Mac'in güncel LAN IP'si uyuşmazlığı)
+  kullanıcı tarafından kendisi çözüldü.
+
+### Sonraki adım
+- Kullanıcı BACKLOG.md'deki dört maddeden hangisiyle devam edileceğine
+  karar verecek.
+
 ## 2026-07-04 (2) — Modül 3 tamamlandı: Maç Organizasyonu & Oyuncu Bulma
 
 - **API:** matches (FootballMatch modeli — `match` PHP'de ayrılmış sözcük),

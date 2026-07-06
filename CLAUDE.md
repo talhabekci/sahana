@@ -19,6 +19,7 @@ Halı saha oyuncuları için sosyal ağ. Monorepo: `api/` (Laravel 12) + `mobile
 - Güncel durum / kaldığımız yer: [docs/PROGRESS.md](docs/PROGRESS.md)
 - API kuralları (zarf, hata formatı, adlandırma): [docs/api-conventions.md](docs/api-conventions.md)
 - Klasör yapısı ve ER modeli: [docs/architecture.md](docs/architecture.md)
+- Henüz kodlanmamış iyileştirme talepleri: [docs/BACKLOG.md](docs/BACKLOG.md)
 
 ## Teknik Sabitler (tech-stack.md'den)
 
