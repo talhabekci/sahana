@@ -1,19 +1,29 @@
 # Modül 5 — Maç Videoları
 
-> Durum: **Spec netleşti** (2026-07-06), uygulama bekliyor · MVP sonrası ·
-> Bağımlılık: Modül 3, 4
+> Durum: **v1 uygulandı** (2026-07-06, API + mobil) · v1.5/v2/v3 bekliyor ·
+> MVP sonrası · Bağımlılık: Modül 3, 4
 > Araştırma: [../research/sosyalhalisaha.md](../research/sosyalhalisaha.md)
 
 ## Amaç
 Maç videolarını Sahana'da toplamak. v1'de birleştirici (aggregator),
 v2'de kendi yükleme altyapımız, uzun vadede kendi highlight sistemimiz.
 
-## v1 — Harici Link (embed)
-- Maça veya gönderiye video linki ekleme (YouTube, sosyalhalisaha, diğer)
-- Backend job: OG/oEmbed metadata (başlık, thumbnail) çekip cache'ler
-- Feed'de thumbnail kart → in-app browser veya embed player
-- `provider` alanı: `youtube | sosyalhalisaha | other` — ileride resmi
-  entegrasyona sancısız geçiş için
+## v1 — Harici Link (embed) ✅
+- Video, bir **maça** bağlanır (`POST /matches/{id}/videos {url}`) — genel
+  gönderiye serbest video ekleme v1 kapsamı dışında bırakıldı (basitlik;
+  `match_played`/`lineup_shared` ile aynı otomatik-kart deseni).
+- **Yetki:** sadece o maça katılan oyuncular video ekleyebilir
+  (`MatchPolicy::addVideo`); ekleyen ya da takımın kaptanı silebilir
+  (`VideoPolicy::delete`).
+- Video eklenince otomatik `video_shared` feed kartı oluşur (ekleyenin
+  `auto_posts_enabled` ayarına bağlı — Modül 4 deseniyle aynı).
+- Backend job (`FetchVideoMetadata`, queue): YouTube için resmi oEmbed
+  uç noktası, diğerleri için genel OG meta etiketi taraması (başlık +
+  thumbnail); asenkron, kuyruğa düşer.
+- Feed'de thumbnail kart → dokununca `expo-web-browser` in-app tarayıcı.
+- `provider` alanı: `youtube | sosyalhalisaha | other` (host'a göre otomatik
+  sınıflandırılır, `VideoProviderDetector`) — ileride resmi entegrasyona
+  sancısız geçiş için.
 
 **Yapılmayacak:** sosyalhalisaha içeriğini scrape edip kendi bünyemizde
 oynatmak (telif + KVKK + kırılganlık — research dokümanındaki karar).
@@ -61,6 +71,14 @@ Kullanıcının videosunu sosyalhalisaha'da bulmasını kolaylaştıran, ama
 `POST /matches/{id}/videos` `{url}` veya `{upload_path}` ·
 `GET /matches/{id}/videos` · `DELETE /videos/{id}` ·
 `POST /uploads/video` → presigned URL (v2)
+
+## Kabul Kriterleri (v1)
+- [x] Maça katılan bir oyuncu video linki ekleyebiliyor; katılmayan biri ekleyemiyor (403)
+- [x] Geçersiz URL 422 ile reddediliyor
+- [x] YouTube linki için başlık/thumbnail oEmbed'den otomatik çekiliyor
+- [x] sosyalhalisaha/diğer linkler otomatik çekilmiyor/parse edilmiyor (job sadece OG meta okur, sonucu re-host etmez)
+- [x] Video eklenince takım/takipçi feed'inde `video_shared` kartı görünüyor
+- [x] Ekleyen ya da takım kaptanı videoyu silebiliyor; başka katılımcı silemiyor (403)
 
 ## Açık Sorular
 - [ ] v2 transcode: VPS'te ffmpeg worker mı, Cloudflare Stream mi? (maliyet analizi)

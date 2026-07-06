@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\TeamInviteController;
 use App\Http\Controllers\Api\V1\TeamMemberController;
+use App\Http\Controllers\Api\V1\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -70,6 +71,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/matches/{Match}/confirm', [MatchController::class, 'confirm']);
         Route::post('/matches/{Match}/cancel', [MatchController::class, 'cancel']);
         Route::put('/matches/{Match}/rsvp', [MatchController::class, 'rsvp']);
+
+        Route::get('/matches/{Match}/videos', [VideoController::class, 'index']);
+        Route::post('/matches/{Match}/videos', [VideoController::class, 'store']);
+        Route::delete('/videos/{Video}', [VideoController::class, 'destroy']);
 
         Route::post('/matches/{Match}/listings', [PlayerListingController::class, 'store']);
         Route::get('/listings', [PlayerListingController::class, 'index']);

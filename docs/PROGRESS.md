@@ -12,10 +12,43 @@
 | 2 — Takım & Kadro | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
 | 3 — Maç Organizasyonu | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
 | 4 — Sosyal Katman | ✅ API + mobil tamam (2026-07-06) · cihazda kullanıcı testi bekliyor |
-| 5 — Maç Videoları | 📝 Spec netleşti (2026-07-06), uygulama bekliyor |
+| 5 — Maç Videoları | ✅ v1 API + mobil tamam (2026-07-06) · v1.5/v2/v3 bekliyor |
 | 6-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-06 (3) — Modül 5 v1 tamamlandı: Maç Videoları (harici link)
+
+- **API:** `videos` tablosu (match_id, user_id, type, provider, url, title,
+  thumbnail_url, fetched_at) + `posts.video_id`/`video_shared` type eklendi.
+  `AddVideoToMatch` Action → `Video::create` + `FetchVideoMetadata` job
+  (kuyruk) + `CreateVideoSharedPost` (Modül 4'teki auto-post deseninin aynısı,
+  `auto_posts_enabled`'a saygılı). `MatchPolicy::addVideo` (sadece katılımcı),
+  `VideoPolicy::delete` (ekleyen ya da kaptan). `VideoController`
+  (index/store/destroy), `POST/GET /matches/{id}/videos`, `DELETE /videos/{id}`.
+- **Metadata job:** YouTube için resmi oEmbed endpoint'i (`youtube.com/oembed`),
+  diğer sağlayıcılar için genel OG meta etiketi regex taraması — sosyalhalisaha
+  dahil hiçbir içerik scrape/re-host edilmiyor, sadece başlık+thumbnail
+  önizlemesi (research kararına sadık).
+- **Öğrenilen:** `sync` kuyruk sürücüsünde bile job, `SerializesModels` ile
+  modelin ayrı bir kopyasını işler; Action'da dispatch sonrası `$Video->refresh()`
+  çağrılmadan JSON yanıtı eski (title=null) veriyi döndürüyordu — testte
+  yakalandı, düzeltildi.
+- **Mobil:** match/[id] ekranına "VİDEOLAR" bölümü (maç `played` olunca
+  görünür) + "Video ekle" modalı (URL yapıştır) + `expo-web-browser` ile
+  in-app tarayıcıda izleme. `PostCard`'a `video_shared` kart türü (thumbnail +
+  play rozeti). `MatchResource`'a `i_am_participant` alanı eklendi (video
+  ekleme butonunu göstermek için, `my_rsvp`'den bağımsız).
+- Doğrulama: API 117 test (9 yeni) + Pint + Larastan yeşil; mobil lint + tsc
+  temiz. `docs/features/05-videos.md` "v1 ✅" + Kabul Kriterleri işaretlendi.
+- **Kapsam dışı bırakılan (v1.5):** sosyalhalisaha "Videonu bul" deep-link
+  yönlendirmesi (spec yazıldı, henüz kodlanmadı — `sosyalhalisaha_venues`
+  referans tablosu + maç kurma akışına opsiyonel saha eşleştirme gerekiyor).
+
+### Sonraki adım
+- Kullanıcı onayıyla v1.5 (deep-link) implementasyonuna geçilebilir, ya da
+  ROADMAP sırasına göre Modül 6'ya geçilebilir — kullanıcı MVP→production-ready
+  cilalama fazını da modüller bitince yapmak istiyor (bkz. BACKLOG.md).
 
 ## 2026-07-06 (2) — Modül 5 spec kararı: "Videonu bul" deep-link
 

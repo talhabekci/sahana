@@ -43,6 +43,13 @@ class PostResource extends JsonResource
                 'id' => $this->lineup->public_id,
                 'name' => $this->lineup->name,
             ] : null),
+            'video' => $this->whenLoaded('video', fn (): ?array => $this->video !== null ? [
+                'id' => $this->video->public_id,
+                'url' => $this->video->url,
+                'provider' => $this->video->provider,
+                'title' => $this->video->title,
+                'thumbnail_url' => $this->video->thumbnail_url,
+            ] : null),
             'likes_count' => $this->likes_count ?? $this->likes()->count(),
             'comments_count' => $this->comments_count ?? $this->comments()->count(),
             'i_liked' => $CurrentUser !== null && $this->likes()->where('user_id', $CurrentUser->id)->exists(),

@@ -30,4 +30,10 @@ class MatchPolicy
     {
         return $Match->participantFor($User) !== null;
     }
+
+    /** Video ekleme — sadece maça katılan oyuncular (Modül 5). */
+    public function addVideo(User $User, FootballMatch $Match): bool
+    {
+        return $Match->participantFor($User) !== null;
+    }
 }

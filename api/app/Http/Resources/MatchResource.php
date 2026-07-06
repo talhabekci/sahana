@@ -38,6 +38,7 @@ class MatchResource extends JsonResource
             'price_per_player' => $this->price_per_player,
             'status' => $this->status,
             'my_rsvp' => $MyParticipant?->rsvp,
+            'i_am_participant' => $MyParticipant !== null,
             'i_am_captain' => $this->whenLoaded(
                 'team',
                 fn (): bool => $CurrentUser !== null && $this->team->relationLoaded('members') && $this->team->isCaptain($CurrentUser),

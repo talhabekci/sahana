@@ -14,7 +14,7 @@ class Post extends Model
     /** @use HasFactory<PostFactory> */
     use HasFactory;
 
-    public const TYPES = ['text', 'match_played', 'lineup_shared'];
+    public const TYPES = ['text', 'match_played', 'lineup_shared', 'video_shared'];
 
     protected $fillable = [
         'user_id',
@@ -23,6 +23,7 @@ class Post extends Model
         'body',
         'match_id',
         'lineup_id',
+        'video_id',
     ];
 
     protected static function booted(): void
@@ -59,6 +60,12 @@ class Post extends Model
     public function lineup(): BelongsTo
     {
         return $this->belongsTo(Lineup::class);
+    }
+
+    /** @return BelongsTo<Video, $this> */
+    public function video(): BelongsTo
+    {
+        return $this->belongsTo(Video::class);
     }
 
     /** @return HasMany<Like, $this> */
