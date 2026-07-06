@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import type { LineupPosition, TeamMember } from './api';
 import { Button } from '@/shared/ui/Button';
@@ -30,63 +39,70 @@ export function RosterSheet({ visible, slot, members, onAssignMember, onAssignGu
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <Pressable style={styles.backdrop} onPress={onClose} />
 
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
-        <Text style={styles.title}>{slot.label ?? 'Pozisyon'} — kim oynuyor?</Text>
+        <View style={styles.sheet}>
+          <View style={styles.handle} />
+          <Text style={styles.title}>{slot.label ?? 'Pozisyon'} — kim oynuyor?</Text>
 
-        <FlatList
-          data={members}
-          keyExtractor={(Member) => Member.id}
-          style={styles.list}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => item.name != null && onAssignMember(item.id, item.name)}
-              style={styles.memberRow}>
-              <Text style={styles.memberName}>{item.name ?? 'İsimsiz'}</Text>
-              {item.jersey_number != null && (
-                <Text style={styles.memberJersey}>#{item.jersey_number}</Text>
-              )}
-            </Pressable>
-          )}
-          ListEmptyComponent={<Text style={styles.empty}>Takımda başka üye yok.</Text>}
-        />
+          <FlatList
+            data={members}
+            keyExtractor={(Member) => Member.id}
+            style={styles.list}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => item.name != null && onAssignMember(item.id, item.name)}
+                style={styles.memberRow}>
+                <Text style={styles.memberName}>{item.name ?? 'İsimsiz'}</Text>
+                {item.jersey_number != null && (
+                  <Text style={styles.memberJersey}>#{item.jersey_number}</Text>
+                )}
+              </Pressable>
+            )}
+            ListEmptyComponent={<Text style={styles.empty}>Takımda başka üye yok.</Text>}
+          />
 
-        <View style={styles.guestRow}>
-          <View style={styles.guestField}>
-            <TextField
-              label="Misafir oyuncu"
-              value={GuestName}
-              onChangeText={setGuestName}
-              placeholder="Ör. Ahmet (misafir)"
+          <View style={styles.guestRow}>
+            <View style={styles.guestField}>
+              <TextField
+                label="Misafir oyuncu"
+                value={GuestName}
+                onChangeText={setGuestName}
+                placeholder="Ör. Ahmet (misafir)"
+              />
+            </View>
+            <Button
+              label="Ekle"
+              variant="ghost"
+              onPress={() => {
+                if (GuestName.trim() !== '') {
+                  onAssignGuest(GuestName.trim());
+                  setGuestName('');
+                }
+              }}
             />
           </View>
-          <Button
-            label="Ekle"
-            variant="ghost"
-            onPress={() => {
-              if (GuestName.trim() !== '') {
-                onAssignGuest(GuestName.trim());
-                setGuestName('');
-              }
-            }}
-          />
-        </View>
 
-        {(slot.user_id != null || slot.guest_name != null) && (
-          <Pressable accessibilityRole="button" onPress={onClear} style={styles.clearButton}>
-            <Text style={styles.clearText}>Pozisyonu boşalt</Text>
-          </Pressable>
-        )}
-      </View>
+          {(slot.user_id != null || slot.guest_name != null) && (
+            <Pressable accessibilityRole="button" onPress={onClear} style={styles.clearButton}>
+              <Text style={styles.clearText}>Pozisyonu boşalt</Text>
+            </Pressable>
+          )}
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

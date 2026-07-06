@@ -7,7 +7,9 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -52,7 +54,7 @@ export default function MatchDetail() {
   const Videos = useQuery({
     queryKey: ['matches', id, 'videos'],
     queryFn: () => listMatchVideos(id),
-    enabled: Match_.data?.status === 'played',
+    enabled: Match_.data?.status !== undefined && Match_.data.status !== 'cancelled',
   });
 
   const invalidate = () => {
@@ -198,7 +200,7 @@ export default function MatchDetail() {
           ))}
         </View>
 
-        {Data.status === 'played' && (
+        {Data.status !== 'cancelled' && (
           <>
             <Text style={styles.sectionLabel}>VİDEOLAR</Text>
 
@@ -282,37 +284,44 @@ export default function MatchDetail() {
       </ScrollView>
 
       <Modal visible={VideoModalVisible} transparent animationType="slide">
-        <Pressable style={styles.modalBackdrop} onPress={() => setVideoModalVisible(false)} />
-        <View style={styles.modalSheet}>
-          <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>Video ekle</Text>
-          <Text style={styles.modalSub}>YouTube veya sosyalhalisaha video linkini yapıştır.</Text>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setVideoModalVisible(false)} />
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Video ekle</Text>
+            <Text style={styles.modalSub}>YouTube veya sosyalhalisaha video linkini yapıştır.</Text>
 
-          <TextInput
-            value={VideoUrl}
-            onChangeText={setVideoUrl}
-            placeholder="https://..."
-            placeholderTextColor={Palette.moss}
-            selectionColor={Palette.lime}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-            style={styles.videoInput}
-          />
+            <TextInput
+              value={VideoUrl}
+              onChangeText={setVideoUrl}
+              placeholder="https://..."
+              placeholderTextColor={Palette.moss}
+              selectionColor={Palette.lime}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              style={styles.videoInput}
+            />
 
-          <Button
-            label="Ekle"
-            onPress={() => AddVideo.mutate()}
-            disabled={VideoUrl.trim().length < 8}
-            loading={AddVideo.isPending}
-          />
-        </View>
+            <Button
+              label="Ekle"
+              onPress={() => AddVideo.mutate()}
+              disabled={VideoUrl.trim().length < 8}
+              loading={AddVideo.isPending}
+            />
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   center: {
     flex: 1,
     alignItems: 'center',
