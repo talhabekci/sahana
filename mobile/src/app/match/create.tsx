@@ -23,7 +23,7 @@ import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
-const HOURS = [17, 18, 19, 20, 21, 22, 23] as const;
+const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23] as const;
 
 function toDateKey(Date_: Date): string {
   return Date_.toISOString().slice(0, 10);
