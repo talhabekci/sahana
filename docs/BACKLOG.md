@@ -30,6 +30,49 @@
   hatası verdi. Kütüphane tamamen kaldırıldı; yerine harici bağımlılıksız,
   tema token'larıyla birebir uyumlu `shared/ui/MonthCalendar.tsx` yazıldı.
 
+### 5. Profil ekranı — kendi sosyal aktivitesi görünmüyor
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-06
+- Kullanıcı bir oyuncuyu takip ediyor, gönderi beğeniyor/yorumluyor ama
+  (tabs)/profile ekranında bunların hiçbiri görünmüyor: kaç takipçisi var,
+  kendisi ne paylaşmış, kendi gönderilerine kim ne yorum yapmış.
+  `player/[id].tsx`'teki herkese açık profilde bu veriler zaten var
+  (`followers_count`/`following_count`/gönderi listesi) — kendi profil
+  ekranına da taşınmalı, üstüne kendi gönderilerine gelen yorumların
+  görünürlüğü eklenmeli.
+
+### 6. Akış — çekerek yenileme (pull-to-refresh)
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-06
+- (tabs)/feed.tsx'te sayfa yukarıdan aşağı çekilince `/feed`'e yeniden istek
+  atıp yeni paylaşılanları yüklemesi isteniyor (FlatList `RefreshControl` +
+  `refetch`/`isRefetching` bağlanmalı).
+
+### 7. Gönderi paylaşma ekranı — zayıf, MVP'den production-ready'e geçiş
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+  (genel kapsamı MVP sonrası tüm uygulamayı etkiliyor)
+- **Talep tarihi:** 2026-07-06
+- Kullanıcı post/create.tsx'i (ve genel olarak uygulamayı) "MVP" seviyesinden
+  çıkarıp yayına çıkmadan önce "production ready" hale getirmek istiyor.
+  Somut kapsam netleşmedi (fotoğraf ekleme? draft kaydetme? daha zengin
+  editör?) — implementasyona geçmeden önce kullanıcıyla netleştirilmeli.
+
+### 8. Akışta adam eksik / rakip arayanlar ilanlarının gösterilmesi
+- **Bağlı modül:** Modül 3 + Modül 4 — [03-match-organization.md](features/03-match-organization.md),
+  [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-06
+- `player_listings`/`opponent_listings` şu an sadece Keşfet (listings/index.tsx)
+  sekmesinde görünüyor; kullanıcı bunların (tabs)/feed akışında da (yeni bir
+  post/kart türü olarak) gösterilmesini istiyor. Feed'in `BuildFeed` Action'ı
+  ve `Post.TYPES`'a yeni bir tür eklenmesi gerekebilir — tasarım netleşmeli.
+
+## Genel Yön: MVP → Production Ready
+- **Talep tarihi:** 2026-07-06
+- Kullanıcı Modül 4'ü test etti, çökme yok; ama yukarıdaki maddeler + henüz
+  yazılmamış başkaları için genel hedef: tüm modüller bitince MVP'den
+  production-ready'e geçiş yapılacak (bkz. madde #7). Bu ayrı bir "cilalama"
+  fazı olarak ROADMAP'in sonuna eklenebilir — kullanıcı ile netleşecek.
+
 ### 4. Bildirimler (push notification)
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (zaten ROADMAP'te planlı; bu madde önceliklendirme sorusu)

@@ -12,9 +12,34 @@
 | 2 — Takım & Kadro | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
 | 3 — Maç Organizasyonu | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
 | 4 — Sosyal Katman | ✅ API + mobil tamam (2026-07-06) · cihazda kullanıcı testi bekliyor |
-| 5-8 | ⬜ Başlamadı |
+| 5 — Maç Videoları | 📝 Spec netleşti (2026-07-06), uygulama bekliyor |
+| 6-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-06 (2) — Modül 5 spec kararı: "Videonu bul" deep-link
+
+- Kullanıcı önerisi: sosyalhalisaha'nın dokümansız `xhr/filtre/{il}_{ilce}_
+  {saha}_{tarih}_{saat}_` uç noktasını kullanarak maç videosunu otomatik
+  çekip Sahana içinde göstermek. **Otomatik çekme reddedildi** (telif +
+  ToS + KVKK + kırılganlık — research dokümanındaki Seçenek C kararıyla aynı
+  gerekçe); kullanıcı bu değerlendirmeyi kabul etti.
+- **Kabul edilen orta yol (v1.5):** maç kurarken opsiyonel ilçe/saha eşleşmesi
+  (yeni referans tablo `sosyalhalisaha_venues`; il zaten `cities.id` ile aynı).
+  Maç `played` olunca "Videonu bul" butonu yukarıdaki filtre URL'ini sadece
+  harici tarayıcıda açar (`Linking.openURL`) — backend bu endpoint'i hiç
+  çağırmaz/parse etmez. Kullanıcı orada bulduğu video linkini mevcut v1
+  "harici link ekle" akışıyla geri Sahana'ya ekler.
+- `docs/features/05-videos.md` ve `docs/research/sosyalhalisaha.md` §3.1
+  güncellendi. Henüz kod yazılmadı — kullanıcı diğer modüller bitene kadar
+  geliştirme/değişiklikleri ertelemek istiyor (Modül 4 test edildi, crash
+  yok, iyileştirme istekleri modüller bitince ele alınacak).
+
+### Sonraki adım
+- Kullanıcının onayıyla Modül 5 implementasyonuna (v1 harici link + v1.5
+  deep-link) başlanacak; öncesinde ROADMAP sırası ve kullanıcı tercihi
+  netleşmeli (Modül 4 cihaz testi bekleniyor, birikmiş iyileştirme istekleri
+  var ama "modüller bitince" ertelendi).
 
 ## 2026-07-06 — Modül 4 tamamlandı: Sosyal Katman (mobil)
 
