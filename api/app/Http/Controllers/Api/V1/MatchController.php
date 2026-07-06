@@ -20,7 +20,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class MatchController extends Controller
 {
-    private const SHOW_RELATIONS = ['team.members', 'opponentTeam', 'participants.user', 'listings'];
+    private const SHOW_RELATIONS = ['team.members', 'opponentTeam.members', 'participants.user', 'listings', 'result'];
 
     public function index(Request $Request): AnonymousResourceCollection
     {

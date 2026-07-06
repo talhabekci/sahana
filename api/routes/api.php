@@ -9,10 +9,13 @@ use App\Http\Controllers\Api\V1\FollowController;
 use App\Http\Controllers\Api\V1\LineupController;
 use App\Http\Controllers\Api\V1\ListingApplicationController;
 use App\Http\Controllers\Api\V1\MatchController;
+use App\Http\Controllers\Api\V1\MatchResultController;
 use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\OpponentListingController;
 use App\Http\Controllers\Api\V1\PlayerController;
 use App\Http\Controllers\Api\V1\PlayerListingController;
+use App\Http\Controllers\Api\V1\PlayerMatchStatController;
+use App\Http\Controllers\Api\V1\PlayerRatingController;
 use App\Http\Controllers\Api\V1\PostCommentController;
 use App\Http\Controllers\Api\V1\PostController;
 use App\Http\Controllers\Api\V1\PostLikeController;
@@ -43,6 +46,7 @@ Route::prefix('v1')->group(function () {
         // Modül 4: takip/engel durumu için auth zorunlu (spec: 04-social-feed.md).
         Route::get('/players/{PublicId}', [PlayerController::class, 'show']);
         Route::get('/players/{PublicId}/posts', [PlayerController::class, 'posts']);
+        Route::get('/players/{PublicId}/stats', [PlayerController::class, 'stats']);
         Route::post('/players/{PublicId}/follow', [FollowController::class, 'store']);
         Route::delete('/players/{PublicId}/follow', [FollowController::class, 'destroy']);
         Route::post('/players/{PublicId}/block', [BlockController::class, 'store']);
@@ -75,6 +79,16 @@ Route::prefix('v1')->group(function () {
         Route::get('/matches/{Match}/videos', [VideoController::class, 'index']);
         Route::post('/matches/{Match}/videos', [VideoController::class, 'store']);
         Route::delete('/videos/{Video}', [VideoController::class, 'destroy']);
+
+        Route::post('/matches/{Match}/result', [MatchResultController::class, 'store']);
+        Route::post('/matches/{Match}/result/confirm', [MatchResultController::class, 'confirm']);
+        Route::post('/matches/{Match}/result/dispute', [MatchResultController::class, 'dispute']);
+
+        Route::get('/matches/{Match}/player-stats', [PlayerMatchStatController::class, 'index']);
+        Route::post('/matches/{Match}/player-stats', [PlayerMatchStatController::class, 'store']);
+        Route::post('/player-stats/{Stat}/approve', [PlayerMatchStatController::class, 'approve']);
+
+        Route::post('/matches/{Match}/ratings', [PlayerRatingController::class, 'store']);
 
         Route::post('/matches/{Match}/listings', [PlayerListingController::class, 'store']);
         Route::get('/listings', [PlayerListingController::class, 'index']);

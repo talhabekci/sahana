@@ -43,6 +43,18 @@ class MatchResource extends JsonResource
                 'team',
                 fn (): bool => $CurrentUser !== null && $this->team->relationLoaded('members') && $this->team->isCaptain($CurrentUser),
             ),
+            'i_am_opponent_captain' => $this->whenLoaded(
+                'opponentTeam',
+                fn (): bool => $CurrentUser !== null
+                    && $this->opponentTeam !== null
+                    && $this->opponentTeam->relationLoaded('members')
+                    && $this->opponentTeam->isCaptain($CurrentUser),
+            ),
+            'result' => $this->whenLoaded('result', fn (): ?array => $this->result !== null ? [
+                'home_score' => $this->result->home_score,
+                'away_score' => $this->result->away_score,
+                'status' => $this->result->status,
+            ] : null),
             'rsvp_summary' => $this->whenLoaded('participants', fn (): array => [
                 'yes' => $this->participants->where('rsvp', 'yes')->count(),
                 'no' => $this->participants->where('rsvp', 'no')->count(),
@@ -56,6 +68,7 @@ class MatchResource extends JsonResource
                     'name' => $Participant->user->name,
                     'rsvp' => $Participant->rsvp,
                     'source' => $Participant->source,
+                    'is_me' => $CurrentUser !== null && $Participant->user_id === $CurrentUser->id,
                 ])->values()->all()),
             'listings' => $this->whenLoaded('listings', fn (): array => $this->listings
                 ->map(fn ($Listing): array => [

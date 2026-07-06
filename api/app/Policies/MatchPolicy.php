@@ -36,4 +36,32 @@ class MatchPolicy
     {
         return $Match->participantFor($User) !== null;
     }
+
+    /** Skor girme — sadece ev sahibi (maçı oluşturan) takımın kaptanı (Modül 6). */
+    public function enterResult(User $User, FootballMatch $Match): bool
+    {
+        return $Match->isCaptain($User);
+    }
+
+    /** Skor onaylama/itiraz — sadece rakip takımın kaptanı (Modül 6). */
+    public function confirmResult(User $User, FootballMatch $Match): bool
+    {
+        return $Match->opponentTeam?->isCaptain($User) ?? false;
+    }
+
+    public function disputeResult(User $User, FootballMatch $Match): bool
+    {
+        return $this->confirmResult($User, $Match);
+    }
+
+    /** İstatistik/reyting girme — sadece maça katılan oyuncular (Modül 6). */
+    public function enterStat(User $User, FootballMatch $Match): bool
+    {
+        return $Match->participantFor($User) !== null;
+    }
+
+    public function rate(User $User, FootballMatch $Match): bool
+    {
+        return $Match->participantFor($User) !== null;
+    }
 }

@@ -13,3 +13,6 @@ Schedule::command('users:purge')->daily();
 
 // Saati geçen maçlar played, süresi dolan ilanlar expired (spec: 03-match-organization.md)
 Schedule::command('matches:sweep')->hourly();
+
+// 48 saattir onaylanmamış skorlar otomatik onaylanır (spec: 06-stats-rating.md, karar #1)
+Schedule::command('results:auto-confirm')->hourly();

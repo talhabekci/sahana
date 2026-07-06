@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
  * @property string $source
  * @property string|null $rsvp
  * @property Carbon|null $responded_at
+ * @property bool|null $attended
  */
 class MatchParticipant extends Model
 {
@@ -20,6 +21,7 @@ class MatchParticipant extends Model
         'source',
         'rsvp',
         'responded_at',
+        'attended',
     ];
 
     /**
@@ -29,6 +31,7 @@ class MatchParticipant extends Model
     {
         return [
             'responded_at' => 'datetime',
+            'attended' => 'boolean',
         ];
     }
 

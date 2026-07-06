@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\Stats\BuildPlayerStats;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PlayerPublicResource;
 use App\Http\Resources\PostResource;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -42,5 +44,14 @@ class PlayerController extends Controller
             ->get();
 
         return PostResource::collection($Posts);
+    }
+
+    /** Sezon istatistik özeti (Modül 6): maç/gol/asist, zaman ağırlıklı reyting, güvenilirlik. */
+    public function stats(Request $Request, string $PublicId, BuildPlayerStats $Action): JsonResponse
+    {
+        $Player = User::where('public_id', $PublicId)->firstOrFail();
+        $Season = (int) $Request->query('season', (string) now()->year);
+
+        return response()->json(['data' => $Action->handle($Player, $Season)]);
     }
 }

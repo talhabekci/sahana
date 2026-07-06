@@ -13,9 +13,49 @@
 | 3 — Maç Organizasyonu | ✅ API + mobil tamam (2026-07-04) · cihazda kullanıcı testi bekliyor |
 | 4 — Sosyal Katman | ✅ API + mobil tamam (2026-07-06) · cihazda kullanıcı testi bekliyor |
 | 5 — Maç Videoları | ✅ v1 API + mobil tamam (2026-07-06) · v1.5/v2/v3 bekliyor |
-| 6-8 | ⬜ Başlamadı |
+| 6 — İstatistik & Reyting | ✅ API + mobil tamam (2026-07-07) · cihazda kullanıcı testi bekliyor |
+| 7-8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-07 — Modül 6 tamamlandı: İstatistik & Reyting
+
+- **Kararlar (kullanıcı):** rakip onaylamazsa 48s sonra otomatik onay; rakip
+  takım kayıtlı değilse modül o maç için tamamen kapalı; reyting zaman
+  ağırlıklı (üstel azalma, 45 gün yarı ömür); sezon = takvim yılı.
+- **API:** `match_results` (skor girişi → rakip onayı/itirazı, `results:
+  auto-confirm` saatlik komut), `player_match_stats` (kaptan direkt onaylı,
+  oyuncu kendisi için onay bekler), `player_ratings` (katılımcılar arası 1-10,
+  `starts_at`..`+48s` penceresi, kendine puan yok). Yeni `match_participants.
+  attended` kolonu güvenilirlik skoru için ("RSVP=yes dedi ama gelmedi"
+  problemi). `GET /players/{id}/stats` — sezon özeti, zaman ağırlıklı reyting
+  (min 3 puan şartı), güvenilirlik yüzdesi, son 5 maç formu.
+  `App\Support\RatingCalculator` üstel azalma hesaplayan saf fonksiyon.
+- **Öğrenilen (Modül 5'ten taşınan ders tekrar doğrulandı):** hem sonuç girme
+  hem puanlama, maçın `status` alanına değil `starts_at` zamanına göre
+  kapılandı (sweep'in çalışmasını beklememek için).
+- **Test hatası/düzeltme:** `player_match_stats`'ta `unique(match_id,user_id)`
+  olduğundan aynı maça aynı oyuncu için iki kayıt eklenemiyor — bir testte bu
+  kısıtlamaya takılan senaryo ayrı bir maça taşındı.
+- **Larastan:** üç yeni modelin (`MatchResult`, `PlayerMatchStat`,
+  `PlayerRating`) factory sınıfları unutulmuştu — docblock'ta referans var
+  ama dosya yoktu; eklendi (`composer dump-autoload` sonrası Larastan cache
+  temizlenip yeşile döndü).
+- **Mobil:** match/[id] ekranına SKOR + İSTATİSTİKLER bölümleri, yeni
+  match/[id]/rate.tsx (1-10 tek dokunuş puanlama), paylaşılan `StatsCard`
+  bileşeni (tabs)/profile.tsx ve player/[id].tsx'e eklendi. `MatchResource`'a
+  `i_am_opponent_captain` ve katılımcılara `is_me` alanı eklendi.
+- Doğrulama: API 154 test (35 yeni) + Pint + Larastan yeşil; mobil lint + tsc
+  temiz; gerçek local MySQL'e migrate edildi (Modül 5'teki unutma hatası
+  tekrarlanmadı). `docs/features/06-stats-rating.md` "Tamamlandı" + Kabul
+  Kriterleri/mobil ekranlar notu eklendi.
+
+### Sonraki adım
+- Kullanıcı cihaz testi (özellikle: skor gir → rakip onaylasın/itiraz etsin →
+  istatistik gir/onayla → puanla → profilde sezon özetini gör zinciri, en az
+  iki hesapla).
+- ROADMAP sırasına göre Modül 7 (Bildirim & Mesajlaşma) ya da kullanıcının
+  MVP→production-ready cilalama tercihi (BACKLOG.md).
 
 ## 2026-07-06 (3) — Modül 5 v1 tamamlandı: Maç Videoları (harici link)
 

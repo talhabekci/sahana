@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -91,6 +92,24 @@ class FootballMatch extends Model
     public function videos(): HasMany
     {
         return $this->hasMany(Video::class, 'match_id');
+    }
+
+    /** @return HasOne<MatchResult, $this> */
+    public function result(): HasOne
+    {
+        return $this->hasOne(MatchResult::class, 'match_id');
+    }
+
+    /** @return HasMany<PlayerMatchStat, $this> */
+    public function playerStats(): HasMany
+    {
+        return $this->hasMany(PlayerMatchStat::class, 'match_id');
+    }
+
+    /** @return HasMany<PlayerRating, $this> */
+    public function ratings(): HasMany
+    {
+        return $this->hasMany(PlayerRating::class, 'match_id');
     }
 
     /** @return BelongsTo<User, $this> */
