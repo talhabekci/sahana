@@ -41,6 +41,15 @@ export default function RootLayout() {
 
   const Ready = FontsLoaded && Hydrated;
 
+  // Splash yalnızca Ready ilk true olduğunda bir kez gizlenir — her rota
+  // değişiminde (Segments) tekrar çağrılırsa native taraf reddediyor
+  // ("No native splash screen registered for given view controller").
+  useEffect(() => {
+    if (Ready) {
+      void SplashScreen.hideAsync();
+    }
+  }, [Ready]);
+
   useEffect(() => {
     if (!Ready) {
       return;
@@ -55,8 +64,6 @@ export default function RootLayout() {
     } else if (Token != null && InAuthGroup && !InOnboarding) {
       Router.replace('/(tabs)/profile');
     }
-
-    void SplashScreen.hideAsync();
   }, [Ready, Token, Segments, Router]);
 
   if (!Ready) {

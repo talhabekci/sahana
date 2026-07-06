@@ -12,28 +12,18 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Calendar, LocaleConfig } from 'react-native-calendars';
 
 import { createMatch } from '@/features/match/api';
 import { FORMATS } from '@/features/match/constants';
 import { listTeams } from '@/features/team/api';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
+import { MonthCalendar } from '@/shared/ui/MonthCalendar';
 import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
 const HOURS = [17, 18, 19, 20, 21, 22, 23] as const;
-
-LocaleConfig.locales.tr = {
-  monthNames: [
-    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
-  ],
-  dayNamesShort: ['Pz', 'Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct'],
-  today: 'Bugün',
-};
-LocaleConfig.defaultLocale = 'tr';
 
 function toDateKey(Date_: Date): string {
   return Date_.toISOString().slice(0, 10);
@@ -76,7 +66,6 @@ export default function CreateMatch() {
 
   const SelectedKey = SelectedDate != null ? toDateKey(SelectedDate) : null;
   const SelectedBeyondStrip = SelectedKey != null && !Days.some((Day) => Day.key === SelectedKey);
-  const TodayKey = toDateKey(new Date());
 
   const startsAtIso = (): string | null => {
     if (SelectedDate === null || Hour === null) {
@@ -210,33 +199,13 @@ export default function CreateMatch() {
             <Pressable style={styles.calendarBackdrop} onPress={() => setCalendarVisible(false)} />
             <View style={styles.calendarSheet}>
               <View style={styles.calendarHandle} />
-              <Calendar
-                minDate={TodayKey}
-                initialDate={SelectedKey ?? TodayKey}
-                onDayPress={(Day) => {
-                  const Picked = new Date(Day.year, Day.month - 1, Day.day);
+              <MonthCalendar
+                value={SelectedDate}
+                minDate={new Date()}
+                onSelect={(Picked) => {
                   setSelectedDate(Picked);
                   setCalendarVisible(false);
                 }}
-                markedDates={
-                  SelectedKey != null ? { [SelectedKey]: { selected: true } } : undefined
-                }
-                theme={{
-                  backgroundColor: Palette.turf,
-                  calendarBackground: Palette.turf,
-                  textSectionTitleColor: Palette.moss,
-                  dayTextColor: Palette.chalk,
-                  todayTextColor: Palette.lime,
-                  selectedDayBackgroundColor: Palette.lime,
-                  selectedDayTextColor: Palette.limeInk,
-                  monthTextColor: Palette.chalk,
-                  arrowColor: Palette.lime,
-                  textDisabledColor: Palette.lineFaint,
-                  textDayFontFamily: Type.bodyMedium,
-                  textMonthFontFamily: Type.displaySemi,
-                  textDayHeaderFontFamily: Type.bodyMedium,
-                }}
-                style={styles.calendar}
               />
             </View>
           </Modal>
@@ -419,6 +388,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: Radius.l,
     paddingTop: space(3),
     paddingBottom: space(8),
+    paddingHorizontal: space(4),
   },
   calendarHandle: {
     alignSelf: 'center',
@@ -427,9 +397,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: Palette.lineFaint,
     marginBottom: space(2),
-  },
-  calendar: {
-    borderRadius: Radius.l,
   },
   field: {
     marginTop: space(6),

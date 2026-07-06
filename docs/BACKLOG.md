@@ -24,8 +24,11 @@
 ### 3. Maç Kurma — Serbest tarih seçimi ✅
 - **Bağlı modül:** Modül 3 — [03-match-organization.md](features/03-match-organization.md)
 - **Talep tarihi:** 2026-07-04 · **Tamamlandı:** 2026-07-04
-- 14 günlük şeridin yanına "Başka gün" düğmesi eklendi; `react-native-calendars`
-  ile temalanmış takvimden serbest tarih seçilebiliyor (`match/create.tsx`).
+- 14 günlük şeridin yanına "Başka gün" düğmesi eklendi.
+- **Not (2026-07-04):** İlk denemede `react-native-calendars` kullanıldı ama
+  RN 0.81/New Architecture ile "Cannot convert undefined value to object"
+  hatası verdi. Kütüphane tamamen kaldırıldı; yerine harici bağımlılıksız,
+  tema token'larıyla birebir uyumlu `shared/ui/MonthCalendar.tsx` yazıldı.
 
 ### 4. Bildirimler (push notification)
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)

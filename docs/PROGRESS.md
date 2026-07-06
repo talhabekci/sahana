@@ -15,6 +15,23 @@
 
 ---
 
+## 2026-07-04 (5) — İki çökme düzeltmesi (takvim + splash screen)
+
+- **Takvim çökmesi:** `react-native-calendars`, RN 0.81/New Architecture ile
+  "Cannot convert undefined value to object" hatası veriyordu (maç kurma →
+  "Başka gün"). Kütüphane tamamen kaldırıldı (`npm uninstall`); yerine harici
+  bağımlılıksız `shared/ui/MonthCalendar.tsx` yazıldı (ay ızgarası, önceki/
+  sonraki ay gezinme, minDate öncesi günler devre dışı, tema token'larıyla
+  birebir). `match/create.tsx` buna geçirildi.
+- **Splash screen hatası:** Kök layout'taki navigasyon efekti `Segments`
+  her değiştiğinde (yani her sayfa geçişinde) `SplashScreen.hideAsync()`'i
+  tekrar çağırıyordu; splash zaten gizlendikten sonra tekrarlanan çağrı
+  reddediliyordu ("No native splash screen registered..."). Düzeltme:
+  hideAsync çağrısı artık sadece `Ready` ilk true olduğunda çalışan ayrı
+  bir effect'te (bağımlılık: sadece `[Ready]`).
+- BACKLOG.md #3'e not düşüldü (kütüphane değişikliği).
+- Lint + tsc temiz.
+
 ## 2026-07-04 (4) — Backlog #1-3 tamamlandı
 
 - **Özel kadro kurma:** team/[id]/index.tsx "Yeni kadro" akışına "Özel…"
