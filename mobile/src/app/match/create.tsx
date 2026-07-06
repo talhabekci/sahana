@@ -1,8 +1,10 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -10,6 +12,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Calendar, LocaleConfig } from 'react-native-calendars';
 
 import { createMatch } from '@/features/match/api';
 import { FORMATS } from '@/features/match/constants';
@@ -21,6 +24,20 @@ import { TextField } from '@/shared/ui/TextField';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
 const HOURS = [17, 18, 19, 20, 21, 22, 23] as const;
+
+LocaleConfig.locales.tr = {
+  monthNames: [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+  ],
+  dayNamesShort: ['Pz', 'Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct'],
+  today: 'Bugün',
+};
+LocaleConfig.defaultLocale = 'tr';
+
+function toDateKey(Date_: Date): string {
+  return Date_.toISOString().slice(0, 10);
+}
 
 export default function CreateMatch() {
   const Router = useRouter();
@@ -34,7 +51,8 @@ export default function CreateMatch() {
 
   const [TeamId, setTeamId] = useState<string | null>(null);
   const [VenueText, setVenueText] = useState('');
-  const [DayOffset, setDayOffset] = useState<number | null>(null);
+  const [SelectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [CalendarVisible, setCalendarVisible] = useState(false);
   const [Hour, setHour] = useState<number | null>(null);
   const [HalfPast, setHalfPast] = useState(false);
   const [Format, setFormat] = useState<number>(7);
@@ -44,23 +62,28 @@ export default function CreateMatch() {
   const Days = useMemo(() => {
     return Array.from({ length: 14 }, (_, Index) => {
       const Date_ = new Date();
+      Date_.setHours(0, 0, 0, 0);
       Date_.setDate(Date_.getDate() + Index);
 
       return {
-        offset: Index,
+        date: Date_,
+        key: toDateKey(Date_),
         label: Date_.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
         weekday: Date_.toLocaleDateString('tr-TR', { weekday: 'short' }),
       };
     });
   }, []);
 
+  const SelectedKey = SelectedDate != null ? toDateKey(SelectedDate) : null;
+  const SelectedBeyondStrip = SelectedKey != null && !Days.some((Day) => Day.key === SelectedKey);
+  const TodayKey = toDateKey(new Date());
+
   const startsAtIso = (): string | null => {
-    if (DayOffset === null || Hour === null) {
+    if (SelectedDate === null || Hour === null) {
       return null;
     }
 
-    const Date_ = new Date();
-    Date_.setDate(Date_.getDate() + DayOffset);
+    const Date_ = new Date(SelectedDate);
     Date_.setHours(Hour, HalfPast ? 30 : 0, 0, 0);
 
     return Date_.toISOString();
@@ -83,7 +106,7 @@ export default function CreateMatch() {
   });
 
   const CanSubmit =
-    TeamId !== null && VenueText.trim().length >= 3 && DayOffset !== null && Hour !== null;
+    TeamId !== null && VenueText.trim().length >= 3 && SelectedDate !== null && Hour !== null;
 
   if (!Teams.isPending && CaptainTeams.length === 0) {
     return (
@@ -145,24 +168,78 @@ export default function CreateMatch() {
           <Text style={styles.sectionLabel}>GÜN</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.dayRow}>
-              {Days.map((Day) => (
-                <Pressable
-                  key={Day.offset}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: DayOffset === Day.offset }}
-                  onPress={() => setDayOffset(Day.offset)}
-                  style={[styles.dayCell, DayOffset === Day.offset && styles.dayCellActive]}>
-                  <Text
-                    style={[styles.dayWeekday, DayOffset === Day.offset && styles.dayTextActive]}>
-                    {Day.weekday}
-                  </Text>
-                  <Text style={[styles.dayLabel, DayOffset === Day.offset && styles.dayTextActive]}>
-                    {Day.label}
-                  </Text>
-                </Pressable>
-              ))}
+              {Days.map((Day) => {
+                const Active = SelectedKey === Day.key;
+
+                return (
+                  <Pressable
+                    key={Day.key}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: Active }}
+                    onPress={() => setSelectedDate(Day.date)}
+                    style={[styles.dayCell, Active && styles.dayCellActive]}>
+                    <Text style={[styles.dayWeekday, Active && styles.dayTextActive]}>
+                      {Day.weekday}
+                    </Text>
+                    <Text style={[styles.dayLabel, Active && styles.dayTextActive]}>
+                      {Day.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setCalendarVisible(true)}
+                style={[styles.dayCell, styles.otherDayCell, SelectedBeyondStrip && styles.dayCellActive]}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={18}
+                  color={SelectedBeyondStrip ? Palette.limeInk : Palette.chalk}
+                />
+                <Text style={[styles.dayLabel, SelectedBeyondStrip && styles.dayTextActive]}>
+                  {SelectedBeyondStrip
+                    ? SelectedDate?.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+                    : 'Başka gün'}
+                </Text>
+              </Pressable>
             </View>
           </ScrollView>
+
+          <Modal visible={CalendarVisible} transparent animationType="slide">
+            <Pressable style={styles.calendarBackdrop} onPress={() => setCalendarVisible(false)} />
+            <View style={styles.calendarSheet}>
+              <View style={styles.calendarHandle} />
+              <Calendar
+                minDate={TodayKey}
+                initialDate={SelectedKey ?? TodayKey}
+                onDayPress={(Day) => {
+                  const Picked = new Date(Day.year, Day.month - 1, Day.day);
+                  setSelectedDate(Picked);
+                  setCalendarVisible(false);
+                }}
+                markedDates={
+                  SelectedKey != null ? { [SelectedKey]: { selected: true } } : undefined
+                }
+                theme={{
+                  backgroundColor: Palette.turf,
+                  calendarBackground: Palette.turf,
+                  textSectionTitleColor: Palette.moss,
+                  dayTextColor: Palette.chalk,
+                  todayTextColor: Palette.lime,
+                  selectedDayBackgroundColor: Palette.lime,
+                  selectedDayTextColor: Palette.limeInk,
+                  monthTextColor: Palette.chalk,
+                  arrowColor: Palette.lime,
+                  textDisabledColor: Palette.lineFaint,
+                  textDayFontFamily: Type.bodyMedium,
+                  textMonthFontFamily: Type.displaySemi,
+                  textDayHeaderFontFamily: Type.bodyMedium,
+                }}
+                style={styles.calendar}
+              />
+            </View>
+          </Modal>
 
           <Text style={styles.sectionLabel}>SAAT</Text>
           <View style={styles.chipWrap}>
@@ -327,6 +404,32 @@ const styles = StyleSheet.create({
   },
   dayTextActive: {
     color: Palette.limeInk,
+  },
+  otherDayCell: {
+    width: 76,
+    gap: 2,
+  },
+  calendarBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  calendarSheet: {
+    backgroundColor: Palette.turf,
+    borderTopLeftRadius: Radius.l,
+    borderTopRightRadius: Radius.l,
+    paddingTop: space(3),
+    paddingBottom: space(8),
+  },
+  calendarHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Palette.lineFaint,
+    marginBottom: space(2),
+  },
+  calendar: {
+    borderRadius: Radius.l,
   },
   field: {
     marginTop: space(6),

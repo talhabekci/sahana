@@ -1,9 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,6 +17,7 @@ import { getMe } from '@/features/auth/api';
 import {
   createLineup,
   getTeam,
+  LineupPosition,
   listLineups,
   removeMember,
   TeamMember,
@@ -25,6 +28,35 @@ import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+
+const MIN_CUSTOM_SLOTS = 3;
+const MAX_CUSTOM_SLOTS = 14;
+
+/** "Özel" kadro: preset'e bağlı kalmadan N puku sahaya ızgara halinde diziyor
+ * — kullanıcı sonra sürükleyerek serbestçe konumlandırır (bkz. BACKLOG.md #1). */
+function generateCustomSlots(Count: number): Pick<LineupPosition, 'id' | 'x' | 'y' | 'label'>[] {
+  const PerRow = 4;
+  const Rows = Math.ceil(Count / PerRow);
+  const Slots: Pick<LineupPosition, 'id' | 'x' | 'y' | 'label'>[] = [];
+  let Placed = 0;
+
+  for (let Row = 0; Row < Rows; Row++) {
+    const ItemsInRow = Math.min(PerRow, Count - Row * PerRow);
+    const Y = Rows === 1 ? 0.5 : 0.85 - Row * (0.7 / (Rows - 1));
+
+    for (let Col = 0; Col < ItemsInRow; Col++) {
+      Placed += 1;
+      Slots.push({
+        id: `p${Placed}`,
+        x: (Col + 1) / (ItemsInRow + 1),
+        y: Y,
+        label: String(Placed),
+      });
+    }
+  }
+
+  return Slots;
+}
 
 export default function TeamDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -51,6 +83,14 @@ export default function TeamDetail() {
     onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
   });
 
+  const [CustomModalVisible, setCustomModalVisible] = useState(false);
+  const [CustomCount, setCustomCount] = useState(7);
+
+  const onLineupCreated = (Lineup: { id: string }) => {
+    void QueryClient.invalidateQueries({ queryKey: ['teams', id, 'lineups'] });
+    Router.push(`/team/${id}/lineup/${Lineup.id}`);
+  };
+
   const CreateLineup_ = useMutation({
     mutationFn: (Size: keyof typeof FORMATION_PRESETS) => {
       const Preset = FORMATION_PRESETS[Size];
@@ -61,9 +101,20 @@ export default function TeamDetail() {
         positions: Preset.slots,
       });
     },
+    onSuccess: onLineupCreated,
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
+
+  const CreateCustomLineup = useMutation({
+    mutationFn: (Count: number) =>
+      createLineup(id, {
+        name: `Özel Kadro (${Count} kişi)`,
+        formation: null,
+        positions: generateCustomSlots(Count),
+      }),
     onSuccess: (Lineup) => {
-      void QueryClient.invalidateQueries({ queryKey: ['teams', id, 'lineups'] });
-      Router.push(`/team/${id}/lineup/${Lineup.id}`);
+      setCustomModalVisible(false);
+      onLineupCreated(Lineup);
     },
     onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
   });
@@ -108,6 +159,7 @@ export default function TeamDetail() {
         text: Preset.label,
         onPress: () => CreateLineup_.mutate(Size as keyof typeof FORMATION_PRESETS),
       })),
+      { text: 'Özel…', onPress: () => setCustomModalVisible(true) },
     ]);
   };
 
@@ -205,6 +257,37 @@ export default function TeamDetail() {
           <Button label="Takımdan ayrıl" variant="ghost" onPress={leaveTeam} />
         </View>
       </ScrollView>
+
+      <Modal visible={CustomModalVisible} transparent animationType="slide">
+        <Pressable style={styles.modalBackdrop} onPress={() => setCustomModalVisible(false)} />
+        <View style={styles.modalSheet}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.modalTitle}>Özel kadro</Text>
+          <Text style={styles.modalSub}>Kaç puk yerleştirmek istiyorsun? Sahada serbestçe dizersin.</Text>
+
+          <View style={styles.stepperRow}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setCustomCount(Math.max(MIN_CUSTOM_SLOTS, CustomCount - 1))}
+              style={styles.stepperButton}>
+              <Text style={styles.stepperSymbol}>−</Text>
+            </Pressable>
+            <Text style={styles.stepperValue}>{CustomCount}</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setCustomCount(Math.min(MAX_CUSTOM_SLOTS, CustomCount + 1))}
+              style={styles.stepperButton}>
+              <Text style={styles.stepperSymbol}>+</Text>
+            </Pressable>
+          </View>
+
+          <Button
+            label="Kadroyu oluştur"
+            onPress={() => CreateCustomLineup.mutate(CustomCount)}
+            loading={CreateCustomLineup.isPending}
+          />
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -306,5 +389,66 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: space(10),
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalSheet: {
+    backgroundColor: Palette.turf,
+    borderTopLeftRadius: Radius.l,
+    borderTopRightRadius: Radius.l,
+    paddingHorizontal: space(5),
+    paddingTop: space(3),
+    paddingBottom: space(8),
+  },
+  modalHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Palette.lineFaint,
+    marginBottom: space(4),
+  },
+  modalTitle: {
+    fontFamily: Type.displaySemi,
+    fontSize: 22,
+    color: Palette.chalk,
+  },
+  modalSub: {
+    fontFamily: Type.body,
+    fontSize: 14,
+    color: Palette.moss,
+    marginTop: space(1),
+    marginBottom: space(5),
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space(5),
+    marginBottom: space(6),
+  },
+  stepperButton: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.m,
+    backgroundColor: Palette.turfRaised,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperSymbol: {
+    fontFamily: Type.mono,
+    fontSize: 22,
+    color: Palette.chalk,
+  },
+  stepperValue: {
+    fontFamily: Type.mono,
+    fontSize: 32,
+    color: Palette.lime,
+    minWidth: 48,
+    textAlign: 'center',
   },
 });

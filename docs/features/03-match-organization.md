@@ -7,11 +7,16 @@ WhatsApp anketinin ve "adam var mı?" mesaj turlarının yerini almak:
 maç kur → takım RSVP versin → eksik varsa ilanla oyuncu bul.
 
 ## Kapsam (v1)
-- Maç oluşturma (kaptan): tarih/saat, saha (serbest metin + opsiyonel konum),
+- Maç oluşturma (kaptan): tarih/saat — hızlı seçim için 14 günlük gün şeridi
+  **+ "Başka gün" ile takvimden serbest tarih seçimi** (kullanıcı talebi
+  2026-07-04, bkz. BACKLOG.md #3), saha (serbest metin + opsiyonel konum),
   format (5v5...8v8), kişi başı ücret
 - RSVP: geliyorum / gelmiyorum / belki — tek dokunuş
 - Katılım özeti: kaç kişi tamam, kaç eksik
 - "Adam eksik" ilanı: mevki + seviye aralığı + konum → keşif listesi
+- Keşif: **kullanıcı arama yarıçapını kendisi seçer** (5/10/25/50 km çipleri;
+  kullanıcı talebi 2026-07-04, bkz. BACKLOG.md #2) — API zaten `radius`
+  destekliyor, eksik olan mobil UI'daydı
 - İlana başvuru → kaptan onayı → maça katılım
 - Rakip takım ilanı ("maç arıyoruz")
 

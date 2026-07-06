@@ -28,7 +28,9 @@ bu ürünün viral büyüme motorudur** — davetsiz kullanıcı, görseldeki li
 ## Kadro Tahtası (ürünün kalbi — özen!)
 - Saha görseli üzerine oyuncu pulu (avatar + isim + forma no) sürükle-bırak
 - Boş pozisyona takım üyesi listesinden atama; üye olmayan için "misafir" pulu
-- Hazır diziliş şablonları: 1-2-1 (5'li), 2-3-1 (7'li) vb. + serbest yerleşim
+- Hazır diziliş şablonları: 1-2-1 (5'li), 2-3-1 (7'li) vb. **+ "Özel" seçeneği**
+  (kullanıcı 1-14 arası istediği puk sayısını seçer, sahaya serbest dizer —
+  preset'e bağlı kalmadan; kullanıcı talebi 2026-07-04, bkz. BACKLOG.md #1)
 - Pozisyonlar `{user_id|guest_name, x, y}` normalize koordinat (0-1) olarak saklanır
 - Export: `react-native-view-shot` ile marka filigranlı PNG
   (alt köşede "sahana.app ile kuruldu" + davet linki QR'ı — büyüme kancası)

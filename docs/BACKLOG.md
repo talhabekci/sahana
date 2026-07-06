@@ -7,34 +7,25 @@
 
 ## Açık Maddeler
 
-### 1. Kadro Tahtası — Özel (serbest) kadro kurma
+### 1. Kadro Tahtası — Özel (serbest) kadro kurma ✅
 - **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
-- **Talep tarihi:** 2026-07-04
-- **Şu an:** "Yeni kadro" akışı sadece 4 hazır formasyon sunuyor (5/6/7/8
-  kişilik presetler — `mobile/src/features/team/constants.ts`
-  `FORMATION_PRESETS`), seçim bir Alert menüsünden yapılıyor.
-- **İstenen:** Kullanıcı preset'e bağlı kalmadan kendi istediği sayıda ve
-  serbest yerleşimli kadro oluşturabilsin.
-- **Not:** Sürükle-bırak altyapısı (PitchBoard) zaten serbest x/y konumlarını
-  destekliyor; eksik olan slot ekleme/çıkarma arayüzü ve "Özel" giriş yolu.
+- **Talep tarihi:** 2026-07-04 · **Tamamlandı:** 2026-07-04
+- "Yeni kadro" akışına "Özel…" seçeneği eklendi: kullanıcı 3-14 arası puk
+  sayısını stepper ile seçiyor, ızgara halinde yerleştiriliyor, sonra
+  sürükleyerek serbestçe konumlandırıyor (`team/[id]/index.tsx`
+  `generateCustomSlots`).
 
-### 2. Keşif — Arama yarıçapı seçimi
+### 2. Keşif — Arama yarıçapı seçimi ✅
 - **Bağlı modül:** Modül 3 — [03-match-organization.md](features/03-match-organization.md)
-- **Talep tarihi:** 2026-07-04
-- **Şu an:** Yarıçap sabit kodlu (`listings/index.tsx`: adam eksik 30 km,
-  rakip arayanlar 50 km).
-- **İstenen:** Kullanıcı arama yarıçapını kendisi seçebilsin (ör. 5/10/25/50 km).
-- **Not:** API zaten `radius` query parametresini destekliyor (§API tablosu);
-  eksik olan sadece mobil UI'da bir seçici.
+- **Talep tarihi:** 2026-07-04 · **Tamamlandı:** 2026-07-04
+- `listings/index.tsx`'e 5/10/25/50 km çipleri eklendi; her iki sekmeyi
+  (adam eksik + rakip arayanlar) birlikte etkiliyor.
 
-### 3. Maç Kurma — Serbest tarih seçimi
+### 3. Maç Kurma — Serbest tarih seçimi ✅
 - **Bağlı modül:** Modül 3 — [03-match-organization.md](features/03-match-organization.md)
-- **Talep tarihi:** 2026-07-04
-- **Şu an:** `match/create.tsx` 14 günlük yatay gün şeridi sunuyor.
-- **İstenen:** Kullanıcı 14 günden ileri bir tarihi de takvimden seçebilsin.
-- **Not:** API zaten herhangi bir gelecek tarihi kabul ediyor
-  (`starts_at`: `after:now`); sınırlama sadece mobil UI'da. Native/harici
-  bir takvim paketi (ör. `react-native-calendars`) gerekecek.
+- **Talep tarihi:** 2026-07-04 · **Tamamlandı:** 2026-07-04
+- 14 günlük şeridin yanına "Başka gün" düğmesi eklendi; `react-native-calendars`
+  ile temalanmış takvimden serbest tarih seçilebiliyor (`match/create.tsx`).
 
 ### 4. Bildirimler (push notification)
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)

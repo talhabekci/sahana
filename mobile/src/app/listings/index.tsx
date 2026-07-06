@@ -37,12 +37,15 @@ const APPLY_LABELS = {
   rejected: 'Reddedildi',
 } as const;
 
+const RADIUS_OPTIONS = [5, 10, 25, 50] as const;
+
 export default function Discover() {
   const Router = useRouter();
   const QueryClient = useQueryClient();
 
   const [Tab, setTab] = useState<'players' | 'opponents'>('players');
   const [Near, setNear] = useState<string | null>(null);
+  const [SearchRadius, setSearchRadius] = useState<number>(25);
 
   useEffect(() => {
     void (async () => {
@@ -60,14 +63,14 @@ export default function Discover() {
   }, []);
 
   const PlayerListings = useQuery({
-    queryKey: ['discover', 'players', Near],
-    queryFn: () => discoverListings({ near: Near ?? undefined, radius: 30 }),
+    queryKey: ['discover', 'players', Near, SearchRadius],
+    queryFn: () => discoverListings({ near: Near ?? undefined, radius: SearchRadius }),
     enabled: Near != null,
   });
 
   const OpponentListings = useQuery({
-    queryKey: ['discover', 'opponents', Near],
-    queryFn: () => discoverOpponentListings({ near: Near ?? undefined, radius: 50 }),
+    queryKey: ['discover', 'opponents', Near, SearchRadius],
+    queryFn: () => discoverOpponentListings({ near: Near ?? undefined, radius: SearchRadius }),
     enabled: Near != null && Tab === 'opponents',
   });
 
@@ -205,6 +208,28 @@ export default function Discover() {
         ))}
       </View>
 
+      <View style={styles.radiusRow}>
+        <Text style={styles.radiusLabel}>YARIÇAP</Text>
+        <View style={styles.radiusChips}>
+          {RADIUS_OPTIONS.map((Option) => (
+            <Pressable
+              key={Option}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: SearchRadius === Option }}
+              onPress={() => setSearchRadius(Option)}
+              style={[styles.radiusChip, SearchRadius === Option && styles.radiusChipActive]}>
+              <Text
+                style={[
+                  styles.radiusChipText,
+                  SearchRadius === Option && styles.radiusChipTextActive,
+                ]}>
+                {Option} km
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
       {Loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
@@ -271,6 +296,40 @@ const styles = StyleSheet.create({
     color: Palette.moss,
   },
   segmentTextActive: {
+    color: Palette.limeInk,
+  },
+  radiusRow: {
+    marginBottom: space(4),
+  },
+  radiusLabel: {
+    fontFamily: Type.mono,
+    fontSize: 11,
+    letterSpacing: 2,
+    color: Palette.moss,
+    marginBottom: space(2),
+  },
+  radiusChips: {
+    flexDirection: 'row',
+    gap: space(2),
+  },
+  radiusChip: {
+    paddingVertical: space(1.5),
+    paddingHorizontal: space(3),
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    backgroundColor: Palette.turf,
+  },
+  radiusChipActive: {
+    backgroundColor: Palette.lime,
+    borderColor: Palette.lime,
+  },
+  radiusChipText: {
+    fontFamily: Type.mono,
+    fontSize: 13,
+    color: Palette.chalk,
+  },
+  radiusChipTextActive: {
     color: Palette.limeInk,
   },
   center: {

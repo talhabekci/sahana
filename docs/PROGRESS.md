@@ -15,6 +15,21 @@
 
 ---
 
+## 2026-07-04 (4) — Backlog #1-3 tamamlandı
+
+- **Özel kadro kurma:** team/[id]/index.tsx "Yeni kadro" akışına "Özel…"
+  eklendi — 3-14 arası puk sayısı stepper ile seçilir, `generateCustomSlots`
+  ızgara halinde yerleştirir, kullanıcı sonra serbestçe sürükler.
+- **Keşif yarıçap seçici:** listings/index.tsx'e 5/10/25/50 km çipleri
+  eklendi (RADIUS_OPTIONS), her iki keşif sekmesini etkiliyor.
+- **Serbest tarih seçimi:** match/create.tsx'e `react-native-calendars` ile
+  temalanmış takvim modalı eklendi ("Başka gün" düğmesi); gün state'i
+  `DayOffset`'ten `SelectedDate: Date` nesnesine geçirildi.
+- İlgili spec'ler (02-team-lineup.md, 03-match-organization.md) ve
+  BACKLOG.md güncellendi (üç madde ✅). Madde #4 (bildirimler) kullanıcı
+  tercihiyle şimdilik ertelendi.
+- Lint + tsc temiz.
+
 ## 2026-07-04 (3) — Kadro tahtası çökme düzeltmesi + backlog dokümanı
 
 - **Bug fix:** Kadro tahtası ekranı (team/[id]/lineup/[lid]) açılırken hata
