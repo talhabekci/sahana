@@ -12,6 +12,8 @@ import {
 import { deleteMe, getMe, logout } from '@/features/auth/api';
 import { POSITIONS } from '@/features/auth/PitchPositionPicker';
 import { useAuthStore } from '@/features/auth/store';
+import { getPlayerStats } from '@/features/stats/api';
+import { StatsCard } from '@/features/stats/StatsCard';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -23,6 +25,11 @@ function positionLabel(Key: string): string {
 export default function Profile() {
   const setToken = useAuthStore((State) => State.setToken);
   const Me = useQuery({ queryKey: ['me'], queryFn: getMe });
+  const Stats = useQuery({
+    queryKey: ['players', Me.data?.id, 'stats'],
+    queryFn: () => getPlayerStats(Me.data?.id ?? ''),
+    enabled: Me.data?.id != null,
+  });
 
   const Logout = useMutation({
     mutationFn: logout,
@@ -86,6 +93,8 @@ export default function Profile() {
             ))}
           </View>
         </View>
+
+        {Stats.data != null && <StatsCard stats={Stats.data} />}
 
         <View style={styles.contactBlock}>
           <Text style={styles.contactLabel}>HESAP</Text>

@@ -20,12 +20,18 @@ import {
 
 import {
   addMatchVideo,
+  approvePlayerStat,
   cancelMatch,
   confirmMatch,
+  confirmMatchResult,
   createOpponentListing,
+  disputeMatchResult,
+  enterMatchResult,
   getMatch,
   listMatchVideos,
+  listPlayerStats,
   Rsvp,
+  submitPlayerStat,
   submitRsvp,
 } from '@/features/match/api';
 import {
@@ -68,6 +74,72 @@ export default function MatchDetail() {
       setVideoUrl('');
       void QueryClient.invalidateQueries({ queryKey: ['matches', id, 'videos'] });
     },
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
+
+  const [ResultModalVisible, setResultModalVisible] = useState(false);
+  const [HomeScore, setHomeScore] = useState('');
+  const [AwayScore, setAwayScore] = useState('');
+  const [NoShowIds, setNoShowIds] = useState<string[]>([]);
+
+  const [StatModalVisible, setStatModalVisible] = useState(false);
+  const [StatTarget, setStatTarget] = useState<{ id: string; name: string | null } | null>(null);
+  const [StatGoals, setStatGoals] = useState(0);
+  const [StatAssists, setStatAssists] = useState(0);
+
+  const Stats = useQuery({
+    queryKey: ['matches', id, 'player-stats'],
+    queryFn: () => listPlayerStats(id),
+    enabled: Match_.data?.i_am_participant === true && Match_.data.status !== 'cancelled',
+  });
+
+  const EnterResult = useMutation({
+    mutationFn: () =>
+      enterMatchResult(id, {
+        home_score: Number(HomeScore),
+        away_score: Number(AwayScore),
+        no_show_user_ids: NoShowIds,
+      }),
+    onSuccess: () => {
+      setResultModalVisible(false);
+      setHomeScore('');
+      setAwayScore('');
+      setNoShowIds([]);
+      invalidate();
+    },
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
+
+  const ConfirmResult = useMutation({
+    mutationFn: () => confirmMatchResult(id),
+    onSuccess: invalidate,
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
+
+  const DisputeResult = useMutation({
+    mutationFn: () => disputeMatchResult(id),
+    onSuccess: invalidate,
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
+
+  const SubmitStat = useMutation({
+    mutationFn: () => {
+      if (StatTarget == null) {
+        return Promise.reject(new Error('Oyuncu seçilmedi.'));
+      }
+
+      return submitPlayerStat(id, { user_id: StatTarget.id, goals: StatGoals, assists: StatAssists });
+    },
+    onSuccess: () => {
+      setStatModalVisible(false);
+      void QueryClient.invalidateQueries({ queryKey: ['matches', id, 'player-stats'] });
+    },
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
+
+  const ApproveStat = useMutation({
+    mutationFn: (StatId: string) => approvePlayerStat(StatId),
+    onSuccess: () => void QueryClient.invalidateQueries({ queryKey: ['matches', id, 'player-stats'] }),
     onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
   });
 
@@ -114,6 +186,9 @@ export default function MatchDetail() {
   const Data = Match_.data;
   const IsOpen = Data.status === 'draft' || Data.status === 'confirmed';
   const OpenListing = (Data.listings ?? []).find((Listing) => Listing.status === 'open');
+
+  const StartsAtMs = new Date(Data.starts_at).getTime();
+  const RatingWindowOpen = Date.now() >= StartsAtMs && Date.now() <= StartsAtMs + 48 * 60 * 60 * 1000;
 
   const promptCancel = () => {
     Alert.alert('Maçı iptal et', 'Tüm katılımcılar için iptal edilir. Emin misin?', [
@@ -199,6 +274,116 @@ export default function MatchDetail() {
             </View>
           ))}
         </View>
+
+        {Data.opponent_team != null && Data.status !== 'cancelled' && (
+          <>
+            <Text style={styles.sectionLabel}>SKOR</Text>
+
+            {Data.result == null ? (
+              Data.i_am_captain === true ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setResultModalVisible(true)}
+                  style={styles.addVideoButton}
+                  hitSlop={8}>
+                  <Ionicons name="add-circle-outline" size={18} color={Palette.lime} />
+                  <Text style={styles.addVideoText}>Skoru gir</Text>
+                </Pressable>
+              ) : (
+                <Text style={styles.emptyVideoText}>Skor henüz girilmedi.</Text>
+              )
+            ) : (
+              <View style={styles.resultCard}>
+                <Text style={styles.resultScore}>
+                  {Data.result.home_score} — {Data.result.away_score}
+                </Text>
+                <Text style={styles.resultStatus}>
+                  {Data.result.status === 'pending'
+                    ? 'Rakip onayı bekleniyor'
+                    : Data.result.status === 'confirmed'
+                      ? 'Onaylandı'
+                      : 'İtiraz edildi'}
+                </Text>
+
+                {Data.result.status === 'pending' && Data.i_am_opponent_captain === true && (
+                  <View style={styles.resultActions}>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => ConfirmResult.mutate()}
+                      style={styles.resultActionButton}>
+                      <Text style={styles.addVideoText}>Onayla</Text>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() =>
+                        Alert.alert('Skora itiraz et', 'Rakip kaptan bu skoru itiraza açacak. Emin misin?', [
+                          { text: 'Vazgeç', style: 'cancel' },
+                          { text: 'İtiraz et', style: 'destructive', onPress: () => DisputeResult.mutate() },
+                        ])
+                      }
+                      style={styles.resultActionButton}>
+                      <Text style={styles.cancelText}>İtiraz et</Text>
+                    </Pressable>
+                  </View>
+                )}
+              </View>
+            )}
+          </>
+        )}
+
+        {Data.i_am_participant === true && Data.status !== 'cancelled' && (
+          <>
+            <Text style={styles.sectionLabel}>İSTATİSTİKLER</Text>
+            <View style={styles.card}>
+              {(Data.participants ?? []).map((Participant, Index) => {
+                const Stat = (Stats.data ?? []).find((Item) => Item.player?.id === Participant.id);
+                const CanEdit = Data.i_am_captain === true || Participant.is_me;
+
+                return (
+                  <Pressable
+                    key={Participant.id}
+                    disabled={!CanEdit}
+                    onPress={() => {
+                      setStatTarget({ id: Participant.id, name: Participant.name });
+                      setStatGoals(Stat?.goals ?? 0);
+                      setStatAssists(Stat?.assists ?? 0);
+                      setStatModalVisible(true);
+                    }}
+                    style={[styles.participantRow, Index === 0 && styles.participantRowFirst]}>
+                    <Text style={styles.participantName}>{Participant.name ?? 'İsimsiz'}</Text>
+                    <View style={styles.statRowRight}>
+                      <Text style={styles.statValueText}>
+                        ⚽ {Stat?.goals ?? 0} · 🅰️ {Stat?.assists ?? 0}
+                      </Text>
+                      {Stat != null && !Stat.approved && (
+                        <Text style={styles.statPending}>onay bekliyor</Text>
+                      )}
+                      {Stat != null && !Stat.approved && Data.i_am_captain === true && (
+                        <Pressable
+                          accessibilityRole="button"
+                          onPress={() => ApproveStat.mutate(Stat.id)}
+                          hitSlop={8}>
+                          <Ionicons name="checkmark-circle-outline" size={20} color={Palette.lime} />
+                        </Pressable>
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {RatingWindowOpen && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => Router.push(`/match/${id}/rate`)}
+                style={styles.addVideoButton}
+                hitSlop={8}>
+                <Ionicons name="star-outline" size={18} color={Palette.lime} />
+                <Text style={styles.addVideoText}>Takım arkadaşlarını puanla</Text>
+              </Pressable>
+            )}
+          </>
+        )}
 
         {Data.status !== 'cancelled' && (
           <>
@@ -313,6 +498,132 @@ export default function MatchDetail() {
             />
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      <Modal visible={ResultModalVisible} transparent animationType="slide">
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <Pressable style={styles.modalBackdrop} onPress={() => setResultModalVisible(false)} />
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Skoru gir</Text>
+            <Text style={styles.modalSub}>Rakip kaptan onaylayana (ya da 48 saat geçene) kadar bekler.</Text>
+
+            <View style={styles.scoreRow}>
+              <TextInput
+                value={HomeScore}
+                onChangeText={setHomeScore}
+                placeholder="0"
+                placeholderTextColor={Palette.moss}
+                selectionColor={Palette.lime}
+                keyboardType="number-pad"
+                style={styles.scoreInput}
+              />
+              <Text style={styles.scoreDash}>—</Text>
+              <TextInput
+                value={AwayScore}
+                onChangeText={setAwayScore}
+                placeholder="0"
+                placeholderTextColor={Palette.moss}
+                selectionColor={Palette.lime}
+                keyboardType="number-pad"
+                style={styles.scoreInput}
+              />
+            </View>
+
+            {(Data.participants ?? []).filter((P) => P.rsvp === 'yes').length > 0 && (
+              <>
+                <Text style={styles.modalSub}>Gelmeyenler var mı? (RSVP evet olup gelmeyenler)</Text>
+                <View style={styles.noShowList}>
+                  {(Data.participants ?? [])
+                    .filter((P) => P.rsvp === 'yes')
+                    .map((P) => {
+                      const Selected = NoShowIds.includes(P.id);
+
+                      return (
+                        <Pressable
+                          key={P.id}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked: Selected }}
+                          onPress={() =>
+                            setNoShowIds((Current) =>
+                              Selected ? Current.filter((Id) => Id !== P.id) : [...Current, P.id],
+                            )
+                          }
+                          style={styles.noShowRow}>
+                          <Ionicons
+                            name={Selected ? 'checkbox' : 'square-outline'}
+                            size={20}
+                            color={Selected ? Palette.clay : Palette.moss}
+                          />
+                          <Text style={styles.participantName}>{P.name ?? 'İsimsiz'}</Text>
+                        </Pressable>
+                      );
+                    })}
+                </View>
+              </>
+            )}
+
+            <Button
+              label="Skoru kaydet"
+              onPress={() => EnterResult.mutate()}
+              disabled={HomeScore.trim() === '' || AwayScore.trim() === ''}
+              loading={EnterResult.isPending}
+            />
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      <Modal visible={StatModalVisible} transparent animationType="slide">
+        <Pressable style={styles.modalBackdrop} onPress={() => setStatModalVisible(false)} />
+        <View style={styles.modalSheet}>
+          <View style={styles.modalHandle} />
+          <Text style={styles.modalTitle}>{StatTarget?.name ?? 'Oyuncu'}</Text>
+          <Text style={styles.modalSub}>Gol ve asist sayısını gir.</Text>
+
+          <View style={styles.stepperGroup}>
+            <View style={styles.stepperBlock}>
+              <Text style={styles.statPending}>GOL</Text>
+              <View style={styles.stepperRow}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setStatGoals((Value) => Math.max(0, Value - 1))}
+                  style={styles.stepperButton}>
+                  <Text style={styles.stepperSymbol}>−</Text>
+                </Pressable>
+                <Text style={styles.stepperValue}>{StatGoals}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setStatGoals((Value) => Math.min(20, Value + 1))}
+                  style={styles.stepperButton}>
+                  <Text style={styles.stepperSymbol}>+</Text>
+                </Pressable>
+              </View>
+            </View>
+
+            <View style={styles.stepperBlock}>
+              <Text style={styles.statPending}>ASİST</Text>
+              <View style={styles.stepperRow}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setStatAssists((Value) => Math.max(0, Value - 1))}
+                  style={styles.stepperButton}>
+                  <Text style={styles.stepperSymbol}>−</Text>
+                </Pressable>
+                <Text style={styles.stepperValue}>{StatAssists}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setStatAssists((Value) => Math.min(20, Value + 1))}
+                  style={styles.stepperButton}>
+                  <Text style={styles.stepperSymbol}>+</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+
+          <Button label="Kaydet" onPress={() => SubmitStat.mutate()} loading={SubmitStat.isPending} />
+        </View>
       </Modal>
     </Screen>
   );
@@ -549,5 +860,114 @@ const styles = StyleSheet.create({
     fontFamily: Type.body,
     fontSize: 14,
     color: Palette.chalk,
+  },
+  resultCard: {
+    backgroundColor: Palette.turf,
+    borderRadius: Radius.l,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    padding: space(4),
+    alignItems: 'center',
+  },
+  resultScore: {
+    fontFamily: Type.mono,
+    fontSize: 32,
+    color: Palette.chalk,
+  },
+  resultStatus: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 13,
+    color: Palette.moss,
+    marginTop: space(1),
+  },
+  resultActions: {
+    flexDirection: 'row',
+    gap: space(5),
+    marginTop: space(4),
+  },
+  resultActionButton: {
+    paddingVertical: space(2),
+    paddingHorizontal: space(4),
+  },
+  statRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+  },
+  statValueText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 13,
+    color: Palette.chalk,
+  },
+  statPending: {
+    fontFamily: Type.mono,
+    fontSize: 10,
+    letterSpacing: 1,
+    color: Palette.moss,
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space(4),
+  },
+  scoreInput: {
+    width: 64,
+    height: 64,
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    backgroundColor: Palette.turfRaised,
+    textAlign: 'center',
+    fontFamily: Type.mono,
+    fontSize: 28,
+    color: Palette.chalk,
+  },
+  scoreDash: {
+    fontFamily: Type.mono,
+    fontSize: 24,
+    color: Palette.moss,
+  },
+  noShowList: {
+    gap: space(2),
+  },
+  noShowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(3),
+  },
+  stepperGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  stepperBlock: {
+    alignItems: 'center',
+    gap: space(2),
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(4),
+  },
+  stepperButton: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperSymbol: {
+    fontFamily: Type.displaySemi,
+    fontSize: 20,
+    color: Palette.chalk,
+  },
+  stepperValue: {
+    fontFamily: Type.mono,
+    fontSize: 22,
+    color: Palette.chalk,
+    minWidth: 28,
+    textAlign: 'center',
   },
 });

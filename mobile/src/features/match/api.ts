@@ -15,6 +15,7 @@ export type MatchParticipant = {
   name: string | null;
   rsvp: Rsvp | null;
   source: 'team' | 'listing';
+  is_me: boolean;
 };
 
 export type Match = {
@@ -31,9 +32,27 @@ export type Match = {
   my_rsvp: Rsvp | null;
   i_am_captain?: boolean;
   i_am_participant?: boolean;
+  i_am_opponent_captain?: boolean;
   rsvp_summary?: { yes: number; no: number; maybe: number; pending: number };
   participants?: MatchParticipant[];
   listings?: { id: string; status: string; needed_count: number; positions_needed: string[] }[];
+  result?: MatchResult | null;
+};
+
+export type MatchResultStatus = 'pending' | 'confirmed' | 'disputed';
+
+export type MatchResult = {
+  home_score: number;
+  away_score: number;
+  status: MatchResultStatus;
+};
+
+export type PlayerMatchStat = {
+  id: string;
+  goals: number;
+  assists: number;
+  approved: boolean;
+  player?: { id: string; name: string | null };
 };
 
 export type VideoProvider = 'youtube' | 'sosyalhalisaha' | 'other';
@@ -223,4 +242,50 @@ export async function addMatchVideo(matchId: string, url: string): Promise<Match
   const { data } = await Api.post<{ data: MatchVideo }>(`/matches/${matchId}/videos`, { url });
 
   return data.data;
+}
+
+export async function enterMatchResult(
+  matchId: string,
+  payload: { home_score: number; away_score: number; no_show_user_ids?: string[] },
+): Promise<Match> {
+  const { data } = await Api.post<{ data: Match }>(`/matches/${matchId}/result`, payload);
+
+  return data.data;
+}
+
+export async function confirmMatchResult(matchId: string): Promise<Match> {
+  const { data } = await Api.post<{ data: Match }>(`/matches/${matchId}/result/confirm`);
+
+  return data.data;
+}
+
+export async function disputeMatchResult(matchId: string): Promise<Match> {
+  const { data } = await Api.post<{ data: Match }>(`/matches/${matchId}/result/dispute`);
+
+  return data.data;
+}
+
+export async function listPlayerStats(matchId: string): Promise<PlayerMatchStat[]> {
+  const { data } = await Api.get<{ data: PlayerMatchStat[] }>(`/matches/${matchId}/player-stats`);
+
+  return data.data;
+}
+
+export async function submitPlayerStat(
+  matchId: string,
+  payload: { user_id: string; goals: number; assists: number },
+): Promise<PlayerMatchStat> {
+  const { data } = await Api.post<{ data: PlayerMatchStat }>(`/matches/${matchId}/player-stats`, payload);
+
+  return data.data;
+}
+
+export async function approvePlayerStat(statId: string): Promise<PlayerMatchStat> {
+  const { data } = await Api.post<{ data: PlayerMatchStat }>(`/player-stats/${statId}/approve`);
+
+  return data.data;
+}
+
+export async function submitRating(matchId: string, payload: { ratee_id: string; score: number }): Promise<void> {
+  await Api.post(`/matches/${matchId}/ratings`, payload);
 }

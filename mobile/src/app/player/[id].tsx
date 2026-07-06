@@ -16,6 +16,8 @@ import {
   unlikePost,
 } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
+import { getPlayerStats } from '@/features/stats/api';
+import { StatsCard } from '@/features/stats/StatsCard';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
@@ -30,6 +32,11 @@ export default function PlayerProfile() {
   const Posts = useQuery({
     queryKey: ['players', id, 'posts'],
     queryFn: () => getPlayerPosts(id),
+    enabled: Player.data?.is_blocked !== true,
+  });
+  const Stats = useQuery({
+    queryKey: ['players', id, 'stats'],
+    queryFn: () => getPlayerStats(id),
     enabled: Player.data?.is_blocked !== true,
   });
 
@@ -172,6 +179,8 @@ export default function PlayerProfile() {
                 </Pressable>
               </View>
             )}
+
+            {!Blocked && Stats.data != null && <StatsCard stats={Stats.data} />}
 
             {Blocked ? (
               <Text style={styles.blockedText}>Bu kullanıcıyı engelledin, gönderileri gizli.</Text>
