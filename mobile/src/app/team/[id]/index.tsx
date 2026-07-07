@@ -208,6 +208,10 @@ export default function TeamDetail() {
           </View>
         </View>
 
+        <View style={styles.inviteRow}>
+          <Button label="Takım sohbeti" onPress={() => Router.push(`/team/${id}/chat`)} />
+        </View>
+
         {IAmCaptain && (
           <View style={styles.inviteRow}>
             <Button label="Arkadaş davet et" onPress={() => Router.push(`/team/${id}/invite`)} />

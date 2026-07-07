@@ -53,9 +53,14 @@ export default function Feed() {
     <Screen pitch pitchY={-160} bare>
       <View style={styles.header}>
         <Text style={styles.kicker}>AKIŞ</Text>
-        <Pressable accessibilityRole="button" onPress={() => Router.push('/search')} hitSlop={12}>
-          <Ionicons name="search-outline" size={22} color={Palette.chalk} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable accessibilityRole="button" onPress={() => Router.push('/notifications')} hitSlop={12}>
+            <Ionicons name="notifications-outline" size={22} color={Palette.chalk} />
+          </Pressable>
+          <Pressable accessibilityRole="button" onPress={() => Router.push('/search')} hitSlop={12}>
+            <Ionicons name="search-outline" size={22} color={Palette.chalk} />
+          </Pressable>
+        </View>
       </View>
 
       {Feed_.isPending ? (
@@ -111,6 +116,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: space(4),
     paddingHorizontal: space(6),
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(4),
   },
   kicker: {
     fontFamily: Type.mono,

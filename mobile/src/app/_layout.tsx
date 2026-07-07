@@ -13,6 +13,7 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAuthStore } from '@/features/auth/store';
+import { usePushRegistration } from '@/features/notifications/usePushRegistration';
 import { Palette } from '@/shared/ui/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -40,6 +41,8 @@ export default function RootLayout() {
   }, [Hydrate]);
 
   const Ready = FontsLoaded && Hydrated;
+
+  usePushRegistration(Ready && Token != null);
 
   // Splash yalnızca Ready ilk true olduğunda bir kez gizlenir — her rota
   // değişiminde (Segments) tekrar çağrılırsa native taraf reddediyor
