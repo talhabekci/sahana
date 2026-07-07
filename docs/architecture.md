@@ -20,18 +20,18 @@
 │        │               │                              │
 │        ▼               ▼                              │
 │   API Resources    Jobs (Queue)                       │
-└───────┬──────────────┬───────────────┬───────────────┘
-        │              │               │
-        ▼              ▼               ▼
-   ┌─────────┐   ┌──────────┐   ┌─────────────┐
-   │ MySQL 8 │   │ Redis 7  │   │ Cloudflare  │
-   │         │   │ cache+   │   │ R2 (medya)  │
-   │         │   │ queue    │   │             │
-   └─────────┘   └──────────┘   └─────────────┘
+└───────┬──────────────┬───────────────┬──────────────┬────────┘
+        │              │               │              │
+        ▼              ▼               ▼              ▼
+   ┌─────────┐   ┌──────────┐   ┌─────────────┐  ┌──────────┐
+   │ MySQL 8 │   │ Redis 7  │   │ Cloudflare  │  │ MongoDB  │
+   │         │   │ cache+   │   │ R2 (medya)  │  │ (sohbet  │
+   │         │   │ queue    │   │             │  │ geçmişi) │
+   └─────────┘   └──────────┘   └─────────────┘  └──────────┘
                        │
                        ▼
               ┌─────────────────┐
-              │ FCM (push)      │
+              │ Expo Push API   │
               │ SMS sağlayıcı   │
               └─────────────────┘
 ```
@@ -119,6 +119,16 @@ venues                        └ status: open|filled|expired
                               ├ type: external_link|uploaded
                               ├ url / storage_path
                               └ provider: youtube|sosyalhalisaha|other
+
+devices (Modül 7)            notifications (Modül 7, Laravel yerleşik)
+ ├ user_id                    ├ id (uuid), type
+ ├ expo_push_token (uniq)     ├ notifiable_type/id
+ └ platform: ios|android      ├ data JSON
+                              └ read_at
+
+messages (Modül 7 — MongoDB, sahana_chat DB, MySQL'e FK YOK)
+ ├ _id (ObjectId, public ID)  ├ type: text|image|match_ref|lineup_ref
+ ├ team_id, user_id           └ body? / image_path? / match_id? / lineup_id?
 ```
 
 Tarih/saat: DB'de her zaman **UTC**, API'de ISO 8601 (`2026-07-03T18:00:00Z`),
@@ -133,7 +143,7 @@ mobilde kullanıcı saat dilimine çevrilir. Detay: [api-conventions.md](api-con
    uzun ömürlü token + şüpheli aktivitede iptal (v1 için yeterli).
 
 ### Maç organizasyonu (Modül 3)
-1. Kaptan maç oluşturur → takım üyelerine push (FCM job).
+1. Kaptan maç oluşturur → takım üyelerine push (Expo Push API üzerinden).
 2. Üyeler RSVP verir → kaptan eksik görürse "adam eksik" ilanı açar.
 3. İlan, konum + mevki + seviye filtresiyle keşif ekranına düşer.
 4. Başvuru → kaptan onayı → oyuncu maça eklenir → ilan `filled`.
@@ -143,12 +153,20 @@ mobilde kullanıcı saat dilimine çevrilir. Detay: [api-conventions.md](api-con
 2. API, oEmbed/OG metadata çeker (job), thumbnail cache'ler.
 3. Feed'de embed player ile oynatılır. Kendi yüklemeleri v2 (R2 + HLS).
 
+### Bildirim & Sohbet (Modül 7)
+1. Olay gerçekleşir (maç oluştu, başvuru geldi vb.) → Laravel Notification
+   hem `database` (uygulama içi bildirim merkezi) hem özel `ExpoChannel`
+   (push) kanallarına yazar; sessiz saatteyse push 08:00'e ertelenir.
+2. Takım sohbeti mesajları MySQL değil **MongoDB**'ye yazılır (`sahana_chat`
+   DB) — gönderildiğinde Reverb üzerinden `private-team.{id}` kanalına
+   anlık yayınlanır, çevrimdışı üyelere push fallback gider.
+
 ## 5. Ortamlar
 
 | Ortam | Amaç | API | Mobil |
 |---|---|---|---|
-| local | Geliştirme | Lokal PHP + brew MySQL (`sahana` DB); Sail opsiyonel | Expo Go / dev client |
-| staging | Test + TestFlight/Internal track | VPS üzerinde ayrı container seti | EAS preview build |
+| local | Geliştirme | Lokal PHP + brew MySQL (`sahana` DB) + brew MongoDB (`sahana_chat` DB); Sail opsiyonel | Expo Go / dev client |
+| staging | Test + TestFlight/Internal track | VPS üzerinde ayrı container seti (MySQL+MongoDB+Redis+Reverb) | EAS preview build |
 | production | Canlı | VPS | Store sürümleri + OTA |
 
 ## 6. Güvenlik Temelleri

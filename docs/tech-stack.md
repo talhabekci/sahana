@@ -10,9 +10,10 @@
 | Mobil | React Native (Expo, TypeScript) | Web/JS aşinalığı, tek codebase, OTA update |
 | Backend | Laravel 12 (API-only) | Mevcut PHP/Laravel tecrübesi, batteries-included |
 | Veritabanı | MySQL 8 | Aşinalık; coğrafi sorgular için yeterli (POINT + SPATIAL INDEX) |
+| Sohbet geçmişi | MongoDB | Yüksek yazma hacmi + esnek şema (Modül 7, 2026-07-07 kararı) |
 | Cache & Queue | Redis 7 + Laravel Horizon | Bildirim fan-out, feed cache, OTP rate limit |
 | Realtime | Laravel Reverb | Birinci parti WebSocket; chat + canlı katılım durumu |
-| Push | Firebase Cloud Messaging (FCM) | iOS+Android tek kanal, Expo ile uyumlu |
+| Push | Expo Push API | Expo-managed proje — Firebase Admin SDK/FCM kurulum yükü gerekmez (Modül 7, 2026-07-07 kararı) |
 | Medya depolama | Cloudflare R2 (S3-uyumlu) | Egress ücretsiz — video/foto ağırlıklı üründe kritik |
 | CI/CD | GitHub Actions + EAS Build | API testleri + mobil build otomasyonu |
 | Hosting (v1) | Tek VPS (Hetzner) + Docker | Düşük maliyet, basit operasyon |
@@ -38,7 +39,8 @@
 | Client state | `zustand` | Hafif; Redux'a gerek yok |
 | Form | `react-hook-form` + `zod` | Zod şemaları API validasyonuyla paralel tutulur |
 | HTTP | `axios` | Interceptor ile token yenileme |
-| Push | `expo-notifications` + FCM | |
+| Push | `expo-notifications` (Expo Push servisi) + `expo-device`/`expo-constants` (token alma) | |
+| Realtime sohbet | `laravel-echo` + `pusher-js` | Reverb, Pusher protokolüyle uyumlu; ham WebSocket üzerinden çalışır |
 | Harita | `react-native-maps` | Saha/ilan konumları için |
 | Video oynatma | `expo-video` | HLS destekli |
 | Görsel seçme/çekme | `expo-image-picker` | Profil/takım logosu |
@@ -109,11 +111,12 @@ Hetzner VPS (CX32 ~ €8/ay)
 │   ├── nginx (TLS: Let's Encrypt)
 │   ├── php-fpm (Laravel)
 │   ├── mysql:8
+│   ├── mongo:7 (sohbet geçmişi)
 │   ├── redis:7
 │   ├── horizon (queue worker)
 │   └── reverb (websocket)
 ├── Cloudflare (DNS + CDN + R2)
-└── Yedekleme: mysqldump → R2 (günlük, cron)
+└── Yedekleme: mysqldump + mongodump → R2 (günlük, cron)
 ```
 
 Ölçek sinyali geldiğinde (ilk ~10K aktif kullanıcı sonrası): managed DB'ye geçiş,
@@ -127,3 +130,5 @@ worker'ları ayrı makineye alma. Şimdiden mikroservis YOK.
 | 2026-07-03 | Laravel 12 | Slim 4 | Batteries-included; Modül 1-7 ihtiyaçları birinci parti |
 | 2026-07-03 | MySQL 8 | PostgreSQL | Aşinalık; spatial ihtiyaçlar MySQL'de karşılanıyor |
 | 2026-07-03 | Cloudflare R2 | AWS S3 | Egress ücretsiz; video ağırlıklı ürün |
+| 2026-07-07 | Expo Push API | Firebase Admin SDK/FCM (ilk karar) | Expo-managed projede Firebase proje/service-account kurulum yükü gereksiz; Expo zaten APNs/FCM'e arkada yönlendiriyor |
+| 2026-07-07 | MongoDB (sohbet geçmişi) | MySQL (`messages` tablosu) | Yüksek yazma hacmi + esnek şema; ilişkisel sorgu ihtiyacı yok |

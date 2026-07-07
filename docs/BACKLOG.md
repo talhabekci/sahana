@@ -66,6 +66,32 @@
   post/kart türü olarak) gösterilmesini istiyor. Feed'in `BuildFeed` Action'ı
   ve `Post.TYPES`'a yeni bir tür eklenmesi gerekebilir — tasarım netleşmeli.
 
+### 9. Videolara varsayılan kapak fotoğrafı
+- **Bağlı modül:** Modül 5 — [05-videos.md](05-videos.md)
+- **Talep tarihi:** 2026-07-07
+- Şu an `thumbnail_url` boş gelirse (oEmbed/OG metadata çekilemedi ya da
+  sağlayıcı thumbnail döndürmedi) `PostCard`/match detayında sadece bir
+  ikon placeholder gösteriliyor. Kullanıcı gerçek bir **varsayılan kapak
+  görseli** istiyor (tek, sabit bir default asset — video başlığına/
+  sağlayıcıya göre değişmeyen). Mobil tarafta `assets/`e eklenip
+  `thumbnail_url == null` durumunda `<Image>` ile gösterilecek.
+
+### 10. "Videonu bul" (v1.5) — kendi il/ilçe/saha tabloları + external_id eşleştirmesi
+- **Bağlı modül:** Modül 5 — [05-videos.md](05-videos.md) §v1.5,
+  [../research/sosyalhalisaha.md](../research/sosyalhalisaha.md) §3.1
+  (ileride Modül 8 — Saha Rehberi ile kesişebilir)
+- **Talep tarihi:** 2026-07-07
+- Spec'teki v1.5 tasarımı tek bir düz `sosyalhalisaha_venues` referans
+  tablosu öngörüyordu (`il_id, ilce_id, ilce_name, saha_id, saha_name`).
+  Kullanıcının rafine ettiği tasarım: **kendi id sistemimizle** birinci
+  sınıf `districts` (ilçe) ve `venues` (saha) tabloları tutulsun — il zaten
+  `cities` tablosuyla eşleşiyor (plaka=id) — her ikisine de sosyalhalisaha
+  eşleşmesi için nullable bir `external_id` kolonu eklensin. Maç kurarken
+  kullanıcı kendi il/ilçe/saha'mızdan seçer; "Videonu bul" linki için
+  sosyalhalisaha URL'i o saha kaydının `external_id`'siyle kurulur.
+  Uygulamaya geçilmeden önce spec'in v1.5 bölümü bu tasarıma göre
+  güncellenmeli.
+
 ## Genel Yön: MVP → Production Ready
 - **Talep tarihi:** 2026-07-06
 - Kullanıcı Modül 4'ü test etti, çökme yok; ama yukarıdaki maddeler + henüz

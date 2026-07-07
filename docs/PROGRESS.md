@@ -14,9 +14,68 @@
 | 4 — Sosyal Katman | ✅ API + mobil tamam (2026-07-06) · cihazda kullanıcı testi bekliyor |
 | 5 — Maç Videoları | ✅ v1 API + mobil tamam (2026-07-06) · v1.5/v2/v3 bekliyor |
 | 6 — İstatistik & Reyting | ✅ API + mobil tamam (2026-07-07) · cihazda kullanıcı testi bekliyor |
-| 7-8 | ⬜ Başlamadı |
+| 7 — Bildirim & Mesajlaşma | ✅ API + mobil tamam (2026-07-07) · cihazda kullanıcı testi bekliyor (push ancak EAS dev build'de test edilebilir) |
+| 8 | ⬜ Başlamadı |
 
 ---
+
+## 2026-07-07 (2) — Modül 7 tamamlandı: Bildirim & Mesajlaşma
+
+- **Kararlar (kullanıcı):** 7 bildirim tetikleyicisinin tamamı tek oturumda;
+  sohbet geçmişi MySQL yerine **MongoDB**'de (`sahana_chat`, yerel brew
+  kurulumu); sessiz saat varsayılan **açık** (00:00-08:00, `Europe/Istanbul`
+  sabit, `chat_message` kategorisi muaf).
+- **Teknik sapma:** tech-stack.md'nin FCM kararı yerine Expo Push API
+  kullanıldı (proje Expo-managed olduğundan Firebase Admin SDK gereksiz;
+  tek HTTPS çağrısıyla `exp.host/--/api/v2/push/send`).
+- **API:** `devices` tablosu + `App\Notifications\Channels\ExpoChannel`
+  (kategori tercihi + sessiz saat kontrolü + `SendExpoPush` job, gecikmeli
+  dispatch) + 9 bildirim sınıfı (maç oluşturuldu/onaylandı, RSVP/maç
+  hatırlatma sweep'leri, ilan başvurusu/kararı, davet kabulü, sosyal özet
+  batch, sohbet mesajı). MongoDB `Message` modeli (`MongoDB\Laravel\Eloquent\
+  Model`, `_id` doğrudan public ID), `SendMessage`/`ListMessages` Action'ları,
+  Reverb (`MessageSent` event, `private-team.{id}` kanalı). `GET/POST
+  /teams/{id}/messages` manuel cursor (native `cursorPaginate()` Mongo
+  sürücüsüyle garantili uyumlu değil — kasıtlı, gerekçeli api-conventions
+  sapması).
+- **Kritik düzeltme:** `withRouting(channels: ...)` `/broadcasting/auth`'u
+  varsayılan `web` (session) middleware'iyle kaydediyor — mobil Sanctum
+  bearer token kullandığından uyumsuz. `->withBroadcasting($channels,
+  attributes: ['prefix' => 'api/v1', 'middleware' => ['auth:sanctum']])` ile
+  düzeltildi.
+- **Test metodolojisi dersi:** Bildirim sınıfları `ShouldQueue` olduğundan
+  kapsamsız `Queue::fake()` dış `SendQueuedNotifications` job'ını yakalayıp
+  `ExpoChannel::send()`'in hiç çalışmamasına (ve testin yanlışlıkla
+  geçmesine) yol açıyordu; `Queue::fake([SendExpoPush::class])` ile iç job'a
+  daraltılarak gerçek kanal mantığı test edildi.
+- **Mobil:** paketler (`expo-notifications`, `expo-device`, `laravel-echo`,
+  `pusher-js`), `shared/api/echo.ts` (Echo/Reverb singleton, Sanctum
+  authorizer), `usePushRegistration` hook'u (Expo Go'da SDK 53+ uzak push
+  desteklemediği için try/catch ile sessiz düşüş, `_layout.tsx`'e bağlandı),
+  bildirim merkezi (`notifications/index.tsx`, cursor sonsuz kaydırma,
+  okundu işaretleme), bildirim tercihleri (`notifications/preferences.tsx`,
+  sessiz saat + 9 kategori anahtarı), takım sohbeti (`team/[id]/chat.tsx`,
+  ters `FlatList` + Echo canlı dinleme + REST cursor sayfalama). Giriş
+  noktaları: akış ekranına zil ikonu, takım ekranına "Takım sohbeti" butonu.
+- **pusher-js tip hatası:** `echo.ts`'teki authorizer callback imzası
+  (`error: boolean`) gerçek `ChannelAuthorizationCallback` tipiyle
+  (`error: Error | null`) uyuşmuyordu — `tsc --noEmit` ile yakalandı, düzeltildi.
+- **Kullanıcıya iletilmesi gereken kısıtlama:** Expo Go (SDK 53+) uzak push
+  bildirimlerini desteklemiyor; gerçek push test için EAS development build
+  gerekiyor (uygulama içi bildirim kaydı ve sohbet WS'i Expo Go'da normal
+  çalışır, yalnızca push token alınamaz).
+- Doğrulama: API 187 test (33 yeni) + Pint + Larastan yeşil, gerçek MySQL'e
+  migrate edildi; mobil `tsc --noEmit` + lint temiz.
+  `docs/features/07-notifications-chat.md` zaten güncel (kararlar oturum
+  başında işlendi).
+
+### Sonraki adım
+- Kullanıcı cihaz testi: bildirim tetikleyicileri (maç oluştur/onayla, ilana
+  başvur/karar ver, davet kabul et) + takım sohbeti (iki hesapla canlı mesaj).
+  Gerçek push bildirimi için EAS dev build gerekiyor — Expo Go'da sadece
+  uygulama içi bildirim kaydı ve sohbet test edilebilir.
+- ROADMAP sırasına göre Modül 8 ya da kullanıcının MVP→production-ready
+  cilalama tercihi (BACKLOG.md), Modül 1-8 tamamlandıktan sonra.
 
 ## 2026-07-07 — Modül 6 tamamlandı: İstatistik & Reyting
 
