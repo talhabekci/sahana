@@ -1,11 +1,18 @@
 import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
+import PusherModule from 'pusher-js';
 
 import { Api } from './client';
 
+// pusher-js'in react-native derlemesi `module.exports.Pusher = ...` ile
+// isimli export veriyor (default/__esModule yok) — Metro'nun CJS interop'u
+// bu yüzden default import'u sınıfın kendisi yerine { Pusher: Sınıf }
+// sarmalayıcısına çeviriyor. İkisini de destekleyecek şekilde çözülüyor.
+const PusherClass = ((PusherModule as unknown as { Pusher?: typeof PusherModule }).Pusher ??
+  PusherModule) as typeof PusherModule;
+
 // pusher-js 'window.Pusher' bekliyor; RN'de window genelde global'e eşit ama
 // garantiye almak için elle atanıyor.
-(global as unknown as { Pusher: typeof Pusher }).Pusher = Pusher;
+(global as unknown as { Pusher: typeof PusherModule }).Pusher = PusherClass;
 
 let EchoInstance: Echo<'reverb'> | null = null;
 
