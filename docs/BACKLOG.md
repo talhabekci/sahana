@@ -111,7 +111,11 @@
   eklenmeli ya da ayrı bir `conversations`/`direct_messages` şeması
   tasarlanmalı — spec'e işlenmeden kodlanmayacak.
 
-### 12. Sohbet — klavye ile mesaj kutusu arasında aşırı boşluk
+### 12. Sohbet — klavye ile mesaj kutusu arasında aşırı boşluk ✅
+- **Tamamlandı:** 2026-07-07 — `keyboardVerticalOffset` her iki ekranda da
+  `0`'a çekildi (topBar, KeyboardAvoidingView'ın kendi içinde bir çocuk
+  olduğundan ek bir offset'e gerek yoktu; 90 değeri `post/[id].tsx`'ten
+  kopyalanmış ama oraya özel bir değermiş).
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (`team/[id]/chat.tsx`, `dm/[id].tsx`)
 - **Talep tarihi:** 2026-07-07
@@ -125,7 +129,14 @@
   `react-native-keyboard-controller` gibi daha güvenilir bir çözüme
   geçilmeli — uygulama genelinde tutarlılık için).
 
-### 13. Sohbet — mesaj gönderince kısa süreliğine iki kez görünüyor
+### 13. Sohbet — mesaj gönderince kısa süreliğine iki kez görünüyor ✅
+- **Tamamlandı:** 2026-07-07 — iki katmanlı düzeltme uygulandı: (1)
+  `shared/api/echo.ts`'e axios request interceptor eklendi,
+  `EchoInstance?.socketId()`'i her isteğe `X-Socket-Id` header'ı olarak
+  enjekte ediyor (asıl kök neden düzeltmesi); (2) her iki ekranın da hem
+  mutation `onSuccess`'inde hem Echo dinleyicisinde, aynı `id` zaten
+  cache'te varsa tekrar eklenmiyor (idempotent merge — bağlantı henüz
+  kurulmamışken oluşabilecek ırk koşullarına karşı ek güvence).
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (`dm/[id].tsx`, muhtemelen `team/[id]/chat.tsx`'i de etkiliyor)
 - **Talep tarihi:** 2026-07-07
@@ -150,7 +161,10 @@
   getEcho().socketId()`), ya da Echo listener'da gelen mesajın id'si
   zaten cache'te varsa eklememek (idempotent merge).
 
-### 14. Sohbet — kendi gönderdiğim mesajlar renk kontrastından okunmuyor
+### 14. Sohbet — kendi gönderdiğim mesajlar renk kontrastından okunmuyor ✅
+- **Tamamlandı:** 2026-07-07 — `bubbleMine` içindeki metinler için yeni
+  `textMine` stili eklendi (`color: Palette.limeInk`), `bubbleBody`/
+  `bubbleWhen`/`refText`'e kendi mesajlarımda koşullu uygulanıyor.
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (`dm/[id].tsx`)
 - **Talep tarihi:** 2026-07-07
@@ -161,7 +175,12 @@
   `Palette.limeInk` (`#0B1A0F`, zaten lime üzerine yazı için tanımlı koyu
   ton — rozet ikonlarında kullanılıyor) kullanılmalı.
 
-### 15. Akış — "Gönderi paylaş" butonu altında fazla boşluk, genel buton/UI cilası
+### 15. Akış — "Gönderi paylaş" butonu altında fazla boşluk, genel buton/UI cilası ✅
+- **Tamamlandı:** 2026-07-07 — alt `footer` butonu kaldırıldı, yerine
+  header'ın sol tarafına (AKIŞ başlığının hemen solunda) bir "+" ikon
+  butonu eklendi (`/post/create`'e gidiyor). Uygulama genelinde benzer
+  buton yerleşimlerinin gözden geçirilmesi ayrı bir cilalama fazı olarak
+  madde #7'de kalmaya devam ediyor.
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
   (genel kapsamı uygulama geneli buton/spacing tutarlılığını etkiliyor)
 - **Talep tarihi:** 2026-07-07

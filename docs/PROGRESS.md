@@ -3,6 +3,37 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-07 (4) — Sohbet UI hataları düzeltildi (backlog #12-#15)
+
+- Kullanıcı cihazda test ederken 4 UI hatası buldu, önce backlog'a yazıldı,
+  sonra aynı oturumda düzeltildi:
+  - **#12 Klavye boşluğu:** `team/[id]/chat.tsx` + `dm/[id].tsx`'teki
+    `keyboardVerticalOffset={90}` (post/[id].tsx'ten kör kopyalanmış) `0`'a
+    çekildi — topBar zaten KeyboardAvoidingView'ın kendi içinde bir çocuk.
+  - **#13 Çift mesaj görünme:** Kök neden — `broadcast(...)->toOthers()`
+    gönderenin bağlantısını `X-Socket-Id` header'ıyla dışlıyor, ama axios
+    istemcisi bu header'ı hiç göndermiyordu. `shared/api/echo.ts`'e
+    `EchoInstance?.socketId()`'i her isteğe enjekte eden bir axios
+    interceptor eklendi. Ek güvence: her iki ekranda da hem mutation
+    `onSuccess`'i hem Echo dinleyicisi, aynı `id` cache'te zaten varsa
+    tekrar eklemiyor (idempotent merge).
+  - **#14 Renk kontrastı:** DM'de kendi mesaj balonum (`Palette.lime` arka
+    plan) üzerindeki metin `Palette.chalk` (neredeyse beyaz) yerine artık
+    `Palette.limeInk` (koyu, yeni `textMine` stili) kullanıyor.
+  - **#15 Akış buton yerleşimi:** Alt sabit "Gönderi paylaş" butonu
+    kaldırıldı; header'ın soluna (AKIŞ başlığının yanına) "+" ikon butonu
+    eklendi.
+- Doğrulama: mobil `tsc --noEmit` + lint temiz. Backend değişmedi, API
+  testlerine dokunulmadı.
+
+### Sonraki adım
+- Kullanıcı cihaz testi: sohbet ekranlarında klavye/mesaj davranışı ve akış
+  header'ındaki yeni "+" butonu.
+- Modül 8 ya da MVP→production-ready cilalama (BACKLOG.md), Modül 1-8
+  tamamlandıktan sonra.
+
+---
+
 ## Modül Durumu
 
 | Modül | Durum |
