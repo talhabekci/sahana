@@ -42,7 +42,12 @@ it('lets a team member send a text message and broadcasts it', function () {
 
     $this->assertDatabaseHas('messages', ['team_id' => $Team->id, 'user_id' => $Captain->id], 'mongodb');
 
-    Event::assertDispatched(MessageSent::class);
+    // Regresyon: WS kanal adı public_id ile kurulmalı — mobil de team_id
+    // değil public_id dinliyor (bkz. 07-notifications-chat.md, "Bulunan hata").
+    Event::assertDispatched(
+        MessageSent::class,
+        fn (MessageSent $Event): bool => $Event->broadcastOn()[0]->name === "private-team.{$Team->public_id}",
+    );
 });
 
 it('rejects sending a message from a non-member', function () {

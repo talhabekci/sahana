@@ -63,7 +63,7 @@ class SendMessage
 
         $Payload = MessageResource::shape($Message, $Sender);
 
-        broadcast(new MessageSent($Team->id, $Payload))->toOthers();
+        broadcast(new MessageSent("team.{$Team->public_id}", $Payload))->toOthers();
 
         $Recipients = $Team->members->reject(fn (User $Member): bool => $Member->id === $Sender->id);
         Notification::send($Recipients, new ChatMessageNotification($Team, $Sender, $Message));

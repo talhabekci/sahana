@@ -4,7 +4,9 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BlockController;
 use App\Http\Controllers\Api\V1\CityController;
 use App\Http\Controllers\Api\V1\CommentController;
+use App\Http\Controllers\Api\V1\ConversationController;
 use App\Http\Controllers\Api\V1\DeviceController;
+use App\Http\Controllers\Api\V1\DirectMessageController;
 use App\Http\Controllers\Api\V1\FeedController;
 use App\Http\Controllers\Api\V1\FollowController;
 use App\Http\Controllers\Api\V1\LineupController;
@@ -63,6 +65,11 @@ Route::prefix('v1')->group(function () {
         Route::delete('/players/{PublicId}/follow', [FollowController::class, 'destroy']);
         Route::post('/players/{PublicId}/block', [BlockController::class, 'store']);
         Route::delete('/players/{PublicId}/block', [BlockController::class, 'destroy']);
+
+        // Modül 7 (DM): birebir mesajlaşma — spec: 07-notifications-chat.md.
+        Route::get('/conversations', [ConversationController::class, 'index']);
+        Route::get('/players/{PublicId}/messages', [DirectMessageController::class, 'index']);
+        Route::post('/players/{PublicId}/messages', [DirectMessageController::class, 'store']);
 
         Route::get('/teams', [TeamController::class, 'index']);
         Route::post('/teams', [TeamController::class, 'store']);

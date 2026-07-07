@@ -12,16 +12,21 @@ class MessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /** @param  array<string, mixed>  $Payload  MessageResource::shape() çıktısı */
+    /**
+     * @param  string  $Channel  Tam kanal adı (ör. "team.{public_id}",
+     *                           "dm.{public_id}.{public_id}") — takım ve DM
+     *                           sohbetleri aynı event'i paylaşır.
+     * @param  array<string, mixed>  $Payload  MessageResource::shape() çıktısı
+     */
     public function __construct(
-        private readonly int $TeamId,
+        private readonly string $Channel,
         private readonly array $Payload,
     ) {}
 
     /** @return array<int, PrivateChannel> */
     public function broadcastOn(): array
     {
-        return [new PrivateChannel("team.{$this->TeamId}")];
+        return [new PrivateChannel($this->Channel)];
     }
 
     public function broadcastAs(): string

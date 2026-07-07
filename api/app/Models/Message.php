@@ -6,12 +6,14 @@ use Illuminate\Support\Carbon;
 use MongoDB\Laravel\Eloquent\Model;
 
 /**
- * Takım sohbeti mesajı — MongoDB'de (`sahana_chat` DB), MySQL'e FK yok
- * (spec: 07-notifications-chat.md, karar #2). `_id` (ObjectId) doğrudan
- * public ID olarak kullanılır.
+ * Sohbet mesajı — MongoDB'de (`sahana_chat` DB), MySQL'e FK yok (spec:
+ * 07-notifications-chat.md, karar #2). Takım sohbetinde `team_id` dolu,
+ * DM'de `participant_ids` dolu — ikisi birden değil. `_id` (ObjectId)
+ * doğrudan public ID olarak kullanılır.
  *
  * @property string $id
- * @property int $team_id
+ * @property int|null $team_id
+ * @property array<int, int>|null $participant_ids
  * @property int $user_id
  * @property string $type
  * @property string|null $body
@@ -30,6 +32,7 @@ class Message extends Model
 
     protected $fillable = [
         'team_id',
+        'participant_ids',
         'user_id',
         'type',
         'body',
