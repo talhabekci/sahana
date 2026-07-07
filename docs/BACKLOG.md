@@ -111,6 +111,67 @@
   eklenmeli ya da ayrı bir `conversations`/`direct_messages` şeması
   tasarlanmalı — spec'e işlenmeden kodlanmayacak.
 
+### 12. Sohbet — klavye ile mesaj kutusu arasında aşırı boşluk
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+  (`team/[id]/chat.tsx`, `dm/[id].tsx`)
+- **Talep tarihi:** 2026-07-07
+- Cihaz testinde: mesaj yazarken composer ile klavye arasında büyük bir
+  boşluk oluşuyor (ekran görüntüsü — takım sohbeti, 16:28). Muhtemel sebep:
+  her iki ekran da `post/[id].tsx`'ten kopyalanan sabit
+  `keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}` değerini
+  kullanıyor — bu değer o ekranın kendi header/scroll yapısına göre
+  ayarlanmıştı, sohbet ekranlarının farklı üst bar yüksekliğiyle uyuşmuyor
+  olabilir. Düzeltilmeden önce her ekran için doğru offset ölçülmeli (ya da
+  `react-native-keyboard-controller` gibi daha güvenilir bir çözüme
+  geçilmeli — uygulama genelinde tutarlılık için).
+
+### 13. Sohbet — mesaj gönderince kısa süreliğine iki kez görünüyor
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+  (`dm/[id].tsx`, muhtemelen `team/[id]/chat.tsx`'i de etkiliyor)
+- **Talep tarihi:** 2026-07-07
+- Cihaz testinde: mesaj atınca aynı mesaj FlatList'te iki kez beliriyor,
+  ekrandan çıkıp tekrar girince tek görünüyor. Ekran görüntüsündeki
+  React Native hata kutusu kök nedeni doğruluyor: **"Encountered two
+  children with the same key"** (`dm/[id].tsx:130`, `FlatList`
+  `keyExtractor={(Item) => Item.id}`) — yani state'te aynı `id`'ye sahip
+  mesaj gerçekten iki kez var.
+  **Kök neden teşhisi:** `SendMessage`/`SendDirectMessage` Action'ları
+  `broadcast(...)->toOthers()` kullanıyor — bu, Laravel'in gönderen
+  bağlantıyı (`X-Socket-Id` header'ı üzerinden) dışlamasına dayanıyor.
+  Ancak `shared/api/client.ts`'teki axios istemcisi hiçbir zaman
+  `X-Socket-Id` header'ı eklemiyor (Echo ile axios arasında bu köprü
+  kurulmamış) — bu yüzden backend göndereni gerçek anlamda "toOthers"
+  olarak ayıramıyor, gönderenin kendi bağlantısına da event gidiyor.
+  Sonuç: mesaj hem mutation'ın `onSuccess`'inde manuel prepend ediliyor
+  hem de Echo `.message.sent` dinleyicisinde tekrar ekleniyor → aynı id
+  iki kez. Düzeltme adayı: `getEcho()` bağlantısı kurulduktan sonra
+  `Echo.socketId()`'i axios'un default header'larına enjekte etmek (Echo
+  hazır olduğunda `Api.defaults.headers.common['X-Socket-Id'] =
+  getEcho().socketId()`), ya da Echo listener'da gelen mesajın id'si
+  zaten cache'te varsa eklememek (idempotent merge).
+
+### 14. Sohbet — kendi gönderdiğim mesajlar renk kontrastından okunmuyor
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+  (`dm/[id].tsx`)
+- **Talep tarihi:** 2026-07-07
+- DM ekranında kendi mesaj balonum (`bubbleMine`) arka planı `Palette.lime`
+  (`#C9F24E`, parlak sarı-yeşil) ama metin rengi hâlâ `Palette.chalk`
+  (`#EAF2EA`, neredeyse beyaz) — kontrast çok düşük, okunmuyor. Düzeltme:
+  `bubbleMine` içindeki `bubbleBody`/`bubbleWhen` metinlerinde
+  `Palette.limeInk` (`#0B1A0F`, zaten lime üzerine yazı için tanımlı koyu
+  ton — rozet ikonlarında kullanılıyor) kullanılmalı.
+
+### 15. Akış — "Gönderi paylaş" butonu altında fazla boşluk, genel buton/UI cilası
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+  (genel kapsamı uygulama geneli buton/spacing tutarlılığını etkiliyor)
+- **Talep tarihi:** 2026-07-07
+- `(tabs)/feed.tsx`'te alt sabit `footer` içindeki "Gönderi paylaş"
+  butonunun altında/çevresinde gereğinden fazla boşluk var. Kullanıcının
+  önerisi: butonu tamamen kaldırıp yerine sol üstte (header'da) bir "+"
+  ikon butonu koymak — hem burada hem uygulama genelinde daha sade bir UI
+  için bu deseni değerlendirmek. Madde #7'deki "MVP → production ready"
+  genel cilalama fazıyla birlikte ele alınabilir.
+
 ## Genel Yön: MVP → Production Ready
 - **Talep tarihi:** 2026-07-06
 - Kullanıcı Modül 4'ü test etti, çökme yok; ama yukarıdaki maddeler + henüz
