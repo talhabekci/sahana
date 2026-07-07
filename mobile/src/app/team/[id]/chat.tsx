@@ -48,6 +48,10 @@ export default function TeamChat() {
 
         const [First, ...Rest] = Current.pages;
 
+        if (First.data.some((Existing) => Existing.id === Message.id)) {
+          return Current;
+        }
+
         return {
           ...Current,
           pages: [{ ...First, data: [Message, ...First.data] }, ...Rest],
@@ -66,6 +70,13 @@ export default function TeamChat() {
         }
 
         const [First, ...Rest] = Current.pages;
+
+        // X-Socket-Id köprüsü gönderenin kendi echo'sunu genelde dışlar, ama
+        // bağlantı henüz kurulmamışken gönderilen ilk mesajda ırk koşulu
+        // olabilir — aynı id zaten varsa tekrar eklenmez (bkz. BACKLOG.md #13).
+        if (First.data.some((Existing) => Existing.id === Message.id)) {
+          return Current;
+        }
 
         return {
           ...Current,
@@ -123,7 +134,7 @@ export default function TeamChat() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+        keyboardVerticalOffset={0}>
         <View style={styles.topBar}>
           <Pressable accessibilityRole="button" onPress={() => Router.back()} hitSlop={12}>
             <Text style={styles.back}>‹ Geri</Text>

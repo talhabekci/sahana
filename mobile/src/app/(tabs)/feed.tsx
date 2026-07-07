@@ -5,7 +5,6 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 
 import { getFeed, likePost, Post, unlikePost } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
-import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Type, space } from '@/shared/ui/theme';
 
@@ -52,7 +51,12 @@ export default function Feed() {
   return (
     <Screen pitch pitchY={-160} bare>
       <View style={styles.header}>
-        <Text style={styles.kicker}>AKIŞ</Text>
+        <View style={styles.headerLeft}>
+          <Pressable accessibilityRole="button" onPress={() => Router.push('/post/create')} hitSlop={12}>
+            <Ionicons name="add-circle-outline" size={26} color={Palette.lime} />
+          </Pressable>
+          <Text style={styles.kicker}>AKIŞ</Text>
+        </View>
         <View style={styles.headerActions}>
           <Pressable accessibilityRole="button" onPress={() => Router.push('/notifications')} hitSlop={12}>
             <Ionicons name="notifications-outline" size={22} color={Palette.chalk} />
@@ -101,10 +105,6 @@ export default function Feed() {
           }
         />
       )}
-
-      <View style={styles.footer}>
-        <Button label="Gönderi paylaş" onPress={() => Router.push('/post/create')} />
-      </View>
     </Screen>
   );
 }
@@ -116,6 +116,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: space(4),
     paddingHorizontal: space(6),
+    marginBottom: space(3),
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
   },
   headerActions: {
     flexDirection: 'row',
@@ -127,7 +133,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 5,
     color: Palette.lime,
-    marginBottom: space(3),
   },
   center: {
     flex: 1,
@@ -136,7 +141,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: space(6),
-    paddingBottom: space(6),
+    paddingBottom: space(8),
   },
   separator: {
     height: space(3),
@@ -153,11 +158,5 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: Palette.moss,
     textAlign: 'center',
-  },
-  footer: {
-    paddingHorizontal: space(6),
-    paddingVertical: space(4),
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Palette.lineFaint,
   },
 });

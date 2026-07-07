@@ -16,6 +16,19 @@ const PusherClass = ((PusherModule as unknown as { Pusher?: typeof PusherModule 
 
 let EchoInstance: Echo<'reverb'> | null = null;
 
+// broadcast(...)->toOthers() sunucuda gönderenin bağlantısını bu header ile
+// dışlıyor; köprü kurulmazsa gönderen kendi mesajını da Echo'dan alıp mesajın
+// iki kez görünmesine yol açıyordu (bkz. BACKLOG.md #13).
+Api.interceptors.request.use((Config) => {
+  const SocketId = EchoInstance?.socketId();
+
+  if (SocketId != null) {
+    Config.headers['X-Socket-Id'] = SocketId;
+  }
+
+  return Config;
+});
+
 /** Tek bir Echo örneği — Sanctum bearer token'ı kendi Api istemcimizle enjekte eder. */
 export function getEcho(): Echo<'reverb'> {
   if (EchoInstance != null) {

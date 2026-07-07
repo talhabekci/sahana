@@ -53,6 +53,10 @@ export default function DirectChat() {
 
         const [First, ...Rest] = Current.pages;
 
+        if (First.data.some((Existing) => Existing.id === Message.id)) {
+          return Current;
+        }
+
         return {
           ...Current,
           pages: [{ ...First, data: [Message, ...First.data] }, ...Rest],
@@ -77,6 +81,13 @@ export default function DirectChat() {
         }
 
         const [First, ...Rest] = Current.pages;
+
+        // X-Socket-Id köprüsü gönderenin kendi echo'sunu genelde dışlar, ama
+        // bağlantı henüz kurulmamışken gönderilen ilk mesajda ırk koşulu
+        // olabilir — aynı id zaten varsa tekrar eklenmez (bkz. BACKLOG.md #13).
+        if (First.data.some((Existing) => Existing.id === Message.id)) {
+          return Current;
+        }
 
         return {
           ...Current,
@@ -111,7 +122,7 @@ export default function DirectChat() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+        keyboardVerticalOffset={0}>
         <View style={styles.topBar}>
           <Pressable accessibilityRole="button" onPress={() => Router.back()} hitSlop={12}>
             <Text style={styles.back}>‹ Geri</Text>
@@ -138,22 +149,24 @@ export default function DirectChat() {
                 void List.fetchNextPage();
               }
             }}
-            renderItem={({ item }) => (
-              <View style={styles.messageRow}>
-                <View
-                  style={[
-                    styles.bubble,
-                    item.author?.id === Me.data?.id ? styles.bubbleMine : styles.bubbleTheirs,
-                  ]}>
-                  {item.type === 'image' ? (
-                    <Text style={styles.refText}>🖼️ Görsel</Text>
-                  ) : (
-                    <Text style={styles.bubbleBody}>{item.body}</Text>
-                  )}
-                  <Text style={styles.bubbleWhen}>{formatWhen(item.created_at)}</Text>
+            renderItem={({ item }) => {
+              const IsMine = item.author?.id === Me.data?.id;
+
+              return (
+                <View style={styles.messageRow}>
+                  <View style={[styles.bubble, IsMine ? styles.bubbleMine : styles.bubbleTheirs]}>
+                    {item.type === 'image' ? (
+                      <Text style={[styles.refText, IsMine && styles.textMine]}>🖼️ Görsel</Text>
+                    ) : (
+                      <Text style={[styles.bubbleBody, IsMine && styles.textMine]}>{item.body}</Text>
+                    )}
+                    <Text style={[styles.bubbleWhen, IsMine && styles.textMine]}>
+                      {formatWhen(item.created_at)}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            )}
+              );
+            }}
             ListEmptyComponent={<Text style={styles.emptyText}>Henüz mesaj yok. İlk mesajı sen yaz.</Text>}
           />
         )}
@@ -256,6 +269,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: Palette.moss,
     marginTop: space(1),
+  },
+  textMine: {
+    color: Palette.limeInk,
   },
   emptyText: {
     fontFamily: Type.body,
