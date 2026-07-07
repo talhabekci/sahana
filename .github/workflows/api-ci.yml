@@ -12,13 +12,18 @@ jobs:
     defaults:
       run:
         working-directory: api
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
     steps:
       - uses: actions/checkout@v4
 
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: mbstring, pdo_mysql, redis
+          extensions: mbstring, pdo_mysql, redis, mongodb
           coverage: none
 
       - name: Install dependencies
