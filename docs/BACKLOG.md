@@ -92,6 +92,23 @@
   Uygulamaya geçilmeden önce spec'in v1.5 bölümü bu tasarıma göre
   güncellenmeli.
 
+### 11. Sohbet — DM (birebir mesajlaşma) + alt sekmede tüm sohbetlerin listesi
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+  (v1 kapsamı sadece takım sohbetiydi — "Kapsam dışı (şimdilik): DM" olarak
+  spec'e not düşülmüştü, bu madde onu resmen backlog'a taşıyor)
+- **Talep tarihi:** 2026-07-07
+- Şu an tek sohbet kanalı `team/[id]/chat.tsx` (takım içi grup sohbeti); alt
+  sekmelerde (tabs) ayrı bir "Sohbet" sekmesi yok. Kullanıcı iki şey istiyor:
+  1. Alt tab bar'a bir **Sohbet** sekmesi eklenip kullanıcının katıldığı
+     TÜM sohbetleri (hem takım grupları hem ileride DM'ler) tek yerden
+     görüp yönetebilmesi (liste, son mesaj önizlemesi, okunmamış rozeti gibi).
+  2. **Birebir DM**: akıştan biriyle veya `player/[id].tsx` herkese açık
+     profilinden doğrudan "Mesaj gönder" ile birebir sohbet başlatılabilmesi.
+- Mimari not: mevcut `messages` (MongoDB) koleksiyonu `team_id`'ye bağlı;
+  DM için ya aynı koleksiyona `conversation_id`/`type: dm` gibi bir ayrım
+  eklenmeli ya da ayrı bir `conversations`/`direct_messages` şeması
+  tasarlanmalı — spec'e işlenmeden kodlanmayacak.
+
 ## Genel Yön: MVP → Production Ready
 - **Talep tarihi:** 2026-07-06
 - Kullanıcı Modül 4'ü test etti, çökme yok; ama yukarıdaki maddeler + henüz
