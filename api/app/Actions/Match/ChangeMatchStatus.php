@@ -4,6 +4,8 @@ namespace App\Actions\Match;
 
 use App\Exceptions\ApiError;
 use App\Models\FootballMatch;
+use App\Notifications\MatchConfirmedNotification;
+use Illuminate\Support\Facades\Notification;
 
 class ChangeMatchStatus
 {
@@ -22,6 +24,10 @@ class ChangeMatchStatus
         }
 
         $Match->forceFill(['status' => $Rule['to']])->save();
+
+        if ($Transition === 'confirm') {
+            Notification::send($Match->team->members, new MatchConfirmedNotification($Match));
+        }
 
         return $Match;
     }

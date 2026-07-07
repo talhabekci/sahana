@@ -6,7 +6,9 @@ use App\Exceptions\ApiError;
 use App\Models\FootballMatch;
 use App\Models\Team;
 use App\Models\User;
+use App\Notifications\MatchCreatedNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class CreateMatch
 {
@@ -19,7 +21,7 @@ class CreateMatch
             throw new ApiError('Maçı sadece takım kaptanı oluşturabilir.', 'forbidden', 403);
         }
 
-        return DB::transaction(function () use ($Team, $Creator, $Data): FootballMatch {
+        $Match = DB::transaction(function () use ($Team, $Creator, $Data): FootballMatch {
             $Match = FootballMatch::create([
                 ...$Data,
                 'team_id' => $Team->id,
@@ -36,5 +38,10 @@ class CreateMatch
 
             return $Match->fresh(['team', 'participants.user']);
         });
+
+        $Recipients = $Team->members->reject(fn (User $Member): bool => $Member->id === $Creator->id);
+        Notification::send($Recipients, new MatchCreatedNotification($Match));
+
+        return $Match;
     }
 }

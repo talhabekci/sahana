@@ -5,6 +5,7 @@ namespace App\Actions\Match;
 use App\Exceptions\ApiError;
 use App\Models\ListingApplication;
 use App\Models\User;
+use App\Notifications\ApplicationDecisionNotification;
 use Illuminate\Support\Facades\DB;
 
 class DecideApplication
@@ -48,6 +49,9 @@ class DecideApplication
             ])->save();
         });
 
-        return $Application->fresh(['user']);
+        $Application = $Application->fresh(['user']);
+        $Application->user->notify(new ApplicationDecisionNotification($Application));
+
+        return $Application;
     }
 }

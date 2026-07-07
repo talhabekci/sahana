@@ -64,6 +64,14 @@ return [
             ]) : [],
         ],
 
+        // Modül 7: takım sohbeti mesajları — yüksek yazma hacmi, ilişkisel
+        // olmayan veri için MySQL yerine (spec: 07-notifications-chat.md).
+        'mongodb' => [
+            'driver' => 'mongodb',
+            'dsn' => env('MONGO_DSN', 'mongodb://'.env('MONGO_HOST', '127.0.0.1').':'.env('MONGO_PORT', '27017')),
+            'database' => env('MONGO_DATABASE', 'sahana_chat'),
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

@@ -17,6 +17,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Varsayılan channels: parametresi /broadcasting/auth'u 'web' (session)
+    // middleware'iyle kaydeder; mobil Sanctum bearer token kullandığından
+    // burada elle auth:sanctum + /api/v1 prefix'iyle kaydediyoruz.
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        attributes: ['prefix' => 'api/v1', 'middleware' => ['auth:sanctum']],
+    )
     ->withMiddleware(function (Middleware $Middleware): void {
         //
     })

@@ -64,6 +64,12 @@ class User extends Authenticatable
         return $this->hasOne(PlayerProfile::class);
     }
 
+    /** @return HasMany<Device, $this> */
+    public function devices(): HasMany
+    {
+        return $this->hasMany(Device::class);
+    }
+
     /** @return BelongsToMany<Team, $this, TeamMember, 'pivot'> */
     public function teams(): BelongsToMany
     {

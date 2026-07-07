@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BlockController;
 use App\Http\Controllers\Api\V1\CityController;
 use App\Http\Controllers\Api\V1\CommentController;
+use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\FeedController;
 use App\Http\Controllers\Api\V1\FollowController;
 use App\Http\Controllers\Api\V1\LineupController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\Api\V1\ListingApplicationController;
 use App\Http\Controllers\Api\V1\MatchController;
 use App\Http\Controllers\Api\V1\MatchResultController;
 use App\Http\Controllers\Api\V1\MeController;
+use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\NotificationPreferenceController;
 use App\Http\Controllers\Api\V1\OpponentListingController;
 use App\Http\Controllers\Api\V1\PlayerController;
 use App\Http\Controllers\Api\V1\PlayerListingController;
@@ -24,6 +27,7 @@ use App\Http\Controllers\Api\V1\SearchController;
 use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\TeamInviteController;
 use App\Http\Controllers\Api\V1\TeamMemberController;
+use App\Http\Controllers\Api\V1\TeamMessageController;
 use App\Http\Controllers\Api\V1\VideoController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +46,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/me', [MeController::class, 'show']);
         Route::patch('/me', [MeController::class, 'update']);
         Route::delete('/me', [MeController::class, 'destroy']);
+
+        Route::post('/me/devices', [DeviceController::class, 'store']);
+        Route::get('/me/notification-preferences', [NotificationPreferenceController::class, 'show']);
+        Route::patch('/me/notification-preferences', [NotificationPreferenceController::class, 'update']);
+
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/{Notification}/read', [NotificationController::class, 'read']);
+        Route::post('/notifications/read-all', [NotificationController::class, 'readAll']);
 
         // Modül 4: takip/engel durumu için auth zorunlu (spec: 04-social-feed.md).
         Route::get('/players/{PublicId}', [PlayerController::class, 'show']);
@@ -67,6 +79,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/teams/{Team}/lineups', [LineupController::class, 'store']);
         Route::get('/lineups/{Lineup}', [LineupController::class, 'show']);
         Route::patch('/lineups/{Lineup}', [LineupController::class, 'update']);
+
+        Route::get('/teams/{Team}/messages', [TeamMessageController::class, 'index']);
+        Route::post('/teams/{Team}/messages', [TeamMessageController::class, 'store']);
 
         Route::get('/matches', [MatchController::class, 'index']);
         Route::post('/matches', [MatchController::class, 'store']);

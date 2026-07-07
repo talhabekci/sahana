@@ -16,3 +16,8 @@ Schedule::command('matches:sweep')->hourly();
 
 // 48 saattir onaylanmamış skorlar otomatik onaylanır (spec: 06-stats-rating.md, karar #1)
 Schedule::command('results:auto-confirm')->hourly();
+
+// Modül 7: bildirimler (spec: 07-notifications-chat.md)
+Schedule::command('notifications:rsvp-reminders')->hourly();
+Schedule::command('notifications:match-reminders')->hourly();
+Schedule::command('notifications:social-summary')->hourly();

@@ -6,6 +6,7 @@ use App\Exceptions\ApiError;
 use App\Models\ListingApplication;
 use App\Models\PlayerListing;
 use App\Models\User;
+use App\Notifications\ListingApplicationNotification;
 
 class ApplyToListing
 {
@@ -33,6 +34,16 @@ class ApplyToListing
         ]);
 
         // DB varsayılanları (status=pending) bellekteki modele yansısın.
-        return $Application->refresh();
+        $Application = $Application->refresh();
+        $Application->setRelation('user', $User);
+        $Application->setRelation('listing', $Listing);
+
+        $Captain = $Listing->match->team->captain();
+
+        if ($Captain !== null) {
+            $Captain->notify(new ListingApplicationNotification($Application));
+        }
+
+        return $Application;
     }
 }

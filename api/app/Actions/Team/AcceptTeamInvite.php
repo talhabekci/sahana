@@ -6,6 +6,7 @@ use App\Exceptions\ApiError;
 use App\Models\Team;
 use App\Models\TeamInvite;
 use App\Models\User;
+use App\Notifications\InviteAcceptedNotification;
 use Illuminate\Support\Facades\DB;
 
 class AcceptTeamInvite
@@ -41,6 +42,12 @@ class AcceptTeamInvite
 
             $Invite->increment('uses_count');
         });
+
+        $Captain = $Team->captain();
+
+        if ($Captain !== null) {
+            $Captain->notify(new InviteAcceptedNotification($Team, $User));
+        }
 
         return $Team->fresh('members');
     }
