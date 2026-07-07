@@ -14,8 +14,59 @@
 | 4 — Sosyal Katman | ✅ API + mobil tamam (2026-07-06) · cihazda kullanıcı testi bekliyor |
 | 5 — Maç Videoları | ✅ v1 API + mobil tamam (2026-07-06) · v1.5/v2/v3 bekliyor |
 | 6 — İstatistik & Reyting | ✅ API + mobil tamam (2026-07-07) · cihazda kullanıcı testi bekliyor |
-| 7 — Bildirim & Mesajlaşma | ✅ API + mobil tamam (2026-07-07) · cihazda kullanıcı testi bekliyor (push ancak EAS dev build'de test edilebilir) |
+| 7 — Bildirim & Mesajlaşma | ✅ API + mobil tamam (2026-07-07, DM dahil) · cihazda kullanıcı testi bekliyor (push ancak EAS dev build'de test edilebilir) |
 | 8 | ⬜ Başlamadı |
+
+---
+
+## 2026-07-07 (3) — Modül 7 genişletmesi: DM (birebir mesajlaşma) + Sohbet sekmesi
+
+- **Bağlam:** Kullanıcı önce backlog'a eklenmesini istedi (#11: DM + alt
+  sekmede sohbet listesi), sonra aynı oturumda uygulanmasını istedi.
+- **Kararlar (kullanıcı):** DM için ayrı bir şema yerine **aynı `messages`
+  koleksiyonu** — takım mesajında `team_id`, DM'de `participant_ids`
+  (`[minUserId, maxUserId]`) dolu. DM v1 kapsamı sadece metin+görsel (maç/
+  kadro paylaşımı yok). Herhangi bir kullanıcı, engellenmediği sürece
+  diğerine DM atabilir (takip şartı yok).
+- **Bulunan ve düzeltilen hata (cihaz testinde ortaya çıktı):** Takım
+  sohbetinin WS kanal adı istemci/sunucu arasında hiç uyuşmuyormuş — mobil
+  `team.{public_id}` dinliyordu, backend `team.{Team->id}` (MySQL iç
+  sayısal id) yayınlıyor/yetkilendiriyordu. Bu yüzden canlı mesaj iletimi
+  sessizce çalışmıyordu (REST ile gönderim/kayıt çalışıyordu, sadece anlık
+  WS push'u ölüydü). `MessageSent` event'i `int $TeamId` yerine genel bir
+  `string $Channel` alacak şekilde genelleştirildi; `SendMessage`/
+  `routes/channels.php` `public_id` üzerinden yayın/yetki yapacak şekilde
+  düzeltildi. Regresyon testi eklendi (broadcast kanal adını doğruluyor).
+- **API:** `Message` modeline `participant_ids` alanı eklendi.
+  `SendDirectMessage`/`ListDirectMessages`/`ListConversations` Action'ları
+  (aynı `Message` modelini paylaşıyor, kod tekrarı yok).
+  `DirectMessageNotification` (ChatMessageNotification'ın DM karşılığı).
+  `GET /conversations` (takım + DM birleşik liste, son mesaja göre sıralı —
+  Mongo ObjectId'nin kendisi sıralama anahtarı olarak kullanıldı, ISO string
+  saniye çözünürlüğü yetersiz kalıyordu). `GET/POST /players/{id}/messages`.
+  WS kanalı: `private-dm.{public_id_A}.{public_id_B}` (alfabetik sıralı).
+- **Larastan:** `ListConversations`'ta `$Last?->id ?? ''` "nullsafe
+  unnecessary" uyarısı verdi — Modül 7'nin ilk turunda karşılaşılan
+  `PlayerProfile` durumuyla aynı, mongodb/laravel-mongodb stub'larının
+  `first()`'ü yanlışlıkla non-nullable işaretlemesinden kaynaklanan yanlış
+  pozitif (yazılan test — mesajsız takım — bunu kanıtlıyor). Körü körüne
+  linter önerisine uyulmadı; `$Last === null ? '' : $Last->id` ile aynı
+  davranış korunarak linter de memnun edildi.
+- **Mobil:** Alt tab bar'a "Sohbet" sekmesi (`(tabs)/conversations.tsx`,
+  takım + DM birleşik liste). `dm/[id].tsx` (DM sohbet ekranı, takım
+  sohbetiyle aynı desen — ters FlatList + Echo canlı dinleme + REST cursor).
+  `player/[id].tsx`'e "Mesaj gönder" ikon butonu.
+- Doğrulama: API 196 test (9 yeni + 1 güncellenmiş regresyon) + Pint +
+  Larastan yeşil; mobil `tsc --noEmit` + lint temiz.
+  `docs/features/07-notifications-chat.md` ve `docs/BACKLOG.md` (#11 ✅)
+  güncellendi.
+
+### Sonraki adım
+- Kullanıcı cihaz testi: takım sohbetinde canlı iletim artık gerçekten
+  çalışmalı (bugfix sonrası); DM akışı iki hesapla; Sohbet sekmesinde her
+  ikisinin de göründüğünü doğrula.
+- ROADMAP sırasına göre Modül 8, ya da MVP→production-ready cilalama
+  (BACKLOG.md), Modül 1-8 tamamlandıktan sonra.
 
 ---
 

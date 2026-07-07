@@ -65,12 +65,56 @@ kaldırır. Mobilde `expo-notifications` ile push token alınır.
   ExpoChannel üzerinden gider, ayrı bir "sessiz" kategori olarak — 7/24,
   sessiz saat kuralına tabi değil, çünkü zaten anlık/isteğe bağlı bir kanal)
 - Mesaj türleri: metin, görsel; maç kartı/kadro paylaşımı (uygulama içi referans)
-- Kapsam dışı (şimdilik): DM, sesli mesaj, okundu bilgisi (basit tutulur)
 - **Broadcasting auth:** `channels:` parametresi varsayılan olarak `/broadcasting/auth`'u
   `web` (session) middleware'iyle kaydediyor — mobil Sanctum bearer token
   kullandığından `withBroadcasting()` ile elle `auth:sanctum` + `/api/v1`
   prefix'i verildi. Gerçek endpoint: `POST /api/v1/broadcasting/auth`
   (Authorization header zorunlu).
+
+> **Bulunan hata (2026-07-07, cihaz testi):** WS kanal adı istemci/sunucu
+> arasında uyuşmuyordu — mobil `team.{public_id}` (ULID) dinliyordu, backend
+> `team.{Team->id}` (MySQL iç sayısal id) yayınlıyor ve öyle yetkilendiriyordu.
+> Asla eşleşmediğinden canlı mesaj iletimi sessizce çalışmıyordu (mesaj REST
+> ile gönderiliyor/kaydediliyordu, sadece WS anlık push'u ölüydü). Düzeltme:
+> backend `public_id` üzerinden yayın/yetki yapacak şekilde değiştirildi
+> (`team.{public_id}`) — mobil taraf zaten public_id kullandığından mobilde
+> değişiklik gerekmedi.
+
+## Sohbet — DM (birebir mesajlaşma) (kullanıcı, 2026-07-07 devam)
+
+Backlog #11'den taşındı; kullanıcı önce backlog'a eklenmesini, ardından aynı
+oturumda uygulanmasını istedi.
+
+- **Veri modeli:** Ayrı bir koleksiyon/tablo yok — **aynı `messages`
+  koleksiyonu**. Takım mesajında `team_id` dolu/`participant_ids` boş; DM
+  mesajında `team_id` boş/`participant_ids` dolu (`[minUserId, maxUserId]`,
+  MySQL iç sayısal id'lerle sıralı 2 elemanlı dizi — sorgu/index için).
+  `SendMessage`/`ListMessages` Action'ları takıma özgü kalır; DM için ayrı
+  `SendDirectMessage`/`ListDirectMessages`/`ListConversations` Action'ları
+  eklenir (aynı `Message` modelini kullanırlar, kod tekrarı yok).
+- **Kapsam (v1):** Sadece **metin + görsel**. Maç kartı/kadro paylaşımı DM'de
+  yok (bir takımın maçını/kadrosunu paylaşmak, alıcının o takıma/maça
+  yetkili olup olmadığı sorusunu gereksiz yere karmaşıklaştırıyor — takım
+  sohbetinde zaten mümkün).
+- **Yetki:** Herhangi bir kullanıcı, birbirini engellemediği sürece
+  diğerine DM atabilir (arkadaşlık/takip şartı yok — v1 basit tutulur,
+  `isBlockedWith()` kontrolü zaten Modül 4'te var, aynen kullanılıyor).
+  Kendine mesaj gönderme reddedilir.
+- **WS kanalı:** `private-dm.{PublicIdA}.{PublicIdB}` — iki kullanıcının
+  `public_id`'si **alfabetik sırayla** (kanal adı deterministik olsun diye).
+  Yetki: bağlanan kullanıcının `public_id`'si ikisinden biri olmalı.
+- **Sohbet listesi (yeni "Sohbet" sekmesi):** `GET /conversations` —
+  kullanıcının üyesi olduğu takım sohbetleri + DM yaptığı kişiler, son mesaj
+  zamanına göre birleşik/sıralı tek liste. v1'de ayrı bir "conversations"
+  tablosu yok — takım listesi `User->teams()` ilişkisinden, DM listesi ise
+  kullanıcının dahil olduğu son ~200 DM mesajı taranıp kişi bazında
+  ilkine (en yeniye) indirgenerek türetilir (agregasyon pipeline'ı yok,
+  "v1'de basit tutulur" ilkesine sadık — mesaj hacmi arttıkça izlenecek).
+  Okunmamış sayacı **yok** (v1 kapsamı dışı, mevcut takım sohbetiyle
+  tutarlı).
+- **Giriş noktaları:** Alt sekme çubuğuna "Sohbet" sekmesi (tüm
+  konuşmaların listesi); `player/[id].tsx` herkese açık profilinde
+  "Mesaj gönder" butonu.
 
 ## API
 
@@ -85,7 +129,14 @@ kaldırır. Mobilde `expo-notifications` ile push token alınır.
   uyumlu değil; aynı `{data, meta.next_cursor}` zarfı korunur, üretimi
   elle yapılır — api-conventions.md'den kasıtlı, gerekçeli sapma).
 - `POST /teams/{id}/messages` `{type, body?, image_path?, match_id?, lineup_id?}`.
-- WS kanalı: `private-team.{id}` (yetki: takım üyesi olmak yeterli).
+- WS kanalı: `private-team.{public_id}` (yetki: takım üyesi olmak yeterli).
+- `GET /conversations` — birleşik sohbet listesi (takım + DM), son mesaj
+  zamanına göre sıralı.
+- `GET /players/{PublicId}/messages?before=<id>&limit=30` — DM geçmişi
+  (aynı manuel cursor zarfı).
+- `POST /players/{PublicId}/messages` `{type: text|image, body?, image_path?}`.
+- WS kanalı: `private-dm.{PublicIdA}.{PublicIdB}` (alfabetik sıralı,
+  yetki: bağlanan taraflardan biri olmak).
 
 ## Veri Modeli
 
@@ -95,10 +146,12 @@ kaldırır. Mobilde `expo-notifications` ile push token alınır.
 - `player_profiles`'a eklenen kolonlar: `quiet_hours_enabled` (bool, default
   true), `notification_preferences` (json, nullable — null ise "hepsi açık"
   varsayılır), `last_social_summary_at` (timestamp, nullable).
-- `messages` (**MongoDB**, `sahana_chat` veritabanı): `team_id`, `user_id`,
+- `messages` (**MongoDB**, `sahana_chat` veritabanı): `team_id?` (takım
+  sohbeti), `participant_ids?` (DM, `[minUserId, maxUserId]`), `user_id`,
   `type: text|image|match_ref|lineup_ref`, `body?`, `image_path?`,
-  `match_id?`, `lineup_id?`, `created_at`. `_id` (ObjectId) doğrudan public
-  ID olarak kullanılır (zaten tahmin edilemez).
+  `match_id?`, `lineup_id?`, `created_at`. Her mesaj ya `team_id` ya
+  `participant_ids` doldurur, ikisi birden değil. `_id` (ObjectId) doğrudan
+  public ID olarak kullanılır (zaten tahmin edilemez).
 
 ## Açık Sorular
 - [ ] v2: Reverb prod'da ayrı bir process olarak nasıl ayakta tutulacak

@@ -92,7 +92,9 @@
   Uygulamaya geçilmeden önce spec'in v1.5 bölümü bu tasarıma göre
   güncellenmeli.
 
-### 11. Sohbet — DM (birebir mesajlaşma) + alt sekmede tüm sohbetlerin listesi
+### 11. Sohbet — DM (birebir mesajlaşma) + alt sekmede tüm sohbetlerin listesi ✅
+- **Tamamlandı:** 2026-07-07 — aynı oturumda uygulandı (bkz. PROGRESS.md,
+  07-notifications-chat.md "Sohbet — DM" bölümü).
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (v1 kapsamı sadece takım sohbetiydi — "Kapsam dışı (şimdilik): DM" olarak
   spec'e not düşülmüştü, bu madde onu resmen backlog'a taşıyor)
