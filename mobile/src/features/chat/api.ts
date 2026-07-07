@@ -33,3 +33,41 @@ export async function sendTeamMessage(
 
   return data.data;
 }
+
+export type Conversation = {
+  type: 'team' | 'dm';
+  id: string;
+  title: string | null;
+  badge_icon?: string;
+  color?: string;
+  avatar_path?: string | null;
+  last_message: string | null;
+  last_message_at: string | null;
+};
+
+export async function listConversations(): Promise<Conversation[]> {
+  const { data } = await Api.get<{ data: Conversation[] }>('/conversations');
+
+  return data.data;
+}
+
+export async function listDirectMessages(
+  userId: string,
+  before?: string,
+): Promise<{ data: ChatMessage[]; nextCursor: string | null }> {
+  const { data } = await Api.get<{ data: ChatMessage[]; meta: { next_cursor: string | null } }>(
+    `/players/${userId}/messages`,
+    { params: before != null ? { before, limit: 30 } : { limit: 30 } },
+  );
+
+  return { data: data.data, nextCursor: data.meta.next_cursor };
+}
+
+export async function sendDirectMessage(
+  userId: string,
+  payload: { type: 'text' | 'image'; body?: string; image_path?: string },
+): Promise<ChatMessage> {
+  const { data } = await Api.post<{ data: ChatMessage }>(`/players/${userId}/messages`, payload);
+
+  return data.data;
+}

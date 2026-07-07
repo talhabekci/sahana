@@ -170,6 +170,15 @@ export default function PlayerProfile() {
                     loading={Follow_.isPending}
                   />
                 </View>
+                {!Blocked && (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => Router.push(`/dm/${id}`)}
+                    style={styles.blockButton}
+                    hitSlop={8}>
+                    <Ionicons name="chatbubble-outline" size={20} color={Palette.chalk} />
+                  </Pressable>
+                )}
                 <Pressable accessibilityRole="button" onPress={promptBlock} style={styles.blockButton} hitSlop={8}>
                   <Ionicons
                     name={Blocked ? 'lock-open-outline' : 'ban-outline'}
