@@ -220,6 +220,20 @@
   netleşmeden kodlanmayacak. Pilot şehir seçimiyle birlikte ele alınmalı
   (bkz. 08-venues.md "Açık Sorular").
 
+### 17. ExpoPushClient — Expo'nun hata yanıtı hiç loglanmıyor (sessiz başarısızlık)
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+  (`App\Support\ExpoPushClient`)
+- **Talep tarihi:** 2026-07-08
+- Cihaz testinde keşfedildi: `ExpoPushClient::send()` sadece ağ seviyesi
+  hataları (`Throwable`) yakalayıp logluyor. Ama Expo'nun push API'si,
+  geçersiz/eski bir token gibi durumlarda bile HTTP `200` döner — hatayı
+  yanıtın **içindeki** `data[].status: "error"` alanında verir (ör.
+  `DeviceNotRegistered`). Şu anki kod bu içeriği hiç okumadığından, prod'da
+  push'lar sessizce başarısız olabilir ve hiçbir yerde görünmez. Düzeltme:
+  yanıtı parse edip `status: error` olan mesajları uyarı olarak logla
+  (mümkünse `details.error === 'DeviceNotRegistered'` durumunda ilgili
+  `devices` kaydını da silmeyi değerlendir — token artık geçersiz demektir).
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün
