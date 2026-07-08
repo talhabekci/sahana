@@ -16,6 +16,7 @@ import {
 import { createMatch } from '@/features/match/api';
 import { FORMATS } from '@/features/match/constants';
 import { listTeams } from '@/features/team/api';
+import { listVenues } from '@/features/venue/api';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { MonthCalendar } from '@/shared/ui/MonthCalendar';
@@ -40,7 +41,10 @@ export default function CreateMatch() {
   );
 
   const [TeamId, setTeamId] = useState<string | null>(null);
+  const [VenueId, setVenueId] = useState<string | null>(null);
   const [VenueText, setVenueText] = useState('');
+  const [VenuePickerVisible, setVenuePickerVisible] = useState(false);
+  const Venues = useQuery({ queryKey: ['venues'], queryFn: () => listVenues(), enabled: VenuePickerVisible });
   const [SelectedDate, setSelectedDate] = useState<Date | null>(null);
   const [CalendarVisible, setCalendarVisible] = useState(false);
   const [Hour, setHour] = useState<number | null>(null);
@@ -82,6 +86,7 @@ export default function CreateMatch() {
     mutationFn: () =>
       createMatch({
         team_id: TeamId ?? '',
+        venue_id: VenueId,
         venue_text: VenueText.trim(),
         starts_at: startsAtIso() ?? '',
         format: Format,
@@ -149,9 +154,19 @@ export default function CreateMatch() {
             <TextField
               label="Saha"
               value={VenueText}
-              onChangeText={setVenueText}
+              onChangeText={(Value) => {
+                setVenueText(Value);
+                setVenueId(null);
+              }}
               placeholder="Yıldız Halı Saha, Kadıköy"
             />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setVenuePickerVisible(true)}
+              hitSlop={8}
+              style={styles.venuePickerLinkRow}>
+              <Text style={styles.venuePickerLink}>Rehberden seç</Text>
+            </Pressable>
           </View>
 
           <Text style={styles.sectionLabel}>GÜN</Text>
@@ -207,6 +222,35 @@ export default function CreateMatch() {
                   setCalendarVisible(false);
                 }}
               />
+            </View>
+          </Modal>
+
+          <Modal visible={VenuePickerVisible} transparent animationType="slide">
+            <Pressable style={styles.calendarBackdrop} onPress={() => setVenuePickerVisible(false)} />
+            <View style={styles.venuePickerSheet}>
+              <View style={styles.calendarHandle} />
+              <Text style={styles.venuePickerTitle}>SAHA SEÇ</Text>
+              <ScrollView style={styles.venuePickerList}>
+                {(Venues.data ?? []).map((VenueOption) => (
+                  <Pressable
+                    key={VenueOption.id}
+                    accessibilityRole="button"
+                    onPress={() => {
+                      setVenueId(VenueOption.id);
+                      setVenueText(VenueOption.name);
+                      setVenuePickerVisible(false);
+                    }}
+                    style={styles.venueOption}>
+                    <Text style={styles.venueOptionName}>{VenueOption.name}</Text>
+                    {VenueOption.address != null && (
+                      <Text style={styles.venueOptionAddress}>{VenueOption.address}</Text>
+                    )}
+                  </Pressable>
+                ))}
+                {Venues.data != null && Venues.data.length === 0 && (
+                  <Text style={styles.venuePickerEmpty}>Henüz saha eklenmedi.</Text>
+                )}
+              </ScrollView>
             </View>
           </Modal>
 
@@ -400,6 +444,56 @@ const styles = StyleSheet.create({
   },
   field: {
     marginTop: space(6),
+  },
+  venuePickerLinkRow: {
+    alignItems: 'flex-end',
+    marginTop: space(1),
+  },
+  venuePickerLink: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 13,
+    color: Palette.lime,
+  },
+  venuePickerSheet: {
+    backgroundColor: Palette.turf,
+    borderTopLeftRadius: Radius.l,
+    borderTopRightRadius: Radius.l,
+    paddingTop: space(3),
+    paddingBottom: space(6),
+    paddingHorizontal: space(4),
+    maxHeight: '70%',
+  },
+  venuePickerTitle: {
+    fontFamily: Type.mono,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: Palette.moss,
+    marginBottom: space(3),
+  },
+  venuePickerList: {
+    maxHeight: '100%',
+  },
+  venueOption: {
+    paddingVertical: space(3),
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Palette.lineFaint,
+  },
+  venueOptionName: {
+    fontFamily: Type.bodyBold,
+    fontSize: 15,
+    color: Palette.chalk,
+  },
+  venueOptionAddress: {
+    fontFamily: Type.body,
+    fontSize: 13,
+    color: Palette.moss,
+    marginTop: 2,
+  },
+  venuePickerEmpty: {
+    fontFamily: Type.body,
+    fontSize: 14,
+    color: Palette.moss,
+    paddingVertical: space(4),
   },
   error: {
     fontFamily: Type.body,

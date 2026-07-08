@@ -22,6 +22,7 @@ export type Match = {
   id: string;
   team?: MatchTeamSummary;
   opponent_team?: MatchTeamSummary | null;
+  venue?: { id: string; name: string; lat: number; lng: number } | null;
   venue_text: string;
   venue_lat: number | null;
   venue_lng: number | null;
@@ -108,6 +109,7 @@ export type OpponentListing = {
 
 export type CreateMatchPayload = {
   team_id: string;
+  venue_id?: string | null;
   venue_text: string;
   starts_at: string;
   format: number;

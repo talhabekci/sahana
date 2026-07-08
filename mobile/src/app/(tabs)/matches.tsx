@@ -60,14 +60,24 @@ export default function Matches() {
     <Screen pitch pitchY={-160}>
       <View style={styles.header}>
         <Text style={styles.kicker}>MAÇLAR</Text>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => Router.push('/listings')}
-          hitSlop={8}
-          style={styles.discoverLink}>
-          <Ionicons name="search" size={16} color={Palette.lime} />
-          <Text style={styles.discoverText}>Keşfet</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => Router.push('/venues')}
+            hitSlop={8}
+            style={styles.discoverLink}>
+            <Ionicons name="business" size={16} color={Palette.lime} />
+            <Text style={styles.discoverText}>Sahalar</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => Router.push('/listings')}
+            hitSlop={8}
+            style={styles.discoverLink}>
+            <Ionicons name="search" size={16} color={Palette.lime} />
+            <Text style={styles.discoverText}>Keşfet</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.segmentRow}>
@@ -127,6 +137,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 5,
     color: Palette.lime,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(5),
   },
   discoverLink: {
     flexDirection: 'row',
