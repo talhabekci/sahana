@@ -14,13 +14,14 @@ use App\Http\Resources\MatchResource;
 use App\Models\FootballMatch;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Venue;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class MatchController extends Controller
 {
-    private const SHOW_RELATIONS = ['team.members', 'opponentTeam.members', 'participants.user', 'listings', 'result'];
+    private const SHOW_RELATIONS = ['team.members', 'opponentTeam.members', 'venue', 'participants.user', 'listings', 'result'];
 
     public function index(Request $Request): AnonymousResourceCollection
     {
@@ -30,7 +31,7 @@ class MatchController extends Controller
 
         $Query = FootballMatch::query()
             ->whereHas('participants', fn ($Builder) => $Builder->where('user_id', $User->id))
-            ->with(['team', 'participants']);
+            ->with(['team', 'participants', 'venue']);
 
         if ($Filter === 'past') {
             $Query->where('starts_at', '<', now())->orderByDesc('starts_at');
@@ -48,8 +49,9 @@ class MatchController extends Controller
 
         $Team = Team::where('public_id', $Request->validated('team_id'))->firstOrFail();
 
-        /** @var array{venue_text: string, venue_lat?: float|null, venue_lng?: float|null, starts_at: string, format: int, price_per_player?: int|null} $Data */
+        /** @var array{venue_id?: string|null, venue_text: string, venue_lat?: float|null, venue_lng?: float|null, starts_at: string, format: int, price_per_player?: int|null} $Data */
         $Data = $Request->safe()->except(['team_id']);
+        $Data['venue_id'] = $this->resolveVenueId($Data['venue_id'] ?? null);
 
         $Match = $Action->handle($Team, $User, $Data);
         $Match->load(self::SHOW_RELATIONS);
@@ -72,9 +74,24 @@ class MatchController extends Controller
             throw new ApiError('Kapanmış maç güncellenemez.', 'match_closed');
         }
 
-        $Match->update($Request->validated());
+        $Data = $Request->validated();
+
+        if (array_key_exists('venue_id', $Data)) {
+            $Data['venue_id'] = $this->resolveVenueId($Data['venue_id']);
+        }
+
+        $Match->update($Data);
 
         return new MatchResource($Match->load(self::SHOW_RELATIONS));
+    }
+
+    private function resolveVenueId(?string $VenuePublicId): ?int
+    {
+        if ($VenuePublicId === null) {
+            return null;
+        }
+
+        return Venue::where('public_id', $VenuePublicId)->firstOrFail()->id;
     }
 
     public function confirm(Request $Request, FootballMatch $Match, ChangeMatchStatus $Action): MatchResource

@@ -30,6 +30,15 @@ class MatchResource extends JsonResource
                 'opponentTeam',
                 fn (): ?array => $this->opponentTeam !== null ? self::teamSummary($this->opponentTeam) : null,
             ),
+            'venue' => $this->whenLoaded(
+                'venue',
+                fn (): ?array => $this->venue !== null ? [
+                    'id' => $this->venue->public_id,
+                    'name' => $this->venue->name,
+                    'lat' => $this->venue->lat,
+                    'lng' => $this->venue->lng,
+                ] : null,
+            ),
             'venue_text' => $this->venue_text,
             'venue_lat' => $this->venue_lat,
             'venue_lng' => $this->venue_lng,

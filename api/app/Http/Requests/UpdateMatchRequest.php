@@ -17,6 +17,7 @@ class UpdateMatchRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'venue_id' => ['sometimes', 'nullable', 'string', 'exists:venues,public_id'],
             'venue_text' => ['sometimes', 'required', 'string', 'max:120'],
             'venue_lat' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
             'venue_lng' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],

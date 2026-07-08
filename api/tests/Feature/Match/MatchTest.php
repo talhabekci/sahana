@@ -3,6 +3,7 @@
 use App\Models\FootballMatch;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Venue;
 
 function teamWithCaptain(): array
 {
@@ -105,4 +106,22 @@ it('marks past confirmed matches as played via sweep', function () {
     $this->artisan('matches:sweep')->assertSuccessful();
 
     expect($Match->fresh()->status)->toBe('played');
+});
+
+it('creates a match with a venue picked from the directory', function () {
+    [$Team, $Captain] = teamWithCaptain();
+    $Venue = Venue::factory()->create(['name' => 'Kadıköy Halı Saha']);
+
+    $Response = $this->actingAs($Captain)->postJson('/api/v1/matches', [
+        'team_id' => $Team->public_id,
+        'venue_id' => $Venue->public_id,
+        'venue_text' => 'Kadıköy Halı Saha',
+        'starts_at' => now()->addDays(3)->toIso8601String(),
+        'format' => 7,
+    ])->assertCreated();
+
+    $Response->assertJsonPath('data.venue.id', $Venue->public_id)
+        ->assertJsonPath('data.venue.name', 'Kadıköy Halı Saha');
+
+    $this->assertDatabaseHas('matches', ['venue_id' => $Venue->id]);
 });

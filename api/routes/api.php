@@ -30,6 +30,8 @@ use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\TeamInviteController;
 use App\Http\Controllers\Api\V1\TeamMemberController;
 use App\Http\Controllers\Api\V1\TeamMessageController;
+use App\Http\Controllers\Api\V1\VenueController;
+use App\Http\Controllers\Api\V1\VenueReviewController;
 use App\Http\Controllers\Api\V1\VideoController;
 use Illuminate\Support\Facades\Route;
 
@@ -89,6 +91,11 @@ Route::prefix('v1')->group(function () {
 
         Route::get('/teams/{Team}/messages', [TeamMessageController::class, 'index']);
         Route::post('/teams/{Team}/messages', [TeamMessageController::class, 'store']);
+
+        // Modül 8 (Aşama 1): saha rehberi — spec: 08-venues.md.
+        Route::get('/venues', [VenueController::class, 'index']);
+        Route::get('/venues/{Venue}', [VenueController::class, 'show']);
+        Route::post('/venues/{Venue}/reviews', [VenueReviewController::class, 'store']);
 
         Route::get('/matches', [MatchController::class, 'index']);
         Route::post('/matches', [MatchController::class, 'store']);

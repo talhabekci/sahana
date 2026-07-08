@@ -29,6 +29,7 @@ class FootballMatch extends Model
     protected $fillable = [
         'team_id',
         'opponent_team_id',
+        'venue_id',
         'venue_text',
         'venue_lat',
         'venue_lng',
@@ -68,6 +69,12 @@ class FootballMatch extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    /** @return BelongsTo<Venue, $this> */
+    public function venue(): BelongsTo
+    {
+        return $this->belongsTo(Venue::class);
     }
 
     /** @return BelongsTo<Team, $this> */
