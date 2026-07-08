@@ -3,6 +3,49 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-08 — Modül 8 (Aşama 1): Saha Rehberi
+
+- **Kararlar (kullanıcı):** Bu oturumda sadece Aşama 1 (rehber) — Aşama 2
+  (işletme paneli + rezervasyon) ayrı bir iş, taslak olarak kaldı. Seed
+  verisi yok, boş/test verisiyle başlandı (gerçek toplu veri doldurma
+  BACKLOG.md #16'ya taşındı). `matches.venue_text` korunuyor, yeni
+  `venue_id` nullable/opsiyonel — geriye dönük kırılma yok.
+- **API:** `venues` + `venue_reviews` tabloları, `matches.venue_id` (nullable
+  FK). Konum sorgusu Modül 3'teki desenle birebir aynı — `lat`/`lng` decimal
+  + bounding-box + PHP haversine (`App\Support\Geo`), POINT/SPATIAL değil
+  (test paketi sqlite'ta koşuyor). `GET /venues?near=&radius=&search=` ·
+  `GET /venues/{id}` (ortalama puan + yorumlar) · `POST /venues/{id}/reviews`
+  — sahte yorum direnci: sadece o sahada oynanmış (`status: played`), yorumu
+  yapan kullanıcının katılımcısı olduğu bir maça (`match_id`, kanıt bağı)
+  dayanarak yorum yapılabiliyor (`CreateVenueReview` Action). `POST`/`PATCH
+  /matches` artık opsiyonel `venue_id` kabul ediyor (public_id → internal id
+  çözümlemesi `MatchController`'da).
+- **Larastan:** `VenueResource`'ta `withAvg()`'ın eklediği dinamik
+  `reviews_avg_score` alanına property erişimi "undefined property" verdi —
+  `distance_km` için zaten kullanılan `getAttribute()` desenine çekilerek
+  çözüldü (aynı dosyada tutarlı).
+- **Mobil:** `features/venue/api.ts`; `venues/index.tsx` (arama/yakınımdaki
+  liste), `venues/[id].tsx` (detay, özellikler, yorumlar, yıldızlı puanlama
+  + maç seçimli yorum formu — sadece o sahada oynanmış maçı olan kullanıcıya
+  gösteriliyor); `match/create.tsx`'e "Rehberden seç" modalı (serbest metin
+  girişi korunuyor). Giriş noktası: `(tabs)/matches.tsx` header'ına "Sahalar"
+  linki.
+- Doğrulama: API 206 test (10 yeni) + Pint + Larastan yeşil, gerçek local
+  MySQL'e migrate edildi; mobil `tsc --noEmit` + lint temiz.
+  `docs/features/08-venues.md` "Uygulanıyor"a çekildi, `ROADMAP.md` Modül 8
+  Aşama 1 checkbox'ları işaretlendi.
+
+### Sonraki adım
+- Kullanıcı cihaz testi: saha rehberi listesi/arama, saha detayında yorum
+  yapma (oynanmış bir maç gerekiyor — test verisi tinker ile eklenmeli),
+  maç kurarken rehberden saha seçimi.
+- Aşama 2 (işletme paneli + rezervasyon) ayrı bir karar/spec güncellemesi
+  gerektiriyor — henüz ele alınmadı.
+- ROADMAP sırasına göre sıradaki modül yok (1-8 tamam) — MVP→production-ready
+  cilalama fazı (BACKLOG.md) veya kullanıcının belirleyeceği yeni öncelik.
+
+---
+
 ## 2026-07-07 (4) — Sohbet UI hataları düzeltildi (backlog #12-#15)
 
 - Kullanıcı cihazda test ederken 4 UI hatası buldu, önce backlog'a yazıldı,
@@ -46,7 +89,7 @@
 | 5 — Maç Videoları | ✅ v1 API + mobil tamam (2026-07-06) · v1.5/v2/v3 bekliyor |
 | 6 — İstatistik & Reyting | ✅ API + mobil tamam (2026-07-07) · cihazda kullanıcı testi bekliyor |
 | 7 — Bildirim & Mesajlaşma | ✅ API + mobil tamam (2026-07-07, DM dahil) · cihazda kullanıcı testi bekliyor (push ancak EAS dev build'de test edilebilir) |
-| 8 | ⬜ Başlamadı |
+| 8 — Saha Rehberi | ✅ Aşama 1 (API + mobil) tamam (2026-07-08) · Aşama 2 (işletme paneli) ayrı iş |
 
 ---
 

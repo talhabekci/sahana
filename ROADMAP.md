@@ -123,8 +123,8 @@ mobil ekranlar → test → sonraki modül. Bir modül bitmeden diğerine geçil
 - Spec: `docs/features/07-notifications-chat.md`
 
 ### MODÜL 8 — Saha Rehberi & Rezervasyon (Faz 2)
-- [ ] Saha veritabanı (konum, fiyat, özellikler, foto)
-- [ ] Saha yorumları/puanları
+- [x] Saha veritabanı (konum, fiyat, özellikler, foto)
+- [x] Saha yorumları/puanları
 - [ ] İleride: işletme paneli + online rezervasyon (gelir modeli!)
 - Spec: `docs/features/08-venues.md`
 

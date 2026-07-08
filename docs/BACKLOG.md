@@ -209,6 +209,17 @@
   gerçek anlamda WhatsApp'ın yerine koyabilmek için) öne alınması istenebilir.
   **Karar bekliyor.**
 
+### 16. Saha rehberi — gerçek seed verisi (Google Places API vs. elle giriş)
+- **Bağlı modül:** Modül 8 — [08-venues.md](features/08-venues.md)
+- **Talep tarihi:** 2026-07-08
+- Modül 8'in Aşama 1'i (rehber) boş/test verisiyle kodlandı (kullanıcı
+  kararı). Gerçek Türkiye halı saha verisini toplu doldurmak ayrı bir iş:
+  Google Places API (maliyetli, kullanım başına ücretli) ile mi, yoksa elle
+  giriş/kullanıcı ekleme akışıyla mı (spec'te "öneri + moderasyon kuyruğu"
+  olarak bahsediliyor, henüz `POST /venues` endpoint'i yok) doldurulacağı
+  netleşmeden kodlanmayacak. Pilot şehir seçimiyle birlikte ele alınmalı
+  (bkz. 08-venues.md "Açık Sorular").
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün
