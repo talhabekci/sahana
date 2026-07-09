@@ -20,6 +20,8 @@ export type Me = {
   phone: string | null;
   avatar_path: string | null;
   profile?: Profile | null;
+  followers_count: number;
+  following_count: number;
 };
 
 export type City = { id: number; name: string };

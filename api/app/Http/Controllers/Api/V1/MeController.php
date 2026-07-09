@@ -17,7 +17,7 @@ class MeController extends Controller
         /** @var User $User */
         $User = $Request->user();
 
-        return new UserResource($User->load('profile.city'));
+        return new UserResource($User->loadCount(['followers', 'following'])->load('profile.city'));
     }
 
     public function update(UpdateMeRequest $Request): UserResource
@@ -50,7 +50,7 @@ class MeController extends Controller
             }
         }
 
-        return new UserResource($User->refresh()->load('profile.city'));
+        return new UserResource($User->refresh()->loadCount(['followers', 'following'])->load('profile.city'));
     }
 
     public function destroy(Request $Request): JsonResponse

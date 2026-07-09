@@ -34,6 +34,8 @@ class UserResource extends JsonResource
                 'availability' => $this->profile?->availability,
                 'bio' => $this->profile?->bio,
             ]),
+            'followers_count' => $this->followers_count ?? $this->followers()->count(),
+            'following_count' => $this->following_count ?? $this->following()->count(),
         ];
     }
 }

@@ -1,17 +1,12 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
+import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { deleteMe, getMe, logout } from '@/features/auth/api';
 import { POSITIONS } from '@/features/auth/PitchPositionPicker';
 import { useAuthStore } from '@/features/auth/store';
+import { getPlayerPosts, likePost, Post, unlikePost } from '@/features/social/api';
+import { PostCard } from '@/features/social/PostCard';
 import { getPlayerStats } from '@/features/stats/api';
 import { StatsCard } from '@/features/stats/StatsCard';
 import { Button } from '@/shared/ui/Button';
@@ -23,12 +18,34 @@ function positionLabel(Key: string): string {
 }
 
 export default function Profile() {
+  const Router = useRouter();
+  const QueryClient = useQueryClient();
   const setToken = useAuthStore((State) => State.setToken);
   const Me = useQuery({ queryKey: ['me'], queryFn: getMe });
   const Stats = useQuery({
     queryKey: ['players', Me.data?.id, 'stats'],
     queryFn: () => getPlayerStats(Me.data?.id ?? ''),
     enabled: Me.data?.id != null,
+  });
+  const Posts = useQuery({
+    queryKey: ['me', 'posts'],
+    queryFn: () => getPlayerPosts(Me.data?.id ?? ''),
+    enabled: Me.data?.id != null,
+  });
+
+  const ToggleLike = useMutation({
+    mutationFn: ({ post }: { post: Post }) => (post.i_liked ? unlikePost(post.id) : likePost(post.id)),
+    onMutate: async ({ post }) => {
+      await QueryClient.cancelQueries({ queryKey: ['me', 'posts'] });
+
+      QueryClient.setQueryData(['me', 'posts'], (Current: Post[] | undefined) =>
+        Current?.map((Item) =>
+          Item.id === post.id
+            ? { ...Item, i_liked: !Item.i_liked, likes_count: Item.likes_count + (Item.i_liked ? -1 : 1) }
+            : Item,
+        ),
+      );
+    },
   });
 
   const Logout = useMutation({
@@ -65,54 +82,87 @@ export default function Profile() {
   const Data = Me.data;
 
   return (
-    <Screen pitch pitchY={-220}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <Text style={styles.kicker}>PROFİL</Text>
+    <Screen bare pitch pitchY={-220}>
+      <FlatList
+        data={Posts.data ?? []}
+        keyExtractor={(Item) => Item.id}
+        contentContainerStyle={styles.list}
+        ListHeaderComponent={
+          <View>
+            <Text style={styles.kicker}>PROFİL</Text>
 
-        <View style={styles.card}>
-          <View style={styles.cardTop}>
-            <View style={styles.flexShrink}>
-              <Text style={styles.name}>{Data?.name ?? 'İsimsiz Oyuncu'}</Text>
-              <Text style={styles.city}>
-                {Data?.profile?.city ?? 'Şehir yok'}
-                {Data?.profile?.district != null ? ` · ${Data.profile.district}` : ''}
-              </Text>
-            </View>
+            <View style={styles.card}>
+              <View style={styles.cardTop}>
+                <View style={styles.flexShrink}>
+                  <Text style={styles.name}>{Data?.name ?? 'İsimsiz Oyuncu'}</Text>
+                  <Text style={styles.city}>
+                    {Data?.profile?.city ?? 'Şehir yok'}
+                    {Data?.profile?.district != null ? ` · ${Data.profile.district}` : ''}
+                  </Text>
+                </View>
 
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelDigit}>{Data?.profile?.level ?? '–'}</Text>
-              <Text style={styles.levelLabel}>SEVİYE</Text>
-            </View>
-          </View>
-
-          <View style={styles.chipRow}>
-            {(Data?.profile?.positions ?? []).map((Key) => (
-              <View key={Key} style={styles.chip}>
-                <Text style={styles.chipText}>{positionLabel(Key)}</Text>
+                <View style={styles.levelBadge}>
+                  <Text style={styles.levelDigit}>{Data?.profile?.level ?? '–'}</Text>
+                  <Text style={styles.levelLabel}>SEVİYE</Text>
+                </View>
               </View>
-            ))}
+
+              <View style={styles.chipRow}>
+                {(Data?.profile?.positions ?? []).map((Key) => (
+                  <View key={Key} style={styles.chip}>
+                    <Text style={styles.chipText}>{positionLabel(Key)}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View style={styles.statsRow}>
+                <View style={styles.statBlock}>
+                  <Text style={styles.statValue}>{Data?.followers_count ?? 0}</Text>
+                  <Text style={styles.statLabel}>TAKİPÇİ</Text>
+                </View>
+                <View style={styles.statBlock}>
+                  <Text style={styles.statValue}>{Data?.following_count ?? 0}</Text>
+                  <Text style={styles.statLabel}>TAKİP</Text>
+                </View>
+              </View>
+            </View>
+
+            {Stats.data != null && <StatsCard stats={Stats.data} />}
+
+            <View style={styles.contactBlock}>
+              <Text style={styles.contactLabel}>HESAP</Text>
+              <Text style={styles.contactValue}>{Data?.email ?? Data?.phone ?? '—'}</Text>
+            </View>
+
+            <Text style={styles.sectionLabel}>GÖNDERİLERİM</Text>
           </View>
-        </View>
-
-        {Stats.data != null && <StatsCard stats={Stats.data} />}
-
-        <View style={styles.contactBlock}>
-          <Text style={styles.contactLabel}>HESAP</Text>
-          <Text style={styles.contactValue}>{Data?.email ?? Data?.phone ?? '—'}</Text>
-        </View>
-
-        <View style={styles.actions}>
-          <Button
-            label="Çıkış yap"
-            variant="ghost"
-            onPress={() => Logout.mutate()}
-            loading={Logout.isPending}
-          />
-          <Pressable accessibilityRole="button" onPress={confirmDelete} hitSlop={8}>
-            <Text style={styles.deleteText}>Hesabımı sil</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+        }
+        renderItem={({ item }) => (
+          <View style={styles.postWrap}>
+            <PostCard
+              post={item}
+              onPress={() => Router.push(`/post/${item.id}`)}
+              onToggleLike={() => ToggleLike.mutate({ post: item })}
+            />
+          </View>
+        )}
+        ListEmptyComponent={
+          !Posts.isPending ? <Text style={styles.emptyText}>Henüz gönderi paylaşmadın.</Text> : null
+        }
+        ListFooterComponent={
+          <View style={styles.actions}>
+            <Button
+              label="Çıkış yap"
+              variant="ghost"
+              onPress={() => Logout.mutate()}
+              loading={Logout.isPending}
+            />
+            <Pressable accessibilityRole="button" onPress={confirmDelete} hitSlop={8}>
+              <Text style={styles.deleteText}>Hesabımı sil</Text>
+            </Pressable>
+          </View>
+        }
+      />
     </Screen>
   );
 }
@@ -123,7 +173,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scroll: {
+  list: {
+    paddingHorizontal: space(6),
     paddingTop: space(4),
     paddingBottom: space(10),
   },
@@ -197,8 +248,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Palette.chalk,
   },
+  statsRow: {
+    flexDirection: 'row',
+    gap: space(6),
+    marginTop: space(5),
+  },
+  statBlock: {
+    alignItems: 'flex-start',
+  },
+  statValue: {
+    fontFamily: Type.mono,
+    fontSize: 20,
+    color: Palette.chalk,
+  },
+  statLabel: {
+    fontFamily: Type.mono,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    color: Palette.moss,
+    marginTop: 2,
+  },
   contactBlock: {
-    marginTop: space(8),
+    marginTop: space(6),
   },
   contactLabel: {
     fontFamily: Type.bodyMedium,
@@ -212,8 +283,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Palette.chalk,
   },
+  sectionLabel: {
+    fontFamily: Type.mono,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: Palette.moss,
+    marginTop: space(7),
+    marginBottom: space(3),
+  },
+  postWrap: {
+    marginBottom: space(3),
+  },
+  emptyText: {
+    fontFamily: Type.body,
+    fontSize: 14,
+    color: Palette.moss,
+    marginBottom: space(3),
+  },
   actions: {
-    marginTop: space(10),
+    marginTop: space(6),
     gap: space(6),
     alignItems: 'stretch',
   },

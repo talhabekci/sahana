@@ -30,7 +30,13 @@
   hatası verdi. Kütüphane tamamen kaldırıldı; yerine harici bağımlılıksız,
   tema token'larıyla birebir uyumlu `shared/ui/MonthCalendar.tsx` yazıldı.
 
-### 5. Profil ekranı — kendi sosyal aktivitesi görünmüyor
+### 5. Profil ekranı — kendi sosyal aktivitesi görünmüyor ✅
+- **Tamamlandı:** 2026-07-09 — `GET /me`'ye `followers_count`/
+  `following_count` eklendi (`UserResource`, `MeController::loadCount`).
+  `(tabs)/profile.tsx`, `player/[id].tsx`'teki FlatList+ListHeaderComponent
+  desenine taşındı: takipçi/takip sayıları + kendi gönderi listesi
+  (`PostCard` ile, her kart zaten `comments_count`'u gösterdiğinden kendi
+  gönderilerine gelen yorum sayısı da otomatik görünür oluyor).
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-06
 - Kullanıcı bir oyuncuyu takip ediyor, gönderi beğeniyor/yorumluyor ama

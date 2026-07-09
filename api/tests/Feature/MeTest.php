@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Follow;
 use App\Models\PlayerProfile;
 use App\Models\User;
 
@@ -11,6 +12,20 @@ it('returns the authenticated user with profile', function () {
         ->assertOk()
         ->assertJsonPath('data.id', $User->public_id)
         ->assertJsonPath('data.profile.city', 'İstanbul');
+});
+
+it('returns followers and following counts', function () {
+    $User = User::factory()->create();
+    $Follower = User::factory()->create();
+    $Followed = User::factory()->create();
+
+    Follow::create(['follower_id' => $Follower->id, 'followed_id' => $User->id]);
+    Follow::create(['follower_id' => $User->id, 'followed_id' => $Followed->id]);
+
+    $this->actingAs($User)->getJson('/api/v1/me')
+        ->assertOk()
+        ->assertJsonPath('data.followers_count', 1)
+        ->assertJsonPath('data.following_count', 1);
 });
 
 it('requires authentication', function () {

@@ -16,6 +16,10 @@ kadro paylaşımları ve gönderilerden oluşan akış + takip mekanizması.
 - Keşfet: oyuncu/takım arama (isimden basit LIKE araması, v1'de Scout/ES yok)
 - Moderasyon: şikayet (report) + engelleme (block) — **zorunlu**, ertelenemez
 - Çekerek yenileme (pull-to-refresh) — kullanıcı kararı 2026-07-06, BACKLOG.md #6
+- `GET /me`'ye `followers_count`/`following_count` eklendi; (tabs)/profile
+  ekranında kendi takipçi/takip sayıları ve kendi gönderi listesi
+  görünüyor (`player/[id].tsx`'teki herkese açık profille aynı desen) —
+  kullanıcı kararı 2026-07-06, BACKLOG.md #5
 
 ### Kapsam dışı (v1)
 - Algoritmik sıralama · hikayeler · DM (Modül 7'de takım sohbeti önce)
