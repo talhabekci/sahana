@@ -26,6 +26,7 @@ class PlayerProfile extends Model
         'listing_application',
         'application_decision',
         'invite_accepted',
+        'opponent_found',
         'social_summary',
         'chat_message',
     ];

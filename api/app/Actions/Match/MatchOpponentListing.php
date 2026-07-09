@@ -6,6 +6,7 @@ use App\Exceptions\ApiError;
 use App\Models\OpponentListing;
 use App\Models\Team;
 use App\Models\User;
+use App\Notifications\OpponentFoundNotification;
 use Illuminate\Support\Facades\DB;
 
 class MatchOpponentListing
@@ -32,6 +33,14 @@ class MatchOpponentListing
             }
         });
 
-        return $Listing->fresh(['team', 'match']);
+        $Listing = $Listing->fresh(['team', 'match']);
+
+        $Captain = $Listing->team->captain();
+
+        if ($Captain !== null) {
+            $Captain->notify(new OpponentFoundNotification($Listing, $OpponentTeam));
+        }
+
+        return $Listing;
     }
 }

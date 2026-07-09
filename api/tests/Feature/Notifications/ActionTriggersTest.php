@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\FootballMatch;
+use App\Models\OpponentListing;
 use App\Models\Team;
 use App\Models\User;
 use App\Notifications\ApplicationDecisionNotification;
@@ -8,6 +9,7 @@ use App\Notifications\InviteAcceptedNotification;
 use App\Notifications\ListingApplicationNotification;
 use App\Notifications\MatchConfirmedNotification;
 use App\Notifications\MatchCreatedNotification;
+use App\Notifications\OpponentFoundNotification;
 use Illuminate\Support\Facades\Notification;
 
 it('notifies team members except the creator when a match is created', function () {
@@ -115,4 +117,29 @@ it('notifies the captain when an invite is accepted', function () {
     $this->actingAs($NewMember)->postJson("/api/v1/invites/{$Code}/accept")->assertOk();
 
     Notification::assertSentTo($Captain, InviteAcceptedNotification::class);
+});
+
+it('notifies the listing owner captain when an opponent is found', function () {
+    Notification::fake();
+
+    $Captain = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+    $Match = FootballMatch::factory()->for($Team)->create();
+
+    $Listing = OpponentListing::create([
+        'team_id' => $Team->id,
+        'match_id' => $Match->id,
+        'created_by' => $Captain->id,
+    ]);
+
+    $RivalCaptain = User::factory()->create();
+    $RivalTeam = Team::factory()->create();
+    $RivalTeam->members()->attach($RivalCaptain->id, ['role' => 'captain', 'joined_at' => now()]);
+
+    $this->actingAs($RivalCaptain)->postJson("/api/v1/opponent-listings/{$Listing->public_id}/match", [
+        'team_id' => $RivalTeam->public_id,
+    ])->assertOk();
+
+    Notification::assertSentTo($Captain, OpponentFoundNotification::class);
 });

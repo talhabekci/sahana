@@ -20,6 +20,7 @@ const TITLES: Record<string, string> = {
   ListingApplicationNotification: 'Yeni başvuru',
   ApplicationDecisionNotification: 'Başvuru kararı',
   InviteAcceptedNotification: 'Yeni üye katıldı',
+  OpponentFoundNotification: 'Rakip bulundu',
   SocialSummaryNotification: 'Akışında hareket var',
 };
 

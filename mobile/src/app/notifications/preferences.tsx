@@ -27,6 +27,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   listing_application: 'İlana başvuru',
   application_decision: 'Başvuru kararı',
   invite_accepted: 'Davet kabul edildi',
+  opponent_found: 'Rakip bulundu',
   social_summary: 'Akış özeti',
   chat_message: 'Takım sohbeti',
 };

@@ -53,6 +53,7 @@ kaldırır. Mobilde `expo-notifications` ile push token alınır.
 | Adam eksik başvurusu | Kaptan | `ApplyToListing` Action |
 | Başvuru onayı/reddi | Başvuran | `DecideApplication` Action |
 | Davet kabul edildi | Kaptan | `AcceptTeamInvite` Action |
+| Rakip bulundu | İlanı açan takımın kaptanı | `MatchOpponentListing` Action (2026-07-09, BACKLOG.md #4) |
 | Beğeni/yorum/takip (Modül 4) | İçerik sahibi | `notifications:social-summary` (birkaç saatte bir toplu) |
 
 - Teknik: Laravel Notifications, özel `App\Notifications\Channels\ExpoChannel` +

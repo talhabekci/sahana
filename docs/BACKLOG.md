@@ -211,12 +211,17 @@
   production-ready'e geçiş yapılacak (bkz. madde #7). Bu ayrı bir "cilalama"
   fazı olarak ROADMAP'in sonuna eklenebilir — kullanıcı ile netleşecek.
 
-### 4. Bildirimler (push notification)
+### 4. Bildirimler (push notification) — büyük ölçüde ✅
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (zaten ROADMAP'te planlı; bu madde önceliklendirme sorusu)
 - **Talep tarihi:** 2026-07-04
-- **İstenen tetikleyiciler:** maça birkaç saat kala hatırlatma, maç saati
-  geldiğinde, rakip bulunduğunda, adam-eksik başvurusu geldiğinde/onaylandığında.
+- **İstenen tetikleyiciler:** maça birkaç saat kala hatırlatma ✅
+  (`notifications:match-reminders`), rakip bulunduğunda ✅ (2026-07-09,
+  `OpponentFoundNotification` — `MatchOpponentListing` Action), adam-eksik
+  başvurusu geldiğinde/onaylandığında ✅ (`ListingApplicationNotification`/
+  `ApplicationDecisionNotification`). **Kalan:** "maç saati tam geldiğinde"
+  anlık bir bildirim yok (sadece 3 saat öncesi hatırlatma var) — küçük, ayrı
+  bir iş; değeri düşük görülüyorsa atlanabilir.
 - **Açık soru:** ROADMAP sırasına göre Modül 7, Modül 4-6'dan sonra geliyor.
   Kullanıcı deneyimi açısından (MVP'nin hemen ardından maç/RSVP döngüsünü
   gerçek anlamda WhatsApp'ın yerine koyabilmek için) öne alınması istenebilir.
