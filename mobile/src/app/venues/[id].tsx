@@ -5,7 +5,9 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -161,61 +163,69 @@ export default function VenueDetail() {
       </ScrollView>
 
       <Modal visible={ReviewModalVisible} transparent animationType="slide">
-        <Pressable style={styles.backdrop} onPress={() => setReviewModalVisible(false)} />
-        <View style={styles.sheet}>
-          <Text style={styles.sheetTitle}>Sahayı puanla</Text>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={0}>
+          <Pressable style={styles.backdrop} onPress={() => setReviewModalVisible(false)} />
+          <View style={styles.sheet}>
+            <Text style={styles.sheetTitle}>Sahayı puanla</Text>
 
-          {EligibleMatches.length > 1 && (
-            <View style={styles.matchChipWrap}>
-              {EligibleMatches.map((Match) => (
-                <Pressable
-                  key={Match.id}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: SelectedMatchId === Match.id }}
-                  onPress={() => setSelectedMatchId(Match.id)}
-                  style={[styles.matchChip, SelectedMatchId === Match.id && styles.matchChipActive]}>
-                  <Text
-                    style={[
-                      styles.matchChipText,
-                      SelectedMatchId === Match.id && styles.matchChipTextActive,
-                    ]}>
-                    {formatWhen(Match.starts_at)}
-                  </Text>
+            {EligibleMatches.length > 1 && (
+              <View style={styles.matchChipWrap}>
+                {EligibleMatches.map((Match) => (
+                  <Pressable
+                    key={Match.id}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: SelectedMatchId === Match.id }}
+                    onPress={() => setSelectedMatchId(Match.id)}
+                    style={[styles.matchChip, SelectedMatchId === Match.id && styles.matchChipActive]}>
+                    <Text
+                      style={[
+                        styles.matchChipText,
+                        SelectedMatchId === Match.id && styles.matchChipTextActive,
+                      ]}>
+                      {formatWhen(Match.starts_at)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.starRow}>
+              {[1, 2, 3, 4, 5].map((Value) => (
+                <Pressable key={Value} accessibilityRole="button" onPress={() => setScore(Value)} hitSlop={4}>
+                  <Ionicons
+                    name={Value <= Score ? 'star' : 'star-outline'}
+                    size={32}
+                    color={Palette.lime}
+                  />
                 </Pressable>
               ))}
             </View>
-          )}
 
-          <View style={styles.starRow}>
-            {[1, 2, 3, 4, 5].map((Value) => (
-              <Pressable key={Value} accessibilityRole="button" onPress={() => setScore(Value)} hitSlop={4}>
-                <Ionicons
-                  name={Value <= Score ? 'star' : 'star-outline'}
-                  size={32}
-                  color={Palette.lime}
-                />
-              </Pressable>
-            ))}
+            <TextInput
+              value={Body}
+              onChangeText={setBody}
+              placeholder="Yorumun (opsiyonel)"
+              placeholderTextColor={Palette.moss}
+              selectionColor={Palette.lime}
+              style={styles.reviewInput}
+              multiline
+            />
+
+            <Button label="Gönder" onPress={() => SubmitReview.mutate()} loading={SubmitReview.isPending} />
           </View>
-
-          <TextInput
-            value={Body}
-            onChangeText={setBody}
-            placeholder="Yorumun (opsiyonel)"
-            placeholderTextColor={Palette.moss}
-            selectionColor={Palette.lime}
-            style={styles.reviewInput}
-            multiline
-          />
-
-          <Button label="Gönder" onPress={() => SubmitReview.mutate()} loading={SubmitReview.isPending} />
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   scroll: {
     paddingHorizontal: space(6),
     paddingBottom: space(8),
