@@ -238,7 +238,12 @@
   ortaya çıkması. **Kullanıcı bu konuda nasıl ilerlenmesi gerektiğini
   ayrıca anlatacak** — henüz tasarım/kapsam kararı yok, kodlanmadı.
 
-### 17. ExpoPushClient — Expo'nun hata yanıtı hiç loglanmıyor (sessiz başarısızlık)
+### 17. ExpoPushClient — Expo'nun hata yanıtı hiç loglanmıyor (sessiz başarısızlık) ✅
+- **Tamamlandı:** 2026-07-08 — `ExpoPushClient::send()` artık Expo
+  yanıtındaki `data[]` ticket'larını okuyor, `status: error` olanları
+  `Log::warning`'e yazıyor; `details.error === 'DeviceNotRegistered'`
+  durumunda ilgili `devices` kaydını otomatik siliyor (token kalıcı
+  geçersiz demek). 3 yeni test (`ExpoPushClientTest.php`).
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (`App\Support\ExpoPushClient`)
 - **Talep tarihi:** 2026-07-08

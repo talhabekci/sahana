@@ -36,6 +36,12 @@ kaldırır. Mobilde `expo-notifications` ile push token alınır.
 > kaydı ve takım sohbeti (Reverb WS) bu kısıttan etkilenmez, Expo Go'da normal
 > çalışır.
 
+> **Not (2026-07-08):** `ExpoPushClient`, Expo'nun `data[].status: error`
+> yanıtlarını (ör. `DeviceNotRegistered`) artık okuyup logluyor; token
+> kalıcı geçersizse (`DeviceNotRegistered`) ilgili `devices` kaydı otomatik
+> silinir — böylece prod'da push'lar sessizce başarısız olup hiç fark
+> edilmez hâle gelmiyor (bkz. BACKLOG.md #17).
+
 ## Bildirimler
 
 | Olay | Alıcı | Tetikleyici |
