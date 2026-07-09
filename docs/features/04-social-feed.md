@@ -15,6 +15,7 @@ kadro paylaşımları ve gönderilerden oluşan akış + takip mekanizması.
 - Beğeni + yorum
 - Keşfet: oyuncu/takım arama (isimden basit LIKE araması, v1'de Scout/ES yok)
 - Moderasyon: şikayet (report) + engelleme (block) — **zorunlu**, ertelenemez
+- Çekerek yenileme (pull-to-refresh) — kullanıcı kararı 2026-07-06, BACKLOG.md #6
 
 ### Kapsam dışı (v1)
 - Algoritmik sıralama · hikayeler · DM (Modül 7'de takım sohbeti önce)

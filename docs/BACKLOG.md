@@ -41,7 +41,10 @@
   ekranına da taşınmalı, üstüne kendi gönderilerine gelen yorumların
   görünürlüğü eklenmeli.
 
-### 6. Akış — çekerek yenileme (pull-to-refresh)
+### 6. Akış — çekerek yenileme (pull-to-refresh) ✅
+- **Tamamlandı:** 2026-07-08 — `FlatList`'e `RefreshControl` bağlandı
+  (`Feed_.refetch()` + `Feed_.isRefetching && !Feed_.isFetchingNextPage`,
+  sayfalama sırasında yanlışlıkla "yenileniyor" göstermesin diye).
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-06
 - (tabs)/feed.tsx'te sayfa yukarıdan aşağı çekilince `/feed`'e yeniden istek

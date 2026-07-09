@@ -1,7 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { getFeed, likePost, Post, unlikePost } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
@@ -76,6 +84,13 @@ export default function Feed() {
           data={Posts}
           keyExtractor={(Item) => Item.id}
           contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={Feed_.isRefetching && !Feed_.isFetchingNextPage}
+              onRefresh={() => void Feed_.refetch()}
+              tintColor={Palette.lime}
+            />
+          }
           onEndReachedThreshold={0.4}
           onEndReached={() => {
             if (Feed_.hasNextPage === true && !Feed_.isFetchingNextPage) {
