@@ -220,6 +220,21 @@
   netleşmeden kodlanmayacak. Pilot şehir seçimiyle birlikte ele alınmalı
   (bkz. 08-venues.md "Açık Sorular").
 
+### 18. Saha seçimi — düz liste yerine il → ilçe → saha hiyerarşik akış
+- **Bağlı modül:** Modül 8 — [08-venues.md](features/08-venues.md)
+  (ilgili: madde #10 "il/ilçe/saha tabloları", madde #16 "gerçek seed verisi")
+- **Talep tarihi:** 2026-07-08
+- Cihaz testinde kullanıcı: maç kurarken "Rehberden seç" tüm sahaları düz
+  bir liste olarak getiriyor — production-ready değil, kullanıcı önce
+  **il**, sonra **ilçe**, sonra o ilçedeki **sahalar** arasından seçim
+  yapabilmeli. Bunun için gerçek saha verisinin bir haritalama/konum
+  API'sinden (Google Places vb.) il/ilçe bazında çekilmesi gerekiyor —
+  yani bu madde, #16'daki "gerçek seed verisi" kararına ve #10'daki
+  `districts`/`venues` + `external_id` tasarımına doğrudan bağımlı, aynı
+  alt yapı ihtiyacının üçüncü bir yerde (Modül 8 saha seçimi) tekrar
+  ortaya çıkması. **Kullanıcı bu konuda nasıl ilerlenmesi gerektiğini
+  ayrıca anlatacak** — henüz tasarım/kapsam kararı yok, kodlanmadı.
+
 ### 17. ExpoPushClient — Expo'nun hata yanıtı hiç loglanmıyor (sessiz başarısızlık)
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (`App\Support\ExpoPushClient`)
