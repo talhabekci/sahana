@@ -33,6 +33,12 @@ class CreateVenueReview
             throw new ApiError('Bu maçın katılımcısı olmadığın için yorum yapamazsın.', 'forbidden', 403);
         }
 
+        $AlreadyReviewed = VenueReview::where('venue_id', $Venue->id)->where('user_id', $User->id)->exists();
+
+        if ($AlreadyReviewed) {
+            throw new ApiError('Bu sahaya zaten yorum yaptın.', 'already_reviewed', 422);
+        }
+
         return VenueReview::create([
             'venue_id' => $Venue->id,
             'user_id' => $User->id,

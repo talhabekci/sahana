@@ -55,6 +55,11 @@
 - `POST /venues/{id}/reviews` `{match_id, score: 1-5, body?}` — yalnızca o
   `match_id`'nin katılımcısı VE maçın `venue_id`'si bu saha VE maç
   `status: played` ise izin verilir (kanıt zinciri — sahte yorum direnci).
+  **Bir kullanıcı bir sahaya en fazla bir yorum yapabilir** (kaç farklı
+  maçı olursa olsun) — `venue_reviews(venue_id, user_id)` unique kısıt +
+  Action seviyesi kontrol (2026-07-09, bulunan hata). `GET /venues/{id}`
+  yanıtına `my_review` eklendi; mobilde zaten yorum yapılmışsa "Yorum yap"
+  butonu hiç gösterilmez.
 - `POST /matches` / `PATCH /matches/{id}` — artık opsiyonel `venue_id`
   (rehberden saha public_id'si) kabul eder, `venue_text`'in yanında.
 

@@ -48,3 +48,22 @@ it('shows venue detail with average score and recent reviews', function () {
 
     expect($Response->json('data.reviews'))->toHaveCount(2);
 });
+
+it('returns my_review when the current user has already reviewed the venue', function () {
+    $Venue = Venue::factory()->create();
+    $User = User::factory()->create();
+    VenueReview::factory()->create(['venue_id' => $Venue->id, 'user_id' => $User->id, 'score' => 5]);
+
+    $Response = $this->actingAs($User)->getJson("/api/v1/venues/{$Venue->public_id}")->assertOk();
+
+    $Response->assertJsonPath('data.my_review.score', 5);
+});
+
+it('returns null my_review when the current user has not reviewed the venue', function () {
+    $Venue = Venue::factory()->create();
+    $User = User::factory()->create();
+
+    $Response = $this->actingAs($User)->getJson("/api/v1/venues/{$Venue->public_id}")->assertOk();
+
+    $Response->assertJsonPath('data.my_review', null);
+});

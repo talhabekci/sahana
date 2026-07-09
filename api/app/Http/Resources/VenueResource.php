@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Venue;
+use App\Models\VenueReview;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,6 +17,12 @@ class VenueResource extends JsonResource
      */
     public function toArray(Request $Request): array
     {
+        $CurrentUser = $Request->user();
+
+        $MyReview = $CurrentUser !== null
+            ? VenueReview::where('venue_id', $this->id)->where('user_id', $CurrentUser->id)->first()
+            : null;
+
         return [
             'id' => $this->public_id,
             'name' => $this->name,
@@ -36,6 +43,7 @@ class VenueResource extends JsonResource
                 fn (): float => round((float) $this->getAttribute('distance_km'), 1),
             ),
             'reviews' => VenueReviewResource::collection($this->whenLoaded('reviews')),
+            'my_review' => $MyReview !== null ? new VenueReviewResource($MyReview) : null,
         ];
     }
 }

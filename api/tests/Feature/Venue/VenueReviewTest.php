@@ -4,6 +4,7 @@ use App\Models\FootballMatch;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Venue;
+use App\Models\VenueReview;
 
 /**
  * @return array{0: Venue, 1: FootballMatch, 2: User}
@@ -81,4 +82,28 @@ it('validates the review score range', function () {
         'match_id' => $Match->public_id,
         'score' => 6,
     ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
+it('rejects a second review for the same venue even from a different played match', function () {
+    [$Venue, $Match, $User] = playedMatchAtVenue();
+
+    $this->actingAs($User)->postJson("/api/v1/venues/{$Venue->public_id}/reviews", [
+        'match_id' => $Match->public_id,
+        'score' => 4,
+    ])->assertCreated();
+
+    $Team = Team::factory()->create();
+    $Team->members()->attach($User->id, ['role' => 'member', 'joined_at' => now()]);
+    $SecondMatch = FootballMatch::factory()->for($Team)->create([
+        'venue_id' => $Venue->id,
+        'status' => 'played',
+    ]);
+    $SecondMatch->participants()->create(['user_id' => $User->id, 'source' => 'team']);
+
+    $this->actingAs($User)->postJson("/api/v1/venues/{$Venue->public_id}/reviews", [
+        'match_id' => $SecondMatch->public_id,
+        'score' => 2,
+    ])->assertStatus(422)->assertJsonPath('code', 'already_reviewed');
+
+    expect(VenueReview::where('venue_id', $Venue->id)->where('user_id', $User->id)->count())->toBe(1);
 });

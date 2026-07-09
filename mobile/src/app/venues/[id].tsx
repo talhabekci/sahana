@@ -121,21 +121,23 @@ export default function VenueDetail() {
 
         <View style={styles.reviewHeader}>
           <Text style={styles.sectionLabel}>YORUMLAR</Text>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              if (EligibleMatches.length === 0) {
-                Alert.alert('Yorum yapamazsın', 'Bu sahada oynanmış bir maçın olmalı.');
+          {Data.my_review === null && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                if (EligibleMatches.length === 0) {
+                  Alert.alert('Yorum yapamazsın', 'Bu sahada oynanmış bir maçın olmalı.');
 
-                return;
-              }
+                  return;
+                }
 
-              setSelectedMatchId(EligibleMatches[0].id);
-              setReviewModalVisible(true);
-            }}
-            hitSlop={8}>
-            <Text style={styles.reviewLink}>Yorum yap</Text>
-          </Pressable>
+                setSelectedMatchId(EligibleMatches[0].id);
+                setReviewModalVisible(true);
+              }}
+              hitSlop={8}>
+              <Text style={styles.reviewLink}>Yorum yap</Text>
+            </Pressable>
+          )}
         </View>
 
         {(Data.reviews ?? []).length === 0 ? (

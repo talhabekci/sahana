@@ -31,6 +31,7 @@ export type Venue = {
   average_score: number | null;
   distance_km?: number;
   reviews?: VenueReview[];
+  my_review: VenueReview | null;
 };
 
 export async function listVenues(params?: {
