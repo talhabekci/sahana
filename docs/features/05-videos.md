@@ -21,6 +21,9 @@ v2'de kendi yükleme altyapımız, uzun vadede kendi highlight sistemimiz.
   uç noktası, diğerleri için genel OG meta etiketi taraması (başlık +
   thumbnail); asenkron, kuyruğa düşer.
 - Feed'de thumbnail kart → dokununca `expo-web-browser` in-app tarayıcı.
+- `thumbnail_url` boşsa (oEmbed/OG metadata çekilemedi) sabit bir
+  varsayılan kapak görseli gösterilir (`assets/images/video-default-cover.png`
+  — kullanıcı kararı 2026-07-07, BACKLOG.md #9).
 - `provider` alanı: `youtube | sosyalhalisaha | other` (host'a göre otomatik
   sınıflandırılır, `VideoProviderDetector`) — ileride resmi entegrasyona
   sancısız geçiş için.

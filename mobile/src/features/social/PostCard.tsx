@@ -3,6 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Post } from './api';
+import VideoDefaultCover from '@/assets/images/video-default-cover.png';
 import { badgeIonicon } from '@/features/team/constants';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -65,13 +66,10 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor }: Props) 
             }
           }}
           style={styles.videoCard}>
-          {post.video.thumbnail_url != null ? (
-            <Image source={{ uri: post.video.thumbnail_url }} style={styles.videoThumbnail} />
-          ) : (
-            <View style={[styles.videoThumbnail, styles.videoThumbnailPlaceholder]}>
-              <Ionicons name="play-circle" size={36} color={Palette.lime} />
-            </View>
-          )}
+          <Image
+            source={post.video.thumbnail_url != null ? { uri: post.video.thumbnail_url } : VideoDefaultCover}
+            style={styles.videoThumbnail}
+          />
           <View style={styles.videoPlayBadge}>
             <Ionicons name="play" size={14} color={Palette.limeInk} />
           </View>
@@ -175,10 +173,6 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: Radius.m,
     backgroundColor: Palette.turfRaised,
-  },
-  videoThumbnailPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   videoPlayBadge: {
     position: 'absolute',

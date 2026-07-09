@@ -40,6 +40,7 @@ import {
   MATCH_STATUS_LABELS,
   RSVP_LABELS,
 } from '@/features/match/constants';
+import VideoDefaultCover from '@/assets/images/video-default-cover.png';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
@@ -405,13 +406,10 @@ export default function MatchDetail() {
                       }
                     }}
                     style={styles.videoRow}>
-                    {Video_.thumbnail_url != null ? (
-                      <Image source={{ uri: Video_.thumbnail_url }} style={styles.videoThumb} />
-                    ) : (
-                      <View style={[styles.videoThumb, styles.videoThumbPlaceholder]}>
-                        <Ionicons name="play-circle-outline" size={22} color={Palette.lime} />
-                      </View>
-                    )}
+                    <Image
+                      source={Video_.thumbnail_url != null ? { uri: Video_.thumbnail_url } : VideoDefaultCover}
+                      style={styles.videoThumb}
+                    />
                     <Text style={styles.videoTitle} numberOfLines={1}>
                       {Video_.title ?? 'Maç videosu'}
                     </Text>
@@ -797,10 +795,6 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: Radius.s,
     backgroundColor: Palette.turfRaised,
-  },
-  videoThumbPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   videoTitle: {
     flex: 1,

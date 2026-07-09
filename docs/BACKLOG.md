@@ -69,7 +69,11 @@
   post/kart türü olarak) gösterilmesini istiyor. Feed'in `BuildFeed` Action'ı
   ve `Post.TYPES`'a yeni bir tür eklenmesi gerekebilir — tasarım netleşmeli.
 
-### 9. Videolara varsayılan kapak fotoğrafı
+### 9. Videolara varsayılan kapak fotoğrafı ✅
+- **Tamamlandı:** 2026-07-09 — `assets/images/video-default-cover.png`
+  eklendi (tema renkleriyle: turfRaised zemin, ince saha çizgisi motifi,
+  ortada yumuşak lime glow + play ikonu). `PostCard.tsx` ve
+  `match/[id]/index.tsx`'teki ikon placeholder'ların yerini aldı.
 - **Bağlı modül:** Modül 5 — [05-videos.md](05-videos.md)
 - **Talep tarihi:** 2026-07-07
 - Şu an `thumbnail_url` boş gelirse (oEmbed/OG metadata çekilemedi ya da
