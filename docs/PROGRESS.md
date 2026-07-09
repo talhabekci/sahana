@@ -3,6 +3,62 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-09 — EAS dev build, push doğrulama, backlog temizliği (#17, #6, #9, #5, #4), 2 bug fix
+
+- **EAS development build:** `expo-dev-client` kuruldu, `mobile/eas.json`
+  (development/preview/production profilleri) eklendi. `app.json`'a
+  `ios.bundleIdentifier` / `android.package` = `com.sahanaapp.app` eklendi
+  (non-interactive EAS build zorunlu kıldı; kullanıcının `sahanaapp.com`
+  alan adına göre seçildi). Android ve iOS dev-client build'leri başarıyla
+  alındı ve cihaza kuruldu.
+  - **iOS build hatası kök neden:** `'RNHostViewProtocol' is not a member
+    type of struct 'ExpoModulesCore.ExpoSwiftUI'` — `src/` içinde hiç
+    kullanılmayan `expo-glass-effect` ve `@expo/ui` paketlerinden
+    kaynaklanıyordu (grep ile doğrulandı), ikisi de kaldırıldı.
+- **Push bildirim uçtan uca doğrulandı:** gerçek cihazda dev-client build
+  üzerinden push token kaydı + `ExpoPushClient` üzerinden hem uygulama
+  içinden hem terminalden (tinker + ham HTTP) test bildirimleri gönderildi,
+  teslimat onaylandı.
+- **Backlog #17 — ExpoPushClient sessiz hata:** `send()` artık Expo'nun
+  `data[]` yanıtındaki `status: error` ticket'larını `Log::warning`'e
+  yazıyor; `DeviceNotRegistered` durumunda ilgili `devices` kaydı otomatik
+  siliniyor. 3 yeni test (`ExpoPushClientTest.php`).
+- **Backlog #6 — Akış pull-to-refresh:** `(tabs)/feed.tsx` FlatList'e
+  `RefreshControl` bağlandı.
+- **Backlog #9 — Video varsayılan kapak:** `assets/images/video-default-cover.png`
+  eklendi, `PostCard.tsx` ve `match/[id]/index.tsx`'teki ikon placeholder'ların
+  yerini aldı.
+- **Backlog #5 — Profil ekranı sosyal aktivite:** `GET /me`'ye
+  `followers_count`/`following_count` eklendi; `(tabs)/profile.tsx`,
+  `player/[id].tsx`'teki FlatList+ListHeaderComponent desenine taşındı
+  (takipçi/takip sayıları + kendi gönderi listesi).
+- **Backlog #4 — Rakip bulundu bildirimi:** `OpponentFoundNotification`
+  eklendi, `MatchOpponentListing` Action'ı eşleşme sonrası ilan sahibi
+  kaptanı bilgilendiriyor.
+- **Bug fix — aynı sahaya birden fazla yorum:** `venue_reviews`'a
+  `(venue_id, user_id)` unique index + `CreateVenueReview`'da açık
+  `already_reviewed` (422) kontrolü; `VenueResource`'a `my_review` eklendi,
+  mobilde kullanıcı zaten yorum yapmışsa "Yorum yap" butonu hiç gösterilmiyor
+  (uyarı yerine buton gizleme — kullanıcı tercihi).
+- **Bug fix — yorum modalında klavye input'un üstüne biniyordu:**
+  `venues/[id].tsx`'teki yorum Modal'ı `KeyboardAvoidingView` ile sarmalandı
+  (chat ekranlarında daha önce çözülen desenle birebir aynı —
+  `behavior="padding"`, `keyboardVerticalOffset={0}`). Uygulama genelinde
+  aynı eksik için proaktif tarama yapıldı, başka Modal+TextInput gap'i
+  çıkmadı.
+- Doğrulama: API 209 test + Pint + Larastan yeşil; mobil `tsc --noEmit` +
+  lint temiz. Her madde kendi commit'iyle push edildi.
+
+### Sonraki adım
+- Kullanıcı talebi: backlog'daki geri kalan açık maddeler (#7 gönderi
+  paylaşma ekranı, #8 feed'de ilan gösterimi, #10/#18 il/ilçe/saha
+  hiyerarşisi, #16 gerçek saha verisi — hepsi kullanıcı netleştirmesi
+  bekliyor) sonrasında **production-ready** faza geçilecek: hosting/deploy,
+  queue'nun `sync`'ten çıkarılması, Sentry/hata takibi, `APP_DEBUG`/CORS/
+  rate-limit güvenlik taraması, medya depolama (R2/S3), store submission
+  (ikon/gizlilik politikası/izin metinleri), yasal metinler (KVKK/kullanım
+  şartları), DB backup stratejisi. Bu oturumda üretim hazırlığına başlandı.
+
 ## 2026-07-08 — Modül 8 (Aşama 1): Saha Rehberi
 
 - **Kararlar (kullanıcı):** Bu oturumda sadece Aşama 1 (rehber) — Aşama 2
