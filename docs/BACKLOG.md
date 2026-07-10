@@ -384,7 +384,18 @@
   inline `loading` prop deseni (`Button`) korunur. Karar sonrası tüm ana
   liste ekranlarına (feed, maçlar, saha rehberi, keşfet) tutarlı uygulanır.
 
-### 22. Splash ekranı — animasyonlu olmalı
+### 22. Splash ekranı — animasyonlu olmalı ✅
+- **Tamamlandı:** 2026-07-10 — yeni `shared/ui/AnimatedSplash.tsx`: native
+  statik splash kapanır kapanmaz aynı marka görseli (`splash-icon.png`,
+  BACKLOG'daki ikon işiyle aynı asset) sıçrayarak büyüyüp (spring benzeri
+  scale + fade) etrafında genişleyip kaybolan bir floodlight halkasıyla
+  belirginleşiyor, sonra tüm ekran solup asıl uygulamayı açığa çıkarıyor.
+  `app/_layout.tsx`'teki `Ready` (fontlar+auth hydration) sinyaline bağlı:
+  animasyon en az ~500ms gösterildikten sonra `ready` true olunca kapanıyor
+  (hızlı cihazlarda erken kesilip boşluk kalmasın diye). Reanimated ile
+  (proje zaten `PitchBoard`'ta kullanıyor), ek bağımlılık gerekmedi.
+  **Not:** Görsel sonucu cihazda görmedim (build/simülatör erişimim yok) —
+  kullanıcı cihazda doğrulayacak.
 - **Bağlı modül:** cross-cutting (app shell)
 - **Talep tarihi:** 2026-07-10
 - Şu an splash statik bir görsel (`splash-icon.png` + düz arka plan).

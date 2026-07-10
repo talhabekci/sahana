@@ -9,11 +9,12 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAuthStore } from '@/features/auth/store';
 import { usePushRegistration } from '@/features/notifications/usePushRegistration';
+import { AnimatedSplash } from '@/shared/ui/AnimatedSplash';
 import { Palette } from '@/shared/ui/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -41,12 +42,15 @@ export default function RootLayout() {
   }, [Hydrate]);
 
   const Ready = FontsLoaded && Hydrated;
+  const [AnimationDone, setAnimationDone] = useState(false);
 
   usePushRegistration(Ready && Token != null);
 
   // Splash yalnızca Ready ilk true olduğunda bir kez gizlenir — her rota
   // değişiminde (Segments) tekrar çağrılırsa native taraf reddediyor
   // ("No native splash screen registered for given view controller").
+  // Native (statik) splash kapanır kapanmaz aynı marka görseliyle devam eden
+  // JS animasyonu (AnimatedSplash) devreye giriyor — bkz. BACKLOG.md #22.
   useEffect(() => {
     if (Ready) {
       void SplashScreen.hideAsync();
@@ -69,8 +73,8 @@ export default function RootLayout() {
     }
   }, [Ready, Token, Segments, Router]);
 
-  if (!Ready) {
-    return null;
+  if (!AnimationDone) {
+    return <AnimatedSplash ready={Ready} onFinish={() => setAnimationDone(true)} />;
   }
 
   return (

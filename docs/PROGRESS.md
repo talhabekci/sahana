@@ -3,6 +3,20 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (9) — Backlog #22: animasyonlu splash ekranı
+
+- Yeni `shared/ui/AnimatedSplash.tsx`: native statik splash kapanınca aynı
+  marka görseliyle (`splash-icon.png`) devam eden bir giriş animasyonu —
+  sıçrayarak büyüyen amblem + genişleyip kaybolan floodlight halkası,
+  sonra tüm ekran solup uygulamayı açığa çıkarıyor. `_layout.tsx`'teki
+  `Ready` sinyaline bağlı, en az ~500ms gösterildikten sonra kapanıyor.
+  Reanimated zaten bir bağımlılıktı (PitchBoard), ek paket gerekmedi.
+- **Doğrulanamadı:** Görsel sonucu cihazda görmedim, kullanıcı test edecek.
+- Doğrulama: `npx tsc --noEmit` + lint temiz.
+
+### Sonraki adım
+- Sırada #30 (takım arma fotoğrafı + özel renk seçimi).
+
 ## 2026-07-10 (8) — Backlog #24: gönderi fotoğrafında kamera seçeneği
 
 - "Fotoğraf ekle" artık galeri/kamera arasında seçim sunuyor
