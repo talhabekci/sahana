@@ -12,6 +12,7 @@ import {
 
 import type { LineupPosition, TeamMember } from './api';
 import { Button } from '@/shared/ui/Button';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { TextField } from '@/shared/ui/TextField';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -64,7 +65,7 @@ export function RosterSheet({ visible, slot, members, onAssignMember, onAssignGu
                 )}
               </Pressable>
             )}
-            ListEmptyComponent={<Text style={styles.empty}>Takımda başka üye yok.</Text>}
+            ListEmptyComponent={<EmptyState icon="people-outline" message="Takımda başka üye yok." />}
           />
 
           <View style={styles.guestRow}>
@@ -149,12 +150,6 @@ const styles = StyleSheet.create({
     fontFamily: Type.mono,
     fontSize: 14,
     color: Palette.moss,
-  },
-  empty: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    color: Palette.moss,
-    paddingVertical: space(4),
   },
   guestRow: {
     flexDirection: 'row',

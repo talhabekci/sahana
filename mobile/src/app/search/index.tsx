@@ -6,6 +6,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, Vi
 
 import { PublicPlayer, searchPlayers, searchTeams, TeamSearchResult } from '@/features/social/api';
 import { badgeIonicon } from '@/features/team/constants';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -89,7 +90,7 @@ export default function Search() {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => <PlayerRow player={item} onPress={() => Router.push(`/player/${item.id}`)} />}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={<Text style={styles.hintText}>Sonuç bulunamadı.</Text>}
+          ListEmptyComponent={<EmptyState icon="search-outline" message="Sonuç bulunamadı." />}
         />
       ) : (
         <FlatList
@@ -98,7 +99,7 @@ export default function Search() {
           contentContainerStyle={styles.list}
           renderItem={({ item }) => <TeamRow team={item} onPress={() => Router.push(`/team/${item.id}`)} />}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={<Text style={styles.hintText}>Sonuç bulunamadı.</Text>}
+          ListEmptyComponent={<EmptyState icon="search-outline" message="Sonuç bulunamadı." />}
         />
       )}
     </Screen>

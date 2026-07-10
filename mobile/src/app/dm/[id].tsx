@@ -18,6 +18,7 @@ import { getMe } from '@/features/auth/api';
 import { ChatMessage, listDirectMessages, sendDirectMessage } from '@/features/chat/api';
 import { getPlayer } from '@/features/social/api';
 import { disconnectEcho, getEcho } from '@/shared/api/echo';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -170,7 +171,13 @@ export default function DirectChat() {
                 </View>
               );
             }}
-            ListEmptyComponent={<Text style={styles.emptyText}>Henüz mesaj yok. İlk mesajı sen yaz.</Text>}
+            ListEmptyComponent={
+              <EmptyState
+                icon="chatbubble-ellipses-outline"
+                message="Henüz mesaj yok. İlk mesajı sen yaz."
+                style={styles.emptyFlip}
+              />
+            }
           />
         )}
 
@@ -276,12 +283,7 @@ const styles = StyleSheet.create({
   textMine: {
     color: Palette.limeInk,
   },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    color: Palette.moss,
-    textAlign: 'center',
-    marginTop: space(6),
+  emptyFlip: {
     transform: [{ scaleY: -1 }],
   },
   composer: {

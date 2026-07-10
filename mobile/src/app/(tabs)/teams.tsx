@@ -6,6 +6,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { listTeams, Team } from '@/features/team/api';
 import { badgeIonicon } from '@/features/team/constants';
 import { Button } from '@/shared/ui/Button';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -55,11 +56,10 @@ export default function Teams() {
             <TeamRow team={item} onPress={() => Router.push(`/team/${item.id}`)} />
           )}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>
-                Henüz bir takımın yok. Kur ve arkadaşlarını davet et.
-              </Text>
-            </View>
+            <EmptyState
+              icon="people-outline"
+              message="Henüz bir takımın yok. Kur ve arkadaşlarını davet et."
+            />
           }
         />
       )}
@@ -124,16 +124,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Palette.moss,
     marginTop: 2,
-  },
-  empty: {
-    paddingVertical: space(10),
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Palette.moss,
-    textAlign: 'center',
   },
   footer: {
     paddingBottom: space(6),

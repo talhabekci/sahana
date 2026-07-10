@@ -272,7 +272,18 @@
   (mümkünse `details.error === 'DeviceNotRegistered'` durumunda ilgili
   `devices` kaydını da silmeyi değerlendir — token artık geçersiz demektir).
 
-### 19. Boş durumlar (empty states) — uygulama genelinde tutarlı bir tasarım yok
+### 19. Boş durumlar (empty states) — uygulama genelinde tutarlı bir tasarım yok ✅
+- **Tamamlandı:** 2026-07-10 — denetim madde #20'dekinin tersini gösterdi:
+  14 boş-durum noktasının (feed, keşfet x2, sohbetler, takımlar, arama x2,
+  maçlar, saha rehberi, takım sohbeti, DM, oyuncu profili, kendi profilim,
+  kadro atama sayfası) her birinde zaten bağlamsal Türkçe metin vardı —
+  eksik olan görsel tutarlılıktı (düz `<Text>`, ikon yok). Ortak
+  `shared/ui/EmptyState.tsx` (ikon + mesaj, `ErrorState`'le aynı görsel
+  dil) eklendi, mevcut metinler korunarak hepsine uygulandı. Ters (inverted)
+  mesaj listelerinde (`team/[id]/chat.tsx`, `dm/[id].tsx`) zaten var olan
+  `scaleY: -1` flip'i korumak için `EmptyState`'e opsiyonel `style` prop'u
+  eklendi. CTA butonları (ör. "İlk gönderini paylaş") kapsam dışı bırakıldı
+  — mevcut metinler zaten teşvik edici, ayrı bir iş olarak değerlendirilebilir.
 - **Bağlı modül:** cross-cutting (Modül 3 keşfet/ilanlar, Modül 4 akış,
   Modül 6 maç geçmişi, Modül 7 sohbet/bildirimler, Modül 8 saha rehberi)
 - **Talep tarihi:** 2026-07-10

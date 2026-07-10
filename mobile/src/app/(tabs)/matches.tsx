@@ -7,6 +7,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { listMatches, Match } from '@/features/match/api';
 import { formatDayLabel, formatTimeLabel, MATCH_STATUS_LABELS } from '@/features/match/constants';
 import { Button } from '@/shared/ui/Button';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -110,13 +111,14 @@ export default function Matches() {
             <MatchCard match={item} onPress={() => Router.push(`/match/${item.id}`)} />
           )}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>
-                {Filter === 'upcoming'
+            <EmptyState
+              icon={Filter === 'upcoming' ? 'calendar-outline' : 'time-outline'}
+              message={
+                Filter === 'upcoming'
                   ? 'Yaklaşan maçın yok. Kur ve takımına duyur.'
-                  : 'Henüz oynanmış maç yok.'}
-              </Text>
-            </View>
+                  : 'Henüz oynanmış maç yok.'
+              }
+            />
           }
         />
       )}
@@ -256,16 +258,6 @@ const styles = StyleSheet.create({
     fontFamily: Type.body,
     fontSize: 12,
     color: Palette.moss,
-  },
-  empty: {
-    paddingVertical: space(10),
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Palette.moss,
-    textAlign: 'center',
   },
   footer: {
     paddingBottom: space(6),

@@ -24,6 +24,7 @@ import {
 import { FALLBACK_CENTER, formatDayLabel, formatTimeLabel } from '@/features/match/constants';
 import { listTeams } from '@/features/team/api';
 import { toApiFailure } from '@/shared/api/client';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -247,9 +248,10 @@ export default function Discover() {
           contentContainerStyle={styles.list}
           renderItem={renderPlayerListing}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>
-              Yakınında açık ilan yok. Yarıçapı genişletmek için daha sonra tekrar bak.
-            </Text>
+            <EmptyState
+              icon="person-add-outline"
+              message="Yakınında açık ilan yok. Yarıçapı genişletmek için daha sonra tekrar bak."
+            />
           }
         />
       ) : (
@@ -258,9 +260,7 @@ export default function Discover() {
           keyExtractor={(Listing) => Listing.id}
           contentContainerStyle={styles.list}
           renderItem={renderOpponentListing}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>Şu an rakip arayan takım yok.</Text>
-          }
+          ListEmptyComponent={<EmptyState icon="shield-outline" message="Şu an rakip arayan takım yok." />}
         />
       )}
     </Screen>
@@ -427,13 +427,5 @@ const styles = StyleSheet.create({
     fontFamily: Type.bodyMedium,
     fontSize: 14,
     color: Palette.moss,
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    lineHeight: 21,
-    color: Palette.moss,
-    textAlign: 'center',
-    paddingVertical: space(8),
   },
 });

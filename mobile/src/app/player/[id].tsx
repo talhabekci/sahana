@@ -20,6 +20,7 @@ import { getPlayerStats } from '@/features/stats/api';
 import { StatsCard } from '@/features/stats/StatsCard';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -218,7 +219,7 @@ export default function PlayerProfile() {
         )}
         ListEmptyComponent={
           !Blocked && !Posts.isPending ? (
-            <Text style={styles.emptyText}>Henüz gönderi yok.</Text>
+            <EmptyState icon="images-outline" message="Henüz gönderi yok." />
           ) : null
         }
       />
@@ -320,11 +321,5 @@ const styles = StyleSheet.create({
   },
   postWrap: {
     marginBottom: space(3),
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    color: Palette.moss,
-    marginTop: space(2),
   },
 });

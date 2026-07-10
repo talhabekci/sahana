@@ -10,6 +10,7 @@ import { PostCard } from '@/features/social/PostCard';
 import { getPlayerStats } from '@/features/stats/api';
 import { StatsCard } from '@/features/stats/StatsCard';
 import { Button } from '@/shared/ui/Button';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -156,7 +157,9 @@ export default function Profile() {
           </View>
         )}
         ListEmptyComponent={
-          !Posts.isPending ? <Text style={styles.emptyText}>Henüz gönderi paylaşmadın.</Text> : null
+          !Posts.isPending ? (
+            <EmptyState icon="images-outline" message="Henüz gönderi paylaşmadın." />
+          ) : null
         }
         ListFooterComponent={
           <View style={styles.actions}>
@@ -301,12 +304,6 @@ const styles = StyleSheet.create({
     marginBottom: space(3),
   },
   postWrap: {
-    marginBottom: space(3),
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    color: Palette.moss,
     marginBottom: space(3),
   },
   actions: {

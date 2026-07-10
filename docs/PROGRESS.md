@@ -3,6 +3,23 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (3) — Backlog #19: boş durumlar (empty states)
+
+- 14 boş-durum noktasının (feed, keşfet x2, sohbetler, takımlar, arama x2,
+  maçlar, saha rehberi, takım sohbeti, DM, oyuncu profili, kendi profilim,
+  kadro atama sayfası) hepsinde zaten bağlamsal Türkçe metin olduğu
+  doğrulandı — eksik olan görsel tutarlılıktı. Ortak `shared/ui/
+  EmptyState.tsx` (ikon + mesaj) eklendi, mevcut metinler korunarak
+  uygulandı. Ters listelerde (`team/[id]/chat.tsx`, `dm/[id].tsx`) zaten
+  var olan `scaleY: -1` flip'i için `EmptyState`'e opsiyonel `style` prop'u
+  eklendi.
+- Doğrulama: `npx tsc --noEmit` ve `npm run lint` temiz.
+
+### Sonraki adım
+- BACKLOG.md'nin #19/#20/#21 üçü de kapandı. Sırada kullanıcı netleştirmesi
+  gereken #7 (gönderi paylaşma ekranı), #8 (feed'de ilan gösterimi),
+  #10/#18 (il/ilçe/saha), #16 (gerçek saha verisi).
+
 ## 2026-07-10 (2) — Backlog #20 + #21: hata/yeniden deneme ve yükleme tutarlılığı
 
 - **#20 (hata/retry) tamamlandı:** 13 ekranın hiçbirinde `isError` kontrolü

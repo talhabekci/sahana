@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { listVenues } from '@/features/venue/api';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -79,7 +80,7 @@ export default function Venues() {
             </Pressable>
           )}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={<Text style={styles.emptyText}>Henüz saha eklenmedi.</Text>}
+          ListEmptyComponent={<EmptyState icon="business-outline" message="Henüz saha eklenmedi." />}
         />
       )}
     </Screen>
@@ -183,12 +184,5 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: space(3),
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    color: Palette.moss,
-    marginTop: space(4),
-    marginHorizontal: space(6),
   },
 });

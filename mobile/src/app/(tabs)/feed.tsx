@@ -13,6 +13,7 @@ import {
 
 import { getFeed, likePost, Post, unlikePost } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Type, space } from '@/shared/ui/theme';
@@ -115,11 +116,10 @@ export default function Feed() {
           )}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>
-                Henüz akışın boş. Takım arkadaşlarını takip et ya da ilk gönderini paylaş.
-              </Text>
-            </View>
+            <EmptyState
+              icon="newspaper-outline"
+              message="Henüz akışın boş. Takım arkadaşlarını takip et ya da ilk gönderini paylaş."
+            />
           }
         />
       )}
@@ -166,15 +166,5 @@ const styles = StyleSheet.create({
   },
   footerSpinner: {
     marginVertical: space(4),
-  },
-  empty: {
-    paddingVertical: space(10),
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 15,
-    lineHeight: 22,
-    color: Palette.moss,
-    textAlign: 'center',
   },
 });

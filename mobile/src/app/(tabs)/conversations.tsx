@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 
 import { listConversations } from '@/features/chat/api';
 import { badgeIonicon } from '@/features/team/constants';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -74,7 +75,9 @@ export default function Conversations() {
             </Pressable>
           )}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={<Text style={styles.emptyText}>Henüz bir sohbetin yok.</Text>}
+          ListEmptyComponent={
+            <EmptyState icon="chatbubbles-outline" message="Henüz bir sohbetin yok." />
+          }
         />
       )}
     </Screen>
@@ -146,11 +149,5 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: space(3),
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    color: Palette.moss,
-    marginTop: space(4),
   },
 });

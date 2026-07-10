@@ -9,6 +9,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '@/features/notifications/api';
+import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -138,7 +139,9 @@ export default function Notifications() {
             </Pressable>
           )}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
-          ListEmptyComponent={<Text style={styles.emptyText}>Henüz bildirimin yok.</Text>}
+          ListEmptyComponent={
+            <EmptyState icon="notifications-outline" message="Henüz bildirimin yok." />
+          }
         />
       )}
     </Screen>
@@ -226,11 +229,5 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: space(3),
-  },
-  emptyText: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    color: Palette.moss,
-    marginTop: space(4),
   },
 });
