@@ -70,9 +70,10 @@
   vb.), store listing metni/görselleri, gizlilik politikası URL'i (madde G'ye bağlı).
 
 ### G. Yasal — gizlilik politikası / KVKK / kullanım şartları
-- **Durum:** Hiç yok. Sosyal ağ + konum + push + kullanıcı içeriği
-  barındıran bir uygulama için hem store submission hem KVKK açısından
-  zorunlu.
+- **Durum:** Mobil UI iskeleti hazır (Backlog #29 — `settings/legal/[slug].tsx`,
+  ayarlar ekranından erişiliyor) ama gerçek metin hâlâ yok, placeholder
+  gösteriyor. Sosyal ağ + konum + push + kullanıcı içeriği barındıran bir
+  uygulama için hem store submission hem KVKK açısından zorunlu.
 - **Karar bekliyor:** Metni kim yazacak/onaylayacak (hukuki içerik — ben
   taslak önerebilirim ama nihai onay kullanıcıda olmalı).
 

@@ -3,6 +3,28 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (4) — Backlog #29: Ayarlar ekranı
+
+- **Mobil:** `(tabs)/profile.tsx`'e, kaydırmayla hareket etmeyen sabit
+  bir dişli/ayarlar ikonu eklendi (sağ üst). Yeni `settings/index.tsx`:
+  HESAP (profili düzenle → `/profile-edit`, bildirim tercihleri →
+  mevcut `/notifications/preferences`), YASAL (gizlilik politikası,
+  kullanım şartları, KVKK aydınlatma metni → yeni `settings/legal/
+  [slug].tsx`), HESAP İŞLEMLERİ (çıkış yap, hesabımı sil).
+- Çıkış yap ve hesap silme aksiyonları `profile.tsx`'ten tamamen
+  kaldırıldı, artık sadece ayarlar ekranında.
+- Yasal metinler için gerçek içerik yazılmadı — bu hukuki bir karar
+  (KVKK/gizlilik/şartlar metni), PRODUCTION-READINESS.md madde G'de
+  "karar bekliyor" olarak zaten işaretliydi; yalnızca placeholder
+  ekranı (UI iskeleti) eklendi, kullanıcı onayı olmadan metin
+  uydurulmadı.
+- Doğrulama: `npx tsc --noEmit` + lint temiz (bir tane `react/no-
+  unescaped-entities` hatası düzeltildi).
+
+### Sonraki adım
+- Sırada #26 (takım sohbetinde fotoğraf+ses kaydı), ardından #23
+  (gol videosu yükleme).
+
 ## 2026-07-11 (3) — Backlog #27: profil fotoğrafı yükleme + profil düzenleme
 
 - **Backend:** `player_profiles.birth_date` (nullable date, `before:today`)

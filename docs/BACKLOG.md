@@ -477,14 +477,18 @@
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-10
 
-### 29. Ayarlar ekranı yok
+### 29. Ayarlar ekranı yok ✅
+- **Tamamlandı:** 2026-07-11 — `(tabs)/profile.tsx`'in sağ üstüne sabit
+  (scroll ile hareket etmeyen) bir ayarlar ikonu eklendi → yeni
+  `settings/index.tsx`. Üç kart: HESAP (profili düzenle, bildirim
+  tercihleri → mevcut `/notifications/preferences`'a link), YASAL
+  (gizlilik/kullanım şartları/KVKK → `settings/legal/[slug].tsx`,
+  gerçek metin PRODUCTION-READINESS.md madde G'ye bağlı, şimdilik
+  placeholder gösteriyor — hukuki metni ben yazamam, kullanıcı onayı
+  gerekiyor), HESAP İŞLEMLERİ (çıkış yap + hesabımı sil — ikisi de
+  `profile.tsx`'ten buraya taşındı, artık orada değil). tsc + lint temiz.
 - **Bağlı modül:** cross-cutting (Modül 1 profil + genel)
 - **Talep tarihi:** 2026-07-10
-- Profil sayfasının sağ üstüne bir ayarlar ikonu konup ayrı bir Ayarlar
-  ekranı açılmalı: yasal metinler (PRODUCTION-READINESS.md madde G'ye
-  bağlı), bildirim tercihleri (mevcut `/notifications/preferences`'a link),
-  hesap silme (şu an profile.tsx'te doğrudan duruyor, buraya taşınmalı),
-  çıkış yap. Şu an bu aksiyonlar dağınık şekilde profil ekranının içinde.
 
 ### 30. Takım kurarken özel renk seçimi + arma fotoğrafı yükleme ✅
 - **Tamamlandı:** 2026-07-10 — **Backend:** `teams.logo_path` (nullable);

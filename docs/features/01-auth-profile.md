@@ -47,8 +47,10 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 (auth)/identifier   → telefon/e-posta girişi (e-posta OTP kararı sonrası)
 (auth)/otp          → 6 haneli kod, 120sn geri sayım, tekrar gönder
 (auth)/onboarding   → isim → mevki(ler) → seviye → şehir (adım adım, atlanabilir alanlar hariç)
-(tabs)/profile      → kendi profilim (avatar, takipçi/takip sayıları, düzenle butonu)
+(tabs)/profile      → kendi profilim (avatar, takipçi/takip sayıları, düzenle + ayarlar simgesi)
 profile-edit        → profil bilgilerini + fotoğrafını tek form üzerinden düzenleme
+settings            → ayarlar: profili düzenle, bildirim tercihleri, yasal metinler, çıkış/hesap silme
+settings/legal/[slug] → yasal metin görüntüleyici (placeholder; PRODUCTION-READINESS.md madde G'ye bağlı)
 player/[id]         → başka oyuncunun profili
 ```
 

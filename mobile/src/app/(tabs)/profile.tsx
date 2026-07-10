@@ -1,16 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { deleteMe, getMe, logout } from '@/features/auth/api';
+import { getMe } from '@/features/auth/api';
 import { POSITIONS } from '@/features/auth/PitchPositionPicker';
-import { useAuthStore } from '@/features/auth/store';
 import { getPlayerPosts, likePost, Post, unlikePost } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
 import { getPlayerStats } from '@/features/stats/api';
 import { StatsCard } from '@/features/stats/StatsCard';
-import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
@@ -35,7 +33,6 @@ function initials(name: string | null | undefined): string {
 export default function Profile() {
   const Router = useRouter();
   const QueryClient = useQueryClient();
-  const setToken = useAuthStore((State) => State.setToken);
   const Me = useQuery({ queryKey: ['me'], queryFn: getMe });
   const Stats = useQuery({
     queryKey: ['players', Me.data?.id, 'stats'],
@@ -63,27 +60,6 @@ export default function Profile() {
     },
   });
 
-  const Logout = useMutation({
-    mutationFn: logout,
-    onSettled: () => setToken(null),
-  });
-
-  const DeleteAccount = useMutation({
-    mutationFn: deleteMe,
-    onSettled: () => setToken(null),
-  });
-
-  const confirmDelete = () => {
-    Alert.alert(
-      'Hesabını sil',
-      'Profilin ve verilerin silinir; 30 gün içinde kalıcı olarak yok edilir. Emin misin?',
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        { text: 'Hesabımı sil', style: 'destructive', onPress: () => DeleteAccount.mutate() },
-      ],
-    );
-  };
-
   if (Me.isError) {
     return (
       <Screen>
@@ -106,6 +82,14 @@ export default function Profile() {
 
   return (
     <Screen bare pitch pitchY={-220}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => Router.push('/settings')}
+        style={styles.settingsButton}
+        hitSlop={8}>
+        <Ionicons name="settings-outline" size={20} color={Palette.chalk} />
+      </Pressable>
+
       <FlatList
         data={Posts.data ?? []}
         keyExtractor={(Item) => Item.id}
@@ -200,19 +184,6 @@ export default function Profile() {
             <EmptyState icon="images-outline" message="Henüz gönderi paylaşmadın." />
           ) : null
         }
-        ListFooterComponent={
-          <View style={styles.actions}>
-            <Button
-              label="Çıkış yap"
-              variant="ghost"
-              onPress={() => Logout.mutate()}
-              loading={Logout.isPending}
-            />
-            <Pressable accessibilityRole="button" onPress={confirmDelete} hitSlop={8}>
-              <Text style={styles.deleteText}>Hesabımı sil</Text>
-            </Pressable>
-          </View>
-        }
       />
     </Screen>
   );
@@ -223,6 +194,20 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  settingsButton: {
+    position: 'absolute',
+    top: space(4),
+    right: space(6),
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.turf,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
   },
   list: {
     paddingHorizontal: space(6),
@@ -373,16 +358,5 @@ const styles = StyleSheet.create({
   },
   postWrap: {
     marginBottom: space(3),
-  },
-  actions: {
-    marginTop: space(6),
-    gap: space(6),
-    alignItems: 'stretch',
-  },
-  deleteText: {
-    fontFamily: Type.bodyMedium,
-    fontSize: 14,
-    color: Palette.clay,
-    textAlign: 'center',
   },
 });
