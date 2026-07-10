@@ -3,6 +3,29 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (6) — Bug fix: kadro önizlemesi feed'de fazla, post/[id].tsx kopya render
+
+- **Kullanıcı geri bildirimi (cihaz testi):** feed'de kadro için eklenen
+  görsel saha önizlemesi (`PitchPreview`) listede dikkat dağıtıcıydı —
+  sadece gönderinin detay sayfasına girildiğinde görünmesi istendi.
+- **Kök neden keşfi:** `post/[id].tsx` (gönderi detayı) `PostCard`'ı hiç
+  kullanmıyormuş, kendi eski/bağımsız bir kart render kopyasına sahipmiş —
+  bu yüzden fotoğraf, kadro önizlemesi ve #8'de eklenen ilan kartları detay
+  sayfasında hiç görünmüyordu (ayrı, keşfedilmemiş bir eksiklik).
+- **Düzeltme:** `PostCard`'a opsiyonel `detailed` prop'u eklendi (`onPress`
+  de opsiyonel yapıldı — detay sayfasında karta tıklamanın bir anlamı yok).
+  Feed/profil/oyuncu-profili gibi liste bağlamlarında kadro için sade
+  "📋 {isim}" metin kartı; `detailed` ile (sadece `post/[id].tsx`) görsel
+  `PitchPreview` gösteriliyor. `post/[id].tsx` artık kendi kopya render'ı
+  yerine doğrudan `PostCard`'ı (`detailed` ile) kullanıyor — kopya kod
+  kalktı, fotoğraf/ilan kartları eksikliği de bu vesileyle giderildi.
+- **Ayrıca bildirilen (kod değil, altyapı):** cihazda "Cannot find native
+  module 'ExponentImagePicker'" hatası — `expo-image-picker` native kod
+  içerdiğinden mevcut dev-client build'inde yok; yeni bir EAS development
+  build alınması gerektiği kullanıcıya açıklandı (kod tarafında yapılacak
+  bir şey yok).
+- Doğrulama: `npx tsc --noEmit` + `npm run lint` temiz.
+
 ## 2026-07-10 (5) — Backlog #8: feed'de adam eksik / rakip arıyoruz kartları
 
 - **Kararlar (kullanıcı):** ilanlar feed'de yeni kart türü olsun; genel

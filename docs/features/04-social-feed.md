@@ -73,11 +73,16 @@ Feed'i kullanıcı üretimi beklemeden dolduran sistem olayları:
   paylaşıldı" kartı için) — sadece kullanıcının kendi paylaşımına manuel
   seçmesi açıldı. Yalnızca kendi üyesi olduğu bir takımın kadrosu
   seçilebilir (`Team::isMember` kontrolü, aksi halde 403).
-- **Görünüm:** feed'de hem sistem "kadro paylaşıldı" kartı hem kullanıcının
-  manuel eklediği kadro, aynı küçük/salt-okunur saha önizlemesiyle
-  (`PitchPreview` — mevcut `PitchBoard`'ın sürükle-bırak/jest içermeyen
-  versiyonu, liste kaydırmasıyla çakışmaması için) gösterilir; önceki sadece
-  isim yazan düz kart kaldırıldı.
+- **Görünüm (düzeltme, kullanıcı 2026-07-10):** ilk uygulamada saha
+  önizlemesi (`PitchPreview`) feed listesinde de gösteriliyordu — kullanıcı
+  bunun listede fazla/dikkat dağıtıcı olduğunu, sadece gönderinin **detay**
+  sayfasında görünmesi gerektiğini belirtti. `PostCard`'a `detailed` prop'u
+  eklendi: feed/profil/oyuncu-profili gibi liste bağlamlarında (`detailed`
+  yok/false) kadro için sade "📋 {isim}" metin kartı gösterilir; `post/[id].tsx`
+  (gönderi detayı) `detailed` ile görsel saha önizlemesini gösterir. Bu
+  vesileyle `post/[id].tsx`'in `PostCard`'dan bağımsız, güncel olmayan bir
+  kopya kart render'ı olduğu fark edildi (fotoğraf/ilan kartları hiç
+  görünmüyordu) — artık `PostCard`'ı doğrudan kullanıyor, kopya kod yok.
 
 ## Feed'de adam eksik / rakip arıyoruz kartları (kullanıcı kararı 2026-07-10, BACKLOG.md #8)
 - **Kapsam:** bir kaptan "adam eksik" ya da "rakip arıyoruz" ilanı açtığında

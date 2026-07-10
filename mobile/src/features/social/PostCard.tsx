@@ -30,16 +30,22 @@ function initials(name: string | null | undefined): string {
 
 type Props = {
   post: Post;
-  onPress: () => void;
+  onPress?: () => void;
   onToggleLike: () => void;
   onPressAuthor?: () => void;
+  /** Gönderi detay sayfasında true — kadro için görsel saha önizlemesi gösterir. Feed/liste bağlamında sade metin kartı yeterli. */
+  detailed?: boolean;
 };
 
-export function PostCard({ post, onPress, onToggleLike, onPressAuthor }: Props) {
+export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed = false }: Props) {
   const { apply, promptOpponentMatch } = useListingActions();
 
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.card}>
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      disabled={onPress == null}
+      style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Pressable
@@ -93,9 +99,11 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor }: Props) 
       {post.lineup != null && (
         <View style={styles.lineupCard}>
           <Text style={styles.autoKicker}>📋 {post.lineup.name}</Text>
-          <View style={styles.lineupBoard}>
-            <PitchPreview positions={post.lineup.positions} />
-          </View>
+          {detailed && (
+            <View style={styles.lineupBoard}>
+              <PitchPreview positions={post.lineup.positions} />
+            </View>
+          )}
         </View>
       )}
 
