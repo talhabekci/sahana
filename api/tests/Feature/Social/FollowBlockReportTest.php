@@ -36,6 +36,44 @@ it('blocking removes the follow relationship in both directions', function () {
         ->and($Viewer->fresh()->hasBlocked($Target))->toBeTrue();
 });
 
+it('lists who follows a player', function () {
+    $Target = User::factory()->create(['name' => 'Hedef Oyuncu']);
+    $FollowerA = User::factory()->create(['name' => 'Takipçi A']);
+    $FollowerB = User::factory()->create(['name' => 'Takipçi B']);
+
+    $this->actingAs($FollowerA)->postJson("/api/v1/players/{$Target->public_id}/follow")->assertOk();
+    $this->actingAs($FollowerB)->postJson("/api/v1/players/{$Target->public_id}/follow")->assertOk();
+
+    $Response = $this->actingAs($Target)->getJson("/api/v1/players/{$Target->public_id}/followers")->assertOk();
+
+    expect($Response->json('data'))->toHaveCount(2)
+        ->and(collect($Response->json('data'))->pluck('name'))->toContain('Takipçi A', 'Takipçi B');
+});
+
+it('lists who a player is following', function () {
+    $Viewer = User::factory()->create();
+    $FollowedA = User::factory()->create(['name' => 'Takip Edilen A']);
+    $FollowedB = User::factory()->create(['name' => 'Takip Edilen B']);
+
+    $this->actingAs($Viewer)->postJson("/api/v1/players/{$FollowedA->public_id}/follow")->assertOk();
+    $this->actingAs($Viewer)->postJson("/api/v1/players/{$FollowedB->public_id}/follow")->assertOk();
+
+    $Response = $this->actingAs($Viewer)->getJson("/api/v1/players/{$Viewer->public_id}/following")->assertOk();
+
+    expect($Response->json('data'))->toHaveCount(2)
+        ->and(collect($Response->json('data'))->pluck('name'))->toContain('Takip Edilen A', 'Takip Edilen B');
+});
+
+it('hides followers/following lists of a blocked player', function () {
+    $Viewer = User::factory()->create();
+    $Blocked = User::factory()->create();
+
+    $this->actingAs($Viewer)->postJson("/api/v1/players/{$Blocked->public_id}/block")->assertOk();
+
+    $this->actingAs($Viewer)->getJson("/api/v1/players/{$Blocked->public_id}/followers")->assertStatus(404);
+    $this->actingAs($Viewer)->getJson("/api/v1/players/{$Blocked->public_id}/following")->assertStatus(404);
+});
+
 it('hides a blocked players posts from the players/{id}/posts endpoint', function () {
     $Viewer = User::factory()->create();
     $Blocked = User::factory()->create();

@@ -459,14 +459,17 @@
   şehir, bio, doğum tarihi, profil fotoğrafı (BACKLOG #7'deki güvenlik
   desenine uygun upload).
 
-### 28. Profilde takip ettiklerim/takipçilerim listesi görünmüyor (sadece sayı)
+### 28. Profilde takip ettiklerim/takipçilerim listesi görünmüyor (sadece sayı) ✅
+- **Tamamlandı:** 2026-07-11 — `GET /players/{id}/followers` ve
+  `/following` eklendi (mevcut `PlayerPublicResource` yeniden kullanıldı;
+  N+1 önleme: `withCount(['followers','following'])` + `profile.city`
+  eager-load; engellenen kullanıcı için 404, `posts` endpoint'iyle aynı
+  desen). Mobilde yeni `connections/[id].tsx` — takipçiler/takip
+  edilenler sekmeli tek ekran; hem kendi profildeki hem herkese açık
+  profildeki takipçi/takip sayı bloklarına dokununca açılıyor. 3 yeni
+  Pest testi (233 toplam).
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-10
-- `GET /me`'ye eklenen `followers_count`/`following_count` (BACKLOG #5)
-  sadece sayıyı gösteriyor; kullanıcı kimlerin takip ettiğini/takip
-  edildiğini göremiyor. `GET /players/{id}/followers` ve `/following`
-  liste endpoint'leri + mobilde bu listeleri gösteren bir ekran
-  eklenmeli (profil ve herkese açık profilden erişilebilir).
 
 ### 29. Ayarlar ekranı yok
 - **Bağlı modül:** cross-cutting (Modül 1 profil + genel)

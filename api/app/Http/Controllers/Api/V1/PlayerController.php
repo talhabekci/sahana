@@ -74,4 +74,46 @@ class PlayerController extends Controller
 
         return response()->json(['data' => $Action->handle($Player, $Season)]);
     }
+
+    /** Kimler takip ediyor (BACKLOG.md #28 — önceden sadece sayı vardı). */
+    public function followers(Request $Request, string $PublicId): AnonymousResourceCollection
+    {
+        /** @var User $Viewer */
+        $Viewer = $Request->user();
+
+        $User = User::where('public_id', $PublicId)->firstOrFail();
+
+        if ($Viewer->isBlockedWith($User)) {
+            abort(404);
+        }
+
+        $Followers = $User->followers()
+            ->with('profile.city')
+            ->withCount(['followers', 'following'])
+            ->limit(100)
+            ->get();
+
+        return PlayerPublicResource::collection($Followers);
+    }
+
+    /** Kimleri takip ediyor (BACKLOG.md #28 — önceden sadece sayı vardı). */
+    public function following(Request $Request, string $PublicId): AnonymousResourceCollection
+    {
+        /** @var User $Viewer */
+        $Viewer = $Request->user();
+
+        $User = User::where('public_id', $PublicId)->firstOrFail();
+
+        if ($Viewer->isBlockedWith($User)) {
+            abort(404);
+        }
+
+        $Following = $User->following()
+            ->with('profile.city')
+            ->withCount(['followers', 'following'])
+            ->limit(100)
+            ->get();
+
+        return PlayerPublicResource::collection($Following);
+    }
 }

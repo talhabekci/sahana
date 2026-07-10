@@ -173,6 +173,18 @@ export async function getPlayerPosts(publicId: string): Promise<Post[]> {
   return data.data;
 }
 
+export async function listFollowers(publicId: string): Promise<PublicPlayer[]> {
+  const { data } = await Api.get<{ data: PublicPlayer[] }>(`/players/${publicId}/followers`);
+
+  return data.data;
+}
+
+export async function listFollowing(publicId: string): Promise<PublicPlayer[]> {
+  const { data } = await Api.get<{ data: PublicPlayer[] }>(`/players/${publicId}/following`);
+
+  return data.data;
+}
+
 export async function followPlayer(publicId: string): Promise<void> {
   await Api.post(`/players/${publicId}/follow`);
 }

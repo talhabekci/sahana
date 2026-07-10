@@ -160,14 +160,20 @@ export default function PlayerProfile() {
             )}
 
             <View style={styles.statsRow}>
-              <View style={styles.statBlock}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => Router.push(`/connections/${Data.id}?tab=followers`)}
+                style={styles.statBlock}>
                 <Text style={styles.statValue}>{Data.followers_count}</Text>
                 <Text style={styles.statLabel}>TAKİPÇİ</Text>
-              </View>
-              <View style={styles.statBlock}>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => Router.push(`/connections/${Data.id}?tab=following`)}
+                style={styles.statBlock}>
                 <Text style={styles.statValue}>{Data.following_count}</Text>
                 <Text style={styles.statLabel}>TAKİP</Text>
-              </View>
+              </Pressable>
             </View>
 
             {Data.is_following != null && (

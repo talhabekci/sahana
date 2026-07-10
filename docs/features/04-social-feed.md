@@ -23,6 +23,12 @@ kadro paylaşımları ve gönderilerden oluşan akış + takip mekanizması.
   ekranında kendi takipçi/takip sayıları ve kendi gönderi listesi
   görünüyor (`player/[id].tsx`'teki herkese açık profille aynı desen) —
   kullanıcı kararı 2026-07-06, BACKLOG.md #5
+- `GET /players/{id}/followers` ve `/following` — sayının arkasındaki
+  gerçek liste (kullanıcı kararı 2026-07-11, BACKLOG.md #28, ilk
+  uygulamada sadece sayı görünüyordu). `mobile/connections/[id].tsx`
+  (takipçiler/takip edilenler sekmeli tek ekran), hem kendi profilden hem
+  herkese açık profilden erişilebilir. Engellenen kullanıcı için 404
+  (mevcut `posts` endpoint'iyle aynı gizlilik deseni).
 
 ### Kapsam dışı (v1)
 - Algoritmik sıralama · hikayeler · DM (Modül 7'de takım sohbeti önce)
@@ -154,6 +160,8 @@ search/               → oyuncu/takım arama
 | POST | /players/{id}/block · DELETE /players/{id}/block | Engelle/kaldır |
 | POST | /reports | Şikayet (`subject_type: post\|comment\|user`, `subject_id`, `reason`) |
 | GET | /search?q=&type=player\|team | Basit isim araması |
+| GET | /players/{id}/followers | Takipçi listesi (BACKLOG.md #28) |
+| GET | /players/{id}/following | Takip edilenler listesi (BACKLOG.md #28) |
 
 ## Veri Modeli
 `posts` (id, public_id, user_id, team_id?, type: text|match_played|lineup_shared|

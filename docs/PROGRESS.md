@@ -3,6 +3,24 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (2) — Backlog #28: takipçi/takip edilenler listesi
+
+- **Backend:** `GET /players/{id}/followers` ve `/following` — mevcut
+  `PlayerPublicResource` yeniden kullanıldı, N+1 önleme için
+  `withCount(['followers','following'])` + `profile.city` eager-load
+  (`is_following`/`is_blocked` per-row kontrolü zaten mevcut/pre-existing
+  bir desen, bu iş kapsamında değiştirilmedi). Engellenen kullanıcı için
+  404 (`posts` endpoint'iyle aynı gizlilik deseni). 3 yeni Pest testi
+  (233 toplam), Pint + Larastan temiz.
+- **Mobil:** yeni `connections/[id].tsx` — takipçiler/takip edilenler
+  sekmeli tek ekran (route restructuring gerekmesin diye `player/[id]`
+  altında değil ayrı bir route). Kendi profil ve herkese açık profildeki
+  takipçi/takip sayı bloklarına dokununca açılıyor.
+- Doğrulama: `npx tsc --noEmit` + lint temiz.
+
+### Sonraki adım
+- Sırada #27 (profil fotoğrafı + profil düzenleme).
+
 ## 2026-07-11 — Backlog #34/#35/#36: HEIC bug fix + gerçek renk seçici
 
 - **#34/#35 (bug, aynı kök neden):** Kamera/galeriden gelen fotoğraflar
