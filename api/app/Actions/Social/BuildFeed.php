@@ -3,6 +3,7 @@
 namespace App\Actions\Social;
 
 use App\Models\Block;
+use App\Models\ListingApplication;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Pagination\CursorPaginator;
@@ -21,16 +22,46 @@ class BuildFeed
         $FollowingIds = $Viewer->following()->pluck('users.id');
         $BlockedUserIds = $this->blockedEitherWay($Viewer);
 
-        return Post::query()
+        $Paginator = Post::query()
             ->where(function ($Query) use ($TeamIds, $FollowingIds): void {
                 $Query->whereIn('team_id', $TeamIds)
                     ->orWhereIn('user_id', $FollowingIds);
             })
             ->whereNotIn('user_id', $BlockedUserIds)
-            ->with(['user.profile', 'team', 'match.team', 'match.opponentTeam', 'lineup.team.members', 'video'])
+            ->with([
+                'user.profile', 'team', 'match.team', 'match.opponentTeam', 'lineup.team.members', 'video',
+                'playerListing.match.team', 'opponentListing.team',
+            ])
             ->withCount(['likes', 'comments'])
             ->latest('id')
             ->cursorPaginate($PerPage, ['*'], 'cursor', $Cursor);
+
+        // "applications" ilişkisini burada yüklemiyoruz (payload/sorgu ağırlığı) —
+        // sadece görüntüleyenin kendi başvuru durumu, tek bir batch sorguyla.
+        $this->applyMyApplicationStatus($Paginator->getCollection(), $Viewer);
+
+        return $Paginator;
+    }
+
+    /** @param  Collection<int, Post>  $Posts */
+    private function applyMyApplicationStatus(Collection $Posts, User $Viewer): void
+    {
+        $ListingIds = $Posts->pluck('playerListing.id')->filter()->unique();
+
+        if ($ListingIds->isEmpty()) {
+            return;
+        }
+
+        $MyStatuses = ListingApplication::whereIn('listing_id', $ListingIds)
+            ->where('user_id', $Viewer->id)
+            ->pluck('status', 'listing_id');
+
+        foreach ($Posts as $Post) {
+            $Post->playerListing?->setAttribute(
+                'my_application_status',
+                $MyStatuses[$Post->playerListing->id] ?? null,
+            );
+        }
     }
 
     /** @return Collection<int, int> */

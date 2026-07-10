@@ -10,7 +10,9 @@ kadro paylaşımları ve gönderilerden oluşan akış + takip mekanizması.
 - Feed: takip ettiklerim + takımlarımın aktiviteleri (kronolojik; algoritma yok)
 - İçerik türleri: **metin gönderisi** (opsiyonel **fotoğraf** + opsiyonel
   **kadro ekleme** ile — kullanıcı kararı 2026-07-10, BACKLOG.md #7), **maç
-  oynandı** auto-kartı, **kadro paylaşıldı** auto-kartı
+  oynandı** auto-kartı, **kadro paylaşıldı** auto-kartı, **adam eksik**
+  auto-kartı, **rakip arıyoruz** auto-kartı (kullanıcı kararı 2026-07-10,
+  BACKLOG.md #8 — bkz. aşağıdaki bölüm)
 - Takip et / takipçi modeli (onaysız, herkese açık profil varsayımı — Modül 1'in
   `GET /players/{id}` zaten herkese açık)
 - Beğeni + yorum
@@ -77,6 +79,37 @@ Feed'i kullanıcı üretimi beklemeden dolduran sistem olayları:
   versiyonu, liste kaydırmasıyla çakışmaması için) gösterilir; önceki sadece
   isim yazan düz kart kaldırıldı.
 
+## Feed'de adam eksik / rakip arıyoruz kartları (kullanıcı kararı 2026-07-10, BACKLOG.md #8)
+- **Kapsam:** bir kaptan "adam eksik" ya da "rakip arıyoruz" ilanı açtığında
+  (Modül 3), mevcut `match_played`/`lineup_shared` sistem-kartı deseniyle
+  birebir aynı şekilde otomatik bir feed kartı da düşer (`Post.TYPES`'a
+  `player_listing`/`opponent_listing` eklendi, `auto_posts_enabled`
+  kapalıysa atlanır). Kart, ilanın **canlı** durumunu gösterir (ilişki her
+  istekte taze çekilir) — ilan dolunca/eşleşince feed'deki kart da otomatik
+  günceller, ayrıca bir senkronizasyon gerekmez.
+- **Kod tekrarı yok:** Keşfet (`listings/index.tsx`) ekranındaki ilan
+  kartlarının JSX'i `features/match/ListingCards.tsx`'e ("Başvur"/"Maç
+  yapalım" butonları dahil) çıkarıldı; hem Keşfet hem feed aynı bileşeni
+  kullanıyor. Mutation mantığı da `useListingActions` hook'una taşındı.
+- **Performans (kullanıcı: "sorgular en optimal şekilde çalışmalı"):**
+  - Yeni FK'ler (`player_listing_id`/`opponent_listing_id`) mevcut
+    `match_id`/`lineup_id` deseniyle aynı — ayrı bir UNION sorgusu yok, feed
+    hâlâ tek bir `posts` tablosu üzerinden cursor-paginate ediliyor.
+  - `BuildFeed`/`PlayerController::posts()` ilgili ilişkileri (`playerListing.
+    match.team`, `opponentListing.team`) eager-load ediyor — N+1 yok.
+  - Görüntüleyenin kendi başvuru durumu (`my_application_status`)
+    sayfadaki tüm `player_listing` post'ları için **tek bir batch sorguyla**
+    hesaplanıyor (`PlayerListingController::index`'teki mevcut desenle
+    aynı) — post başına ayrı sorgu yok.
+  - `applications` ilişkisi feed/profil bağlamında **bilinçli olarak eager-
+    load edilmiyor** (sadece captain'ın ilan detay sayfasında gerekli) —
+    gereksiz payload/sorgu ağırlığı taşınmıyor.
+- **"Kartlar zayıf" geri bildirimi (kullanıcı, 2026-07-10):** `PostCard`
+  header'ına baş harf rozeti (avatar_path varsa gerçek görsel, yoksa isim
+  baş harfleri) eklendi — Modül 1'de avatar yükleme henüz kurulmadığından
+  (`avatar_path` bugün her zaman null) şimdilik hep rozet görünüyor, avatar
+  yüklemesi gelince otomatik gerçek fotoğrafa geçer.
+
 ## Takım adına paylaşım (kullanıcı kararı 2026-07-04)
 **Herhangi bir takım üyesi**, gönderiyi o takıma etiketleyerek paylaşabilir
 (sadece kaptan değil) — `posts.team_id` doldurulur, `posts.user_id` gönderiyi
@@ -110,9 +143,11 @@ search/               → oyuncu/takım arama
 | GET | /search?q=&type=player\|team | Basit isim araması |
 
 ## Veri Modeli
-`posts` (id, public_id, user_id, team_id?, type: text|match_played|lineup_shared,
-body?, image_path? [JPEG'e yeniden encode edilmiş, EXIF'siz], lineup_id?,
-subject_type/subject_id polimorfik [match/lineup için], created_at) ·
+`posts` (id, public_id, user_id, team_id?, type: text|match_played|lineup_shared|
+video_shared|player_listing|opponent_listing, body?, image_path? [JPEG'e yeniden
+encode edilmiş, EXIF'siz], match_id?, lineup_id?, video_id?, player_listing_id?,
+opponent_listing_id? — genel polimorfik yerine doğrudan FK, api-conventions.md
+§8 kararıyla tutarlı, created_at) ·
 `likes` (post_id, user_id) · `comments` (id, public_id, post_id, user_id, body,
 created_at) · `follows` (follower_id, followed_id) · `blocks` (user_id,
 blocked_user_id) · `reports` (id, reporter_id, subject_type, subject_id,

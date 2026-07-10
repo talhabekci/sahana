@@ -4,6 +4,8 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Post } from './api';
 import VideoDefaultCover from '@/assets/images/video-default-cover.png';
+import { OpponentListingCard, PlayerListingCard } from '@/features/match/ListingCards';
+import { useListingActions } from '@/features/match/useListingActions';
 import { badgeIonicon } from '@/features/team/constants';
 import { PitchPreview } from '@/features/team/PitchPreview';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -14,6 +16,18 @@ function formatWhen(iso: string): string {
   return Date_.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
 }
 
+function initials(name: string | null | undefined): string {
+  if (name == null || name.trim() === '') {
+    return '?';
+  }
+
+  const Parts = name.trim().split(/\s+/);
+  const First = Parts[0]?.[0] ?? '';
+  const Last = Parts.length > 1 ? (Parts[Parts.length - 1]?.[0] ?? '') : '';
+
+  return (First + Last).toUpperCase();
+}
+
 type Props = {
   post: Post;
   onPress: () => void;
@@ -22,19 +36,40 @@ type Props = {
 };
 
 export function PostCard({ post, onPress, onToggleLike, onPressAuthor }: Props) {
+  const { apply, promptOpponentMatch } = useListingActions();
+
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.card}>
       <View style={styles.header}>
-        <View style={styles.flexShrink}>
-          <Pressable accessibilityRole="button" onPress={onPressAuthor} disabled={onPressAuthor == null} hitSlop={4}>
-            <Text style={styles.authorName}>{post.author?.name ?? 'İsimsiz'}</Text>
+        <View style={styles.headerLeft}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onPressAuthor}
+            disabled={onPressAuthor == null}
+            style={styles.avatar}
+            hitSlop={4}>
+            {post.author?.avatar_path != null ? (
+              <Image source={{ uri: post.author.avatar_path }} style={styles.avatarImage} />
+            ) : (
+              <Text style={styles.avatarInitials}>{initials(post.author?.name)}</Text>
+            )}
           </Pressable>
-          {post.team != null && (
-            <View style={styles.teamRow}>
-              <Ionicons name={badgeIonicon(post.team.badge_icon)} size={12} color={Palette.lime} />
-              <Text style={styles.teamName}>{post.team.name}</Text>
-            </View>
-          )}
+
+          <View style={styles.flexShrink}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={onPressAuthor}
+              disabled={onPressAuthor == null}
+              hitSlop={4}>
+              <Text style={styles.authorName}>{post.author?.name ?? 'İsimsiz'}</Text>
+            </Pressable>
+            {post.team != null && (
+              <View style={styles.teamRow}>
+                <Ionicons name={badgeIonicon(post.team.badge_icon)} size={12} color={Palette.lime} />
+                <Text style={styles.teamName}>{post.team.name}</Text>
+              </View>
+            )}
+          </View>
         </View>
         <Text style={styles.when}>{formatWhen(post.created_at)}</Text>
       </View>
@@ -61,6 +96,24 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor }: Props) 
           <View style={styles.lineupBoard}>
             <PitchPreview positions={post.lineup.positions} />
           </View>
+        </View>
+      )}
+
+      {post.type === 'player_listing' && post.player_listing != null && (
+        <View style={styles.listingWrap}>
+          <PlayerListingCard
+            listing={post.player_listing}
+            onApply={() => post.player_listing != null && apply(post.player_listing.id)}
+          />
+        </View>
+      )}
+
+      {post.type === 'opponent_listing' && post.opponent_listing != null && (
+        <View style={styles.listingWrap}>
+          <OpponentListingCard
+            listing={post.opponent_listing}
+            onMatch={() => post.opponent_listing != null && promptOpponentMatch(post.opponent_listing)}
+          />
         </View>
       )}
 
@@ -120,8 +173,33 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: space(3),
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(3),
+    flexShrink: 1,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.turfRaised,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarInitials: {
+    fontFamily: Type.bodyBold,
+    fontSize: 13,
+    color: Palette.lime,
   },
   flexShrink: {
     flexShrink: 1,
@@ -177,6 +255,9 @@ const styles = StyleSheet.create({
     marginTop: space(2),
     width: 140,
     alignSelf: 'center',
+  },
+  listingWrap: {
+    marginTop: space(3),
   },
   autoKicker: {
     fontFamily: Type.mono,

@@ -44,6 +44,12 @@ class PostResource extends JsonResource
             'lineup' => $this->whenLoaded('lineup', fn (): ?array => $this->lineup !== null
                 ? (new LineupResource($this->lineup))->resolve($Request)
                 : null),
+            'player_listing' => $this->whenLoaded('playerListing', fn (): ?array => $this->playerListing !== null
+                ? (new PlayerListingResource($this->playerListing))->resolve($Request)
+                : null),
+            'opponent_listing' => $this->whenLoaded('opponentListing', fn (): ?array => $this->opponentListing !== null
+                ? (new OpponentListingResource($this->opponentListing))->resolve($Request)
+                : null),
             'video' => $this->whenLoaded('video', fn (): ?array => $this->video !== null ? [
                 'id' => $this->video->public_id,
                 'url' => $this->video->url,

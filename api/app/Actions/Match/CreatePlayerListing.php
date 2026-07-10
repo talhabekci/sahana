@@ -2,12 +2,17 @@
 
 namespace App\Actions\Match;
 
+use App\Actions\Social\CreatePlayerListingPost;
 use App\Exceptions\ApiError;
 use App\Models\FootballMatch;
 use App\Models\PlayerListing;
 
 class CreatePlayerListing
 {
+    public function __construct(
+        private readonly CreatePlayerListingPost $CreatePost,
+    ) {}
+
     /**
      * @param  array{positions_needed: list<string>, needed_count: int, level_min: int, level_max: int, lat: float, lng: float}  $Data
      */
@@ -24,6 +29,14 @@ class CreatePlayerListing
         ]);
 
         // DB varsayılanları (status=open) bellekteki modele yansısın.
-        return $Listing->refresh();
+        $Listing->refresh();
+
+        // Modül 4: feed'e otomatik "adam eksik" kartı (spec: 04-social-feed.md).
+        if ($Match->createdBy !== null) {
+            $Listing->setRelation('match', $Match);
+            $this->CreatePost->handle($Listing, $Match->createdBy);
+        }
+
+        return $Listing;
     }
 }

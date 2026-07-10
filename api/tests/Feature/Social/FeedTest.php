@@ -100,3 +100,92 @@ it('auto-posts a lineup_shared card when a lineup is created', function () {
         'user_id' => $Captain->id,
     ]);
 });
+
+it('auto-posts a player_listing card when a listing is created', function () {
+    $Captain = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+    $Match = FootballMatch::factory()->for($Team)->create(['created_by' => $Captain->id]);
+
+    $this->actingAs($Captain)->postJson("/api/v1/matches/{$Match->public_id}/listings", [
+        'positions_needed' => ['defans'],
+        'needed_count' => 1,
+        'level_min' => 1,
+        'level_max' => 5,
+        'lat' => 41.0,
+        'lng' => 29.0,
+    ])->assertCreated();
+
+    $this->assertDatabaseHas('posts', [
+        'type' => 'player_listing',
+        'team_id' => $Team->id,
+        'user_id' => $Captain->id,
+    ]);
+});
+
+it('skips the auto player_listing post when the creator disabled auto posts', function () {
+    $Captain = User::factory()->create();
+    $Captain->profile()->create([
+        'positions' => ['kaleci'],
+        'level' => 3,
+        'city_id' => 34,
+        'auto_posts_enabled' => false,
+    ]);
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+    $Match = FootballMatch::factory()->for($Team)->create(['created_by' => $Captain->id]);
+
+    $this->actingAs($Captain)->postJson("/api/v1/matches/{$Match->public_id}/listings", [
+        'positions_needed' => ['defans'],
+        'needed_count' => 1,
+        'level_min' => 1,
+        'level_max' => 5,
+        'lat' => 41.0,
+        'lng' => 29.0,
+    ])->assertCreated();
+
+    $this->assertDatabaseMissing('posts', ['type' => 'player_listing', 'team_id' => $Team->id]);
+});
+
+it('auto-posts an opponent_listing card when an opponent listing is created', function () {
+    $Captain = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+
+    $this->actingAs($Captain)->postJson('/api/v1/opponent-listings', [
+        'team_id' => $Team->public_id,
+    ])->assertCreated();
+
+    $this->assertDatabaseHas('posts', [
+        'type' => 'opponent_listing',
+        'team_id' => $Team->id,
+        'user_id' => $Captain->id,
+    ]);
+});
+
+it('includes a player_listing post in the feed with the viewers own application status', function () {
+    $Captain = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+    $Match = FootballMatch::factory()->for($Team)->create(['created_by' => $Captain->id]);
+
+    $ListingId = $this->actingAs($Captain)->postJson("/api/v1/matches/{$Match->public_id}/listings", [
+        'positions_needed' => ['defans'],
+        'needed_count' => 1,
+        'level_min' => 1,
+        'level_max' => 5,
+        'lat' => 41.0,
+        'lng' => 29.0,
+    ])->json('data.id');
+
+    $Applicant = User::factory()->create();
+    Follow::create(['follower_id' => $Applicant->id, 'followed_id' => $Captain->id]);
+    $this->actingAs($Applicant)->postJson("/api/v1/listings/{$ListingId}/applications")->assertCreated();
+
+    $Response = $this->actingAs($Applicant)->getJson('/api/v1/feed')->assertOk();
+
+    // "applications" bilinçli olarak eager-load edilmiyor (performans) — key hiç gelmemeli.
+    expect($Response->json('data.0.type'))->toBe('player_listing')
+        ->and($Response->json('data.0.player_listing.my_application_status'))->toBe('pending')
+        ->and($Response->json('data.0.player_listing'))->not->toHaveKey('applications');
+});

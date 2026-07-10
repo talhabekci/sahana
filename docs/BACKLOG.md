@@ -80,14 +80,29 @@
   (genel kapsamı MVP sonrası tüm uygulamayı etkiliyor)
 - **Talep tarihi:** 2026-07-06
 
-### 8. Akışta adam eksik / rakip arayanlar ilanlarının gösterilmesi
+### 8. Akışta adam eksik / rakip arayanlar ilanlarının gösterilmesi ✅
+- **Tamamlandı:** 2026-07-10 — kullanıcıyla netleşen kapsam: ilanlar feed'de
+  yeni bir kart türü olarak görünüyor; ayrıca genel kart kalitesi
+  ("kartların görselleri ve işlevleri zayıf") ve performans ("kullanıcı/post
+  sayısı arttıkça sorgular optimal çalışmalı") de ele alındı.
+  **Backend:** `Post.TYPES`'a `player_listing`/`opponent_listing` eklendi;
+  ilan oluşturulunca (`CreatePlayerListing`/`CreateOpponentListing`)
+  otomatik bir `Post` da yaratılıyor (mevcut `match_played`/`lineup_shared`
+  deseniyle birebir aynı, `auto_posts_enabled`'e bağlı). Performans:
+  ayrı UNION sorgusu yok (tek `posts` tablosu, cursor-paginate); yeni
+  ilişkiler eager-load ediliyor (N+1 yok); görüntüleyenin başvuru durumu
+  sayfa başına **tek batch sorguyla** hesaplanıyor (`PlayerListingController::
+  index`'teki mevcut desenle aynı); `applications` ilişkisi feed'de
+  bilinçli olarak yüklenmiyor (gereksiz payload). 4 yeni Pest testi (222
+  toplam).
+  **Mobil:** Keşfet'teki ilan kartı JSX'i `features/match/ListingCards.tsx`'e
+  çıkarıldı (kod tekrarı yok, "Başvur"/"Maç yapalım" hem Keşfet hem feed'de
+  çalışıyor), mutation mantığı `useListingActions` hook'una taşındı.
+  `PostCard` header'ına baş harf rozeti (avatar_path varsa gerçek görsel)
+  eklendi — "kartlar zayıf" geri bildirimine kısmi cevap.
 - **Bağlı modül:** Modül 3 + Modül 4 — [03-match-organization.md](features/03-match-organization.md),
   [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-06
-- `player_listings`/`opponent_listings` şu an sadece Keşfet (listings/index.tsx)
-  sekmesinde görünüyor; kullanıcı bunların (tabs)/feed akışında da (yeni bir
-  post/kart türü olarak) gösterilmesini istiyor. Feed'in `BuildFeed` Action'ı
-  ve `Post.TYPES`'a yeni bir tür eklenmesi gerekebilir — tasarım netleşmeli.
 
 ### 9. Videolara varsayılan kapak fotoğrafı ✅
 - **Tamamlandı:** 2026-07-09 — `assets/images/video-default-cover.png`

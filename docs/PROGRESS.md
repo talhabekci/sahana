@@ -3,6 +3,41 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (5) — Backlog #8: feed'de adam eksik / rakip arıyoruz kartları
+
+- **Kararlar (kullanıcı):** ilanlar feed'de yeni kart türü olsun; genel
+  kart kalitesi zayıf bulundu; performans/ölçeklenebilirlik öncelikli
+  ("kullanıcı sayısı post sayısı arttığı zaman performansı etkilememeli").
+- **Backend:** `Post.TYPES` → `player_listing`/`opponent_listing`;
+  `posts.player_listing_id`/`opponent_listing_id` (mevcut match_id/lineup_id
+  deseniyle aynı, FK constraint otomatik index). Yeni `CreatePlayerListingPost`/
+  `CreateOpponentListingPost` Action'ları — `CreateLineupSharedPost`'un
+  `CreateLineup` içine inject edildiği desenle birebir aynı şekilde
+  `CreatePlayerListing`/`CreateOpponentListing`'e inject edildi,
+  `auto_posts_enabled` kontrolü korunuyor.
+  **Performans:** `BuildFeed`/`PlayerController::posts()` yeni ilişkileri
+  (`playerListing.match.team`, `opponentListing.team`) eager-load ediyor;
+  görüntüleyenin `my_application_status`'u sayfadaki tüm player_listing
+  post'ları için tek bir batch `ListingApplication` sorgusuyla hesaplanıyor
+  (post başına sorgu yok — `PlayerListingController::index`'teki mevcut
+  desenle aynı); `applications` ilişkisi feed bağlamında bilinçli olarak
+  eager-load edilmiyor (gereksiz payload). 4 yeni Pest testi (222 toplam,
+  hepsi yeşil), Pint + Larastan temiz.
+- **Mobil:** `listings/index.tsx`'teki ilan kartı JSX'i (adam eksik +
+  rakip arıyoruz) `features/match/ListingCards.tsx`'e çıkarıldı; mutation
+  mantığı (`apply`, `promptOpponentMatch`) `features/match/
+  useListingActions.ts` hook'una taşındı — hem Keşfet hem `PostCard` aynı
+  bileşen/hook'u kullanıyor, kod tekrarı yok. `PostCard` header'ına baş
+  harf rozeti eklendi (avatar_path varsa gerçek görsel, yoksa isim baş
+  harfleri — Modül 1'de avatar yükleme henüz kurulmadığından şimdilik hep
+  rozet).
+- Doğrulama: `npx tsc --noEmit` + `npm run lint` temiz.
+
+### Sonraki adım
+- BACKLOG.md'deki #7/#8/#19/#20/#21 tamamlandı. Kalan: #10/#18 (il/ilçe/
+  saha hiyerarşisi) ve #16 (gerçek saha verisi) — kullanıcı "ayrıca
+  anlatacağım" dedi, henüz netleşmedi.
+
 ## 2026-07-10 (4) — Backlog #7: gönderiye fotoğraf + kadro ekleme
 
 - **Kararlar (kullanıcı):** kadro ekleme, fotoğraf ekleme (güvenlik

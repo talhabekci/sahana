@@ -1,49 +1,23 @@
 import * as Location from 'expo-location';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { POSITIONS } from '@/features/auth/PitchPositionPicker';
-import {
-  applyToListing,
-  discoverListings,
-  discoverOpponentListings,
-  matchOpponentListing,
-  OpponentListing,
-  PlayerListing,
-} from '@/features/match/api';
-import { FALLBACK_CENTER, formatDayLabel, formatTimeLabel } from '@/features/match/constants';
-import { listTeams } from '@/features/team/api';
-import { toApiFailure } from '@/shared/api/client';
+import { discoverListings, discoverOpponentListings } from '@/features/match/api';
+import { FALLBACK_CENTER } from '@/features/match/constants';
+import { OpponentListingCard, PlayerListingCard } from '@/features/match/ListingCards';
+import { useListingActions } from '@/features/match/useListingActions';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
-function positionLabel(Key: string): string {
-  return POSITIONS.find((Position) => Position.key === Key)?.label ?? Key;
-}
-
-const APPLY_LABELS = {
-  pending: 'Beklemede',
-  approved: 'Kadrodasın',
-  rejected: 'Reddedildi',
-} as const;
-
 const RADIUS_OPTIONS = [5, 10, 25, 50] as const;
 
 export default function Discover() {
   const Router = useRouter();
-  const QueryClient = useQueryClient();
+  const { apply, promptOpponentMatch } = useListingActions();
 
   const [Tab, setTab] = useState<'players' | 'opponents'>('players');
   const [Near, setNear] = useState<string | null>(null);
@@ -75,111 +49,6 @@ export default function Discover() {
     queryFn: () => discoverOpponentListings({ near: Near ?? undefined, radius: SearchRadius }),
     enabled: Near != null && Tab === 'opponents',
   });
-
-  const Teams = useQuery({ queryKey: ['teams'], queryFn: listTeams });
-  const MyCaptainTeams = useMemo(
-    () => (Teams.data ?? []).filter((Team) => Team.my_role === 'captain'),
-    [Teams.data],
-  );
-
-  const Apply = useMutation({
-    mutationFn: (ListingId: string) => applyToListing(ListingId),
-    onSuccess: () => {
-      void QueryClient.invalidateQueries({ queryKey: ['discover'] });
-    },
-    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
-  });
-
-  const MatchOpponent = useMutation({
-    mutationFn: ({ listingId, teamId }: { listingId: string; teamId: string }) =>
-      matchOpponentListing(listingId, teamId),
-    onSuccess: () => {
-      void QueryClient.invalidateQueries({ queryKey: ['discover'] });
-      Alert.alert('Eşleşti!', 'Maç detayında rakip olarak görünüyorsunuz.');
-    },
-    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
-  });
-
-  const promptOpponentMatch = (Listing: OpponentListing) => {
-    if (MyCaptainTeams.length === 0) {
-      Alert.alert('Takım gerekli', 'Rakip olmak için kaptanı olduğun bir takım gerekiyor.');
-
-      return;
-    }
-
-    Alert.alert('Maç yapalım', `${Listing.team?.name ?? 'Bu takım'} ile eşleşilsin mi?`, [
-      { text: 'Vazgeç', style: 'cancel' },
-      ...MyCaptainTeams.map((Team) => ({
-        text: Team.name,
-        onPress: () => MatchOpponent.mutate({ listingId: Listing.id, teamId: Team.id }),
-      })),
-    ]);
-  };
-
-  const renderPlayerListing = ({ item }: { item: PlayerListing }) => (
-    <View style={styles.card}>
-      <View style={styles.cardTop}>
-        <View style={styles.flexShrink}>
-          <Text style={styles.cardTitle}>{item.match?.team_name ?? 'Takım'}</Text>
-          <Text style={styles.cardMeta}>
-            {item.match != null
-              ? `${formatDayLabel(item.match.starts_at)} · ${formatTimeLabel(item.match.starts_at)} · ${item.match.venue_text}`
-              : ''}
-          </Text>
-        </View>
-        {item.distance_km != null && (
-          <Text style={styles.distance}>{item.distance_km} km</Text>
-        )}
-      </View>
-
-      <View style={styles.chipRow}>
-        {item.positions_needed.map((Position) => (
-          <View key={Position} style={styles.positionChip}>
-            <Text style={styles.positionChipText}>{positionLabel(Position)}</Text>
-          </View>
-        ))}
-        <View style={styles.positionChip}>
-          <Text style={styles.positionChipText}>Seviye {item.level_min}-{item.level_max}</Text>
-        </View>
-        <View style={styles.positionChip}>
-          <Text style={styles.positionChipText}>{item.needed_count} kişi</Text>
-        </View>
-      </View>
-
-      {item.my_application_status != null ? (
-        <View style={styles.appliedBadge}>
-          <Text style={styles.appliedText}>{APPLY_LABELS[item.my_application_status]}</Text>
-        </View>
-      ) : (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => Apply.mutate(item.id)}
-          style={styles.applyButton}>
-          <Text style={styles.applyText}>Başvur</Text>
-        </Pressable>
-      )}
-    </View>
-  );
-
-  const renderOpponentListing = ({ item }: { item: OpponentListing }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.team?.name ?? 'Takım'}</Text>
-      {item.match != null && (
-        <Text style={styles.cardMeta}>
-          {formatDayLabel(item.match.starts_at)} · {formatTimeLabel(item.match.starts_at)} ·{' '}
-          {item.match.venue_text} · {item.match.format}v{item.match.format}
-        </Text>
-      )}
-      {item.note != null && <Text style={styles.note}>{item.note}</Text>}
-
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => promptOpponentMatch(item)}
-        style={styles.applyButton}>
-        <Text style={styles.applyText}>Maç yapalım</Text>
-      </Pressable>
-    </View>
-  );
 
   const Loading = Near == null || (Tab === 'players' ? PlayerListings.isPending : OpponentListings.isPending);
   const IsError = Tab === 'players' ? PlayerListings.isError : OpponentListings.isError;
@@ -246,7 +115,7 @@ export default function Discover() {
           data={PlayerListings.data}
           keyExtractor={(Listing) => Listing.id}
           contentContainerStyle={styles.list}
-          renderItem={renderPlayerListing}
+          renderItem={({ item }) => <PlayerListingCard listing={item} onApply={() => apply(item.id)} />}
           ListEmptyComponent={
             <EmptyState
               icon="person-add-outline"
@@ -259,7 +128,9 @@ export default function Discover() {
           data={OpponentListings.data}
           keyExtractor={(Listing) => Listing.id}
           contentContainerStyle={styles.list}
-          renderItem={renderOpponentListing}
+          renderItem={({ item }) => (
+            <OpponentListingCard listing={item} onMatch={() => promptOpponentMatch(item)} />
+          )}
           ListEmptyComponent={<EmptyState icon="shield-outline" message="Şu an rakip arayan takım yok." />}
         />
       )}
@@ -346,86 +217,5 @@ const styles = StyleSheet.create({
   list: {
     gap: space(3),
     paddingBottom: space(8),
-  },
-  card: {
-    backgroundColor: Palette.turf,
-    borderRadius: Radius.l,
-    borderWidth: 1,
-    borderColor: Palette.lineFaint,
-    padding: space(4),
-  },
-  cardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: space(3),
-  },
-  flexShrink: {
-    flexShrink: 1,
-  },
-  cardTitle: {
-    fontFamily: Type.displaySemi,
-    fontSize: 19,
-    color: Palette.chalk,
-  },
-  cardMeta: {
-    fontFamily: Type.body,
-    fontSize: 13,
-    color: Palette.moss,
-    marginTop: 2,
-  },
-  distance: {
-    fontFamily: Type.mono,
-    fontSize: 14,
-    color: Palette.lime,
-  },
-  note: {
-    fontFamily: Type.body,
-    fontSize: 14,
-    color: Palette.chalk,
-    marginTop: space(2),
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space(2),
-    marginTop: space(3),
-  },
-  positionChip: {
-    backgroundColor: Palette.turfRaised,
-    borderRadius: Radius.pill,
-    paddingVertical: 3,
-    paddingHorizontal: space(2),
-  },
-  positionChipText: {
-    fontFamily: Type.bodyMedium,
-    fontSize: 12,
-    color: Palette.chalk,
-  },
-  applyButton: {
-    marginTop: space(3),
-    backgroundColor: Palette.lime,
-    borderRadius: Radius.pill,
-    paddingVertical: space(2),
-    alignItems: 'center',
-  },
-  applyText: {
-    fontFamily: Type.displaySemi,
-    fontSize: 15,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    color: Palette.limeInk,
-  },
-  appliedBadge: {
-    marginTop: space(3),
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Palette.lineFaint,
-    paddingVertical: space(2),
-    alignItems: 'center',
-  },
-  appliedText: {
-    fontFamily: Type.bodyMedium,
-    fontSize: 14,
-    color: Palette.moss,
   },
 });

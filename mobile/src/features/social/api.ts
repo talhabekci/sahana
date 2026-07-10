@@ -1,7 +1,14 @@
+import type { OpponentListing, PlayerListing } from '@/features/match/api';
 import type { Lineup } from '@/features/team/api';
 import { Api } from '@/shared/api/client';
 
-export type PostType = 'text' | 'match_played' | 'lineup_shared' | 'video_shared';
+export type PostType =
+  | 'text'
+  | 'match_played'
+  | 'lineup_shared'
+  | 'video_shared'
+  | 'player_listing'
+  | 'opponent_listing';
 
 export type PostAuthor = {
   id: string;
@@ -30,6 +37,8 @@ export type Post = {
     opponent_team_name: string | null;
   } | null;
   lineup?: Lineup | null;
+  player_listing?: PlayerListing | null;
+  opponent_listing?: OpponentListing | null;
   video?: {
     id: string;
     url: string | null;

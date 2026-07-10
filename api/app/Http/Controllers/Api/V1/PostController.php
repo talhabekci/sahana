@@ -13,7 +13,10 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    private const RELATIONS = ['user.profile', 'team', 'match.opponentTeam', 'lineup.team.members', 'video'];
+    private const RELATIONS = [
+        'user.profile', 'team', 'match.opponentTeam', 'lineup.team.members', 'video',
+        'playerListing.match.team', 'opponentListing.team',
+    ];
 
     public function store(StorePostRequest $Request, CreatePost $Action): JsonResponse
     {

@@ -19,6 +19,8 @@ maç kur → takım RSVP versin → eksik varsa ilanla oyuncu bul.
   destekliyor, eksik olan mobil UI'daydı
 - İlana başvuru → kaptan onayı → maça katılım
 - Rakip takım ilanı ("maç arıyoruz")
+- İlan oluşturulunca Modül 4 feed'ine otomatik bir kart da düşer (kullanıcı
+  kararı 2026-07-10, BACKLOG.md #8 — bkz. 04-social-feed.md)
 
 ### Kapsam dışı
 - Saha rezervasyonu (Modül 8) · skor/istatistik girişi (Modül 6) ·
