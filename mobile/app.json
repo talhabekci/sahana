@@ -46,6 +46,12 @@
           "photosPermission": "Gönderine fotoğraf eklemek için galerine erişim gerekiyor.",
           "cameraPermission": "Gönderine fotoğraf çekmek için kameraya erişim gerekiyor."
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Takım sohbetine sesli mesaj gönderebilmek için mikrofona erişim gerekiyor."
+        }
       ]
     ],
     "experiments": {

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreMessageRequest;
 use App\Models\Team;
 use App\Models\User;
+use App\Support\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,7 +37,18 @@ class TeamMessageController extends Controller
         /** @var User $Sender */
         $Sender = $Request->user();
 
-        $Payload = $Action->handle($Team, $Sender, $Request->validated());
+        $Data = $Request->validated();
+
+        if ($Request->hasFile('image')) {
+            $Data['image_path'] = ImageUploader::store($Request->file('image'), 'chat');
+        }
+
+        if ($Request->hasFile('audio')) {
+            $Data['audio_path'] = $Request->file('audio')->store('chat-audio', 'public');
+            $Data['audio_duration'] = isset($Data['audio_duration']) ? (int) $Data['audio_duration'] : null;
+        }
+
+        $Payload = $Action->handle($Team, $Sender, $Data);
 
         return response()->json(['data' => $Payload], 201);
     }

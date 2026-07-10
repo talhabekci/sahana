@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Notification;
 class SendMessage
 {
     /**
-     * @param  array{type: string, body?: string|null, image_path?: string|null, match_id?: string|null, lineup_id?: string|null}  $Data
+     * @param  array{type: string, body?: string|null, image_path?: string|null, audio_path?: string|null, audio_duration?: int|null, match_id?: string|null, lineup_id?: string|null}  $Data
      * @return array<string, mixed>
      */
     public function handle(Team $Team, User $Sender, array $Data): array
@@ -57,6 +57,8 @@ class SendMessage
             'type' => $Type,
             'body' => $Data['body'] ?? null,
             'image_path' => $Data['image_path'] ?? null,
+            'audio_path' => $Data['audio_path'] ?? null,
+            'audio_duration' => $Data['audio_duration'] ?? null,
             'match_id' => $MatchId,
             'lineup_id' => $LineupId,
         ]);

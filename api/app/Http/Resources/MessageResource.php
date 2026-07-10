@@ -21,6 +21,8 @@ class MessageResource
             'type' => $Message->type,
             'body' => $Message->body,
             'image_path' => ImageUploader::url($Message->image_path),
+            'audio_path' => ImageUploader::url($Message->audio_path),
+            'audio_duration' => $Message->audio_duration,
             'match_id' => $Message->match_id,
             'lineup_id' => $Message->lineup_id,
             'author' => $Author !== null ? [

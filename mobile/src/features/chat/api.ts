@@ -1,12 +1,14 @@
 import { Api } from '@/shared/api/client';
 
-export type MessageType = 'text' | 'image' | 'match_ref' | 'lineup_ref';
+export type MessageType = 'text' | 'image' | 'audio' | 'match_ref' | 'lineup_ref';
 
 export type ChatMessage = {
   id: string;
   type: MessageType;
   body: string | null;
   image_path: string | null;
+  audio_path: string | null;
+  audio_duration: number | null;
   match_id: string | null;
   lineup_id: string | null;
   author: { id: string; name: string | null; avatar_path: string | null } | null;
@@ -25,11 +27,49 @@ export async function listTeamMessages(
   return { data: data.data, nextCursor: data.meta.next_cursor };
 }
 
-export async function sendTeamMessage(
-  teamId: string,
-  payload: { type: MessageType; body?: string; match_id?: string; lineup_id?: string },
-): Promise<ChatMessage> {
-  const { data } = await Api.post<{ data: ChatMessage }>(`/teams/${teamId}/messages`, payload);
+export type SendTeamMessagePayload = {
+  type: MessageType;
+  body?: string;
+  match_id?: string;
+  lineup_id?: string;
+  image?: { uri: string; name: string; type: string };
+  audio?: { uri: string; name: string; type: string };
+  audio_duration?: number;
+};
+
+export async function sendTeamMessage(teamId: string, payload: SendTeamMessagePayload): Promise<ChatMessage> {
+  if (payload.image == null && payload.audio == null) {
+    const { data } = await Api.post<{ data: ChatMessage }>(`/teams/${teamId}/messages`, payload);
+
+    return data.data;
+  }
+
+  const Form = new FormData();
+  Form.append('type', payload.type);
+
+  if (payload.image != null) {
+    Form.append('image', {
+      uri: payload.image.uri,
+      name: payload.image.name,
+      type: payload.image.type,
+    } as unknown as Blob);
+  }
+
+  if (payload.audio != null) {
+    Form.append('audio', {
+      uri: payload.audio.uri,
+      name: payload.audio.name,
+      type: payload.audio.type,
+    } as unknown as Blob);
+
+    if (payload.audio_duration != null) {
+      Form.append('audio_duration', String(payload.audio_duration));
+    }
+  }
+
+  const { data } = await Api.post<{ data: ChatMessage }>(`/teams/${teamId}/messages`, Form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 
   return data.data;
 }

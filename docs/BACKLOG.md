@@ -435,16 +435,25 @@
 - **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
 - **Talep tarihi:** 2026-07-10
 
-### 26. Takım sohbeti — fotoğraf (galeri+kamera) ve ses kaydı eklenebilmeli
+### 26. Takım sohbeti — fotoğraf (galeri+kamera) ve ses kaydı eklenebilmeli ✅
+- **Tamamlandı:** 2026-07-11 — **Backend:** `Message::TYPES`'a `audio`
+  eklendi (`audio_path`, `audio_duration` alanları). `StoreMessageRequest`'in
+  `image_path` (string) girdisi gerçek bir dosya yüklemesine hiç bağlanmamıştı
+  (kullanılmayan alan) — `image` (multipart dosya, `ImageUploader` ile aynı
+  güvenlik hattı) olarak değiştirildi; `audio` (multipart, mimes:m4a/mp4/aac/
+  wav/caf/mp3, max 5MB) eklendi. `TeamMessageController::store()` dosyaları
+  çözüp `SendMessage` action'ına path olarak geçiyor. 4 yeni Pest testi
+  (241 toplam), Pint/Larastan temiz.
+  **Mobil:** yeni native bağımlılık `expo-audio` (kayıt: `useVoiceRecorder`
+  hook'u, `RecordingPresets.LOW_QUALITY`, max 2 dk otomatik durdurma;
+  oynatma: `VoiceMessageBubble`, play/pause + kalan süre). `team/[id]/
+  chat.tsx` composer'ına ataç ikonu (kamera/galeri, `ensureJpeg` ile aynı
+  desen) ve mikrofon ikonu eklendi — kayıt sırasında composer bir "kayıt
+  çubuğuna" dönüşüyor (sil/gönder). Görsel mesajlar artık gerçek resmi
+  gösteriyor (önceden sadece "🖼️ Görsel" placeholder'ıydı). DM'e
+  genişletilmedi (kullanıcı sadece takım sohbetini belirtti).
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-10
-- Şu an takım sohbeti (`team/[id]/chat.tsx`) sadece metin destekliyor.
-  Kullanıcı en azından fotoğraf ekleme (galeri + kamera) ve ses kaydı
-  eklenmesini istiyor. Fotoğraf güvenliği BACKLOG #7'deki desenle aynı
-  olmalı (gerçek içerik doğrulama, EXIF temizliği). Ses kaydı için
-  kayıt (expo-av/expo-audio) + yükleme + sohbet balonunda oynatma
-  gerekiyor. DM sohbetine de aynı ihtiyaç genişletilebilir (kullanıcı
-  sadece takım sohbetini belirtti, kapsam netleşirken DM de değerlendirilir).
 
 ### 27. Profil fotoğrafı yükleme + profil düzenleme eksik (doğum tarihi vb.) ✅
 - **Tamamlandı:** 2026-07-11 — `player_profiles.birth_date` (nullable date,

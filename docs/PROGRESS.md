@@ -3,6 +3,43 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (5) — Backlog #26: takım sohbetinde fotoğraf + ses kaydı
+
+- **Backend:** `Message::TYPES`'a `audio` eklendi (`audio_path`,
+  `audio_duration`). `StoreMessageRequest`'teki `image_path` (string) girdisi
+  — hiçbir zaman gerçek bir upload akışına bağlanmamış, kullanılmayan bir
+  alandı — gerçek multipart `image` dosyasına dönüştürüldü (`ImageUploader`
+  ile aynı güvenlik hattı: gerçek içerik doğrulama + JPEG re-encode). Yeni
+  `audio` multipart alanı (mimes: m4a/mp4/aac/wav/caf/mp3, max 5MB) — ham
+  dosya olarak `Storage::disk('public')`'a kaydediliyor (ses için görsel
+  gibi bir re-encode/doğrulama katmanı yok, sadece uzantı/mime kontrolü —
+  orantılı bir güvenlik seviyesi). `TeamMessageController::store()` dosya
+  varsa upload edip path'i `SendMessage` action'ına geçiyor. 4 yeni Pest
+  testi (241 toplam), Pint + Larastan temiz.
+- **Mobil:** yeni native bağımlılık `expo-audio` (Expo SDK 54 uyumlu,
+  `expo-image-manipulator` gibi ayrı bir EAS development build gerektirir —
+  aynı rebuild'e dahil edilebilir). `features/chat/useVoiceRecorder.ts`:
+  kayıt başlat/durdur, `RecordingPresets.LOW_QUALITY`, max 2 dakika (dosya
+  boyutunu 5MB sınırının çok altında tutmak için bilinçli tercih).
+  `features/chat/VoiceMessageBubble.tsx`: oynatma (play/pause + kalan süre,
+  bitince başa sarma). `team/[id]/chat.tsx` composer'ı: ataç ikonu (kamera/
+  galeri, `post/create.tsx`'teki `ensureJpeg` deseniyle aynı) + mikrofon
+  ikonu; kayıt sırasında composer "kayıt çubuğuna" dönüşüyor (çöp kutusu =
+  vazgeç, onay = gönder). Görsel mesajlar artık gerçek resmi gösteriyor
+  (önceden "🖼️ Görsel" sabit metniydi, hiç render edilmiyordu).
+- DM sohbetine genişletilmedi — kullanıcı açıkça sadece takım sohbetini
+  belirtmişti ("kapsam netleşirken DM de değerlendirilir" notuyla
+  BACKLOG'a düşülmüştü).
+- `docs/features/07-notifications-chat.md` güncellendi: mesaj türleri,
+  API sözleşmesi (`image_path` string → multipart `image`/`audio`), veri
+  modeli.
+- Doğrulama: `npx tsc --noEmit` + lint temiz.
+
+### Sonraki adım
+- Sırada #23 (gol videosu yükleme, Modül 5 v2). Kullanıcının `expo-audio`
+  + `expo-image-manipulator` için yeni bir development build alması
+  gerekiyor (henüz bu oturumda teyit edilmedi).
+
 ## 2026-07-11 (4) — Backlog #29: Ayarlar ekranı
 
 - **Mobil:** `(tabs)/profile.tsx`'e, kaydırmayla hareket etmeyen sabit

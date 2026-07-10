@@ -5,7 +5,9 @@ use App\Models\FootballMatch;
 use App\Models\Message;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 
 afterEach(function () {
     // Mongo test DB'si RefreshDatabase kapsamı dışında (spec: 07-notifications-chat.md, karar #2).
@@ -100,6 +102,56 @@ it('lets a member share a lineup reference belonging to the team', function () {
         'type' => 'lineup_ref',
         'lineup_id' => $Lineup->public_id,
     ])->assertCreated()->assertJsonPath('data.lineup_id', $Lineup->public_id);
+});
+
+it('lets a member share a photo message', function () {
+    Storage::fake('public');
+    [$Team, $Captain] = chatTeamSetup();
+
+    $Response = $this->actingAs($Captain)->post("/api/v1/teams/{$Team->public_id}/messages", [
+        'type' => 'image',
+        'image' => UploadedFile::fake()->image('photo.jpg', 400, 400),
+    ])->assertCreated();
+
+    expect($Response->json('data.image_path'))->not->toBeNull();
+
+    $Message = Message::where('team_id', $Team->id)->first();
+    Storage::disk('public')->assertExists($Message->image_path);
+});
+
+it('rejects a corrupt photo message', function () {
+    Storage::fake('public');
+    [$Team, $Captain] = chatTeamSetup();
+
+    $this->actingAs($Captain)->post("/api/v1/teams/{$Team->public_id}/messages", [
+        'type' => 'image',
+        'image' => UploadedFile::fake()->create('fake.jpg', 10, 'image/jpeg'),
+    ])->assertStatus(422)->assertJsonPath('code', 'invalid_image');
+});
+
+it('lets a member share a voice message', function () {
+    Storage::fake('public');
+    [$Team, $Captain] = chatTeamSetup();
+
+    $Response = $this->actingAs($Captain)->post("/api/v1/teams/{$Team->public_id}/messages", [
+        'type' => 'audio',
+        'audio' => UploadedFile::fake()->create('voice.m4a', 100, 'audio/mp4'),
+        'audio_duration' => 12,
+    ])->assertCreated();
+
+    expect($Response->json('data.audio_path'))->not->toBeNull()
+        ->and($Response->json('data.audio_duration'))->toBe(12);
+
+    $Message = Message::where('team_id', $Team->id)->first();
+    Storage::disk('public')->assertExists($Message->audio_path);
+});
+
+it('rejects a voice message without an audio file', function () {
+    [$Team, $Captain] = chatTeamSetup();
+
+    $this->actingAs($Captain)->postJson("/api/v1/teams/{$Team->public_id}/messages", [
+        'type' => 'audio',
+    ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
 });
 
 it('lists messages for a team member, newest first', function () {

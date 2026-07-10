@@ -71,7 +71,10 @@ kaldırır. Mobilde `expo-notifications` ile push token alınır.
 - Reverb (WebSocket) canlı; offline'a push fallback (mesaj bildirimi de
   ExpoChannel üzerinden gider, ayrı bir "sessiz" kategori olarak — 7/24,
   sessiz saat kuralına tabi değil, çünkü zaten anlık/isteğe bağlı bir kanal)
-- Mesaj türleri: metin, görsel; maç kartı/kadro paylaşımı (uygulama içi referans)
+- Mesaj türleri: metin, görsel (galeri + kamera), sesli mesaj (kayıt, max 2
+  dk, `expo-audio`); maç kartı/kadro paylaşımı (uygulama içi referans).
+  Görsel/ses BACKLOG #26 ile eklendi (2026-07-11) — DM'de henüz yok,
+  kapsam netleşirken ayrı ele alınacak (bkz. Sohbet — DM bölümü)
 - **Broadcasting auth:** `channels:` parametresi varsayılan olarak `/broadcasting/auth`'u
   `web` (session) middleware'iyle kaydediyor — mobil Sanctum bearer token
   kullandığından `withBroadcasting()` ile elle `auth:sanctum` + `/api/v1`
@@ -135,7 +138,13 @@ oturumda uygulanmasını istedi.
   (Laravel'in native `cursorPaginate()`'i MongoDB sürücüsüyle garantili
   uyumlu değil; aynı `{data, meta.next_cursor}` zarfı korunur, üretimi
   elle yapılır — api-conventions.md'den kasıtlı, gerekçeli sapma).
-- `POST /teams/{id}/messages` `{type, body?, image_path?, match_id?, lineup_id?}`.
+- `POST /teams/{id}/messages` — `type: text|image|audio|match_ref|lineup_ref`.
+  `text`: `{body}`. `image`: multipart `{image: file}` (BACKLOG #7 güvenlik
+  deseni — `ImageUploader`, gerçek içerik doğrulama + JPEG re-encode).
+  `audio`: multipart `{audio: file (m4a/aac/wav/mp3, max 5MB), audio_duration?}`
+  — sesli mesaj, ham dosya `Storage::disk('public')` üzerinde saklanır (görsel
+  gibi yeniden encode edilmez, sadece mimes/uzantı doğrulaması). `match_ref`/
+  `lineup_ref`: `{match_id}`/`{lineup_id}`. Backlog #26.
 - WS kanalı: `private-team.{public_id}` (yetki: takım üyesi olmak yeterli).
 - `GET /conversations` — birleşik sohbet listesi (takım + DM), son mesaj
   zamanına göre sıralı.
@@ -155,10 +164,12 @@ oturumda uygulanmasını istedi.
   varsayılır), `last_social_summary_at` (timestamp, nullable).
 - `messages` (**MongoDB**, `sahana_chat` veritabanı): `team_id?` (takım
   sohbeti), `participant_ids?` (DM, `[minUserId, maxUserId]`), `user_id`,
-  `type: text|image|match_ref|lineup_ref`, `body?`, `image_path?`,
-  `match_id?`, `lineup_id?`, `created_at`. Her mesaj ya `team_id` ya
-  `participant_ids` doldurur, ikisi birden değil. `_id` (ObjectId) doğrudan
-  public ID olarak kullanılır (zaten tahmin edilemez).
+  `type: text|image|audio|match_ref|lineup_ref`, `body?`, `image_path?`,
+  `audio_path?`, `audio_duration?` (saniye, sadece takım sohbetinde —
+  DM'de `audio` tipi henüz yok), `match_id?`, `lineup_id?`, `created_at`.
+  Her mesaj ya `team_id` ya `participant_ids` doldurur, ikisi birden değil.
+  `_id` (ObjectId) doğrudan public ID olarak kullanılır (zaten tahmin
+  edilemez).
 
 ## Açık Sorular
 - [ ] v2: Reverb prod'da ayrı bir process olarak nasıl ayakta tutulacak
