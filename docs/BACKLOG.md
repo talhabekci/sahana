@@ -57,14 +57,28 @@
   atıp yeni paylaşılanları yüklemesi isteniyor (FlatList `RefreshControl` +
   `refetch`/`isRefetching` bağlanmalı).
 
-### 7. Gönderi paylaşma ekranı — zayıf, MVP'den production-ready'e geçiş
+### 7. Gönderi paylaşma ekranı — zayıf, MVP'den production-ready'e geçiş ✅
+- **Tamamlandı:** 2026-07-10 — kapsam kullanıcıyla netleşti: fotoğraf
+  ekleme (güvenlik öncelikli) + kadro ekleme, zengin editör istenmedi.
+  **Backend:** `posts.image_path` migration; `CreatePost` Action görseli
+  GD ile gerçekten decode ederek doğruluyor (sahte uzantılı/bozuk dosya
+  `422 invalid_image`), her zaman JPEG'e yeniden encode ediyor (EXIF/GPS
+  temizliği + payload normalize), rastgele UUID dosya adıyla
+  `Storage::disk('public')`a yazıyor. `lineup_id` — kullanıcı sadece kendi
+  üyesi olduğu takımın kadrosunu ekleyebiliyor (`Lineup->team->isMember`).
+  `PostResource.lineup` artık tam `LineupResource` (positions dahil).
+  4 yeni Pest testi.
+  **Mobil:** `post/create.tsx`'e `expo-image-picker` ile galeri seçimi
+  (önizleme + kaldır) ve seçili takımın kadrolarından seçim eklendi.
+  `PostCard`'a yeni `PitchPreview` bileşeni (PitchBoard'ın jestsiz/salt-
+  okunur versiyonu — FlatList scroll'uyla çakışmasın diye) ile hem sistem
+  "kadro paylaşıldı" hem kullanıcının manuel eklediği kadro aynı görsel
+  saha önizlemesinde gösteriliyor (önceki düz isim yazan kart kaldırıldı).
+  **Bilinen kısıt:** yerel GD kurulumu HEIC decode edemiyor — bkz.
+  04-social-feed.md.
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
   (genel kapsamı MVP sonrası tüm uygulamayı etkiliyor)
 - **Talep tarihi:** 2026-07-06
-- Kullanıcı post/create.tsx'i (ve genel olarak uygulamayı) "MVP" seviyesinden
-  çıkarıp yayına çıkmadan önce "production ready" hale getirmek istiyor.
-  Somut kapsam netleşmedi (fotoğraf ekleme? draft kaydetme? daha zengin
-  editör?) — implementasyona geçmeden önce kullanıcıyla netleştirilmeli.
 
 ### 8. Akışta adam eksik / rakip arayanlar ilanlarının gösterilmesi
 - **Bağlı modül:** Modül 3 + Modül 4 — [03-match-organization.md](features/03-match-organization.md),

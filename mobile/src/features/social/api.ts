@@ -1,3 +1,4 @@
+import type { Lineup } from '@/features/team/api';
 import { Api } from '@/shared/api/client';
 
 export type PostType = 'text' | 'match_played' | 'lineup_shared' | 'video_shared';
@@ -19,6 +20,7 @@ export type Post = {
   id: string;
   type: PostType;
   body: string | null;
+  image_url: string | null;
   author?: PostAuthor;
   team?: PostTeamSummary | null;
   match?: {
@@ -27,7 +29,7 @@ export type Post = {
     starts_at: string;
     opponent_team_name: string | null;
   } | null;
-  lineup?: { id: string; name: string } | null;
+  lineup?: Lineup | null;
   video?: {
     id: string;
     url: string | null;
@@ -74,8 +76,44 @@ export async function getFeed(cursor?: string): Promise<{ data: Post[]; nextCurs
   return { data: data.data, nextCursor: data.meta.next_cursor };
 }
 
-export async function createPost(payload: { body: string; team_id?: string | null }): Promise<Post> {
-  const { data } = await Api.post<{ data: Post }>('/posts', payload);
+export type CreatePostPayload = {
+  body: string;
+  team_id?: string | null;
+  lineup_id?: string | null;
+  image?: { uri: string; name: string; type: string } | null;
+};
+
+export async function createPost(payload: CreatePostPayload): Promise<Post> {
+  if (payload.image == null) {
+    const { data } = await Api.post<{ data: Post }>('/posts', {
+      body: payload.body,
+      team_id: payload.team_id,
+      lineup_id: payload.lineup_id,
+    });
+
+    return data.data;
+  }
+
+  const Form = new FormData();
+  Form.append('body', payload.body);
+
+  if (payload.team_id != null) {
+    Form.append('team_id', payload.team_id);
+  }
+
+  if (payload.lineup_id != null) {
+    Form.append('lineup_id', payload.lineup_id);
+  }
+
+  Form.append('image', {
+    uri: payload.image.uri,
+    name: payload.image.name,
+    type: payload.image.type,
+  } as unknown as Blob);
+
+  const { data } = await Api.post<{ data: Post }>('/posts', Form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 
   return data.data;
 }

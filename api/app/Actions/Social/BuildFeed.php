@@ -27,7 +27,7 @@ class BuildFeed
                     ->orWhereIn('user_id', $FollowingIds);
             })
             ->whereNotIn('user_id', $BlockedUserIds)
-            ->with(['user.profile', 'team', 'match.team', 'match.opponentTeam', 'lineup', 'video'])
+            ->with(['user.profile', 'team', 'match.team', 'match.opponentTeam', 'lineup.team.members', 'video'])
             ->withCount(['likes', 'comments'])
             ->latest('id')
             ->cursorPaginate($PerPage, ['*'], 'cursor', $Cursor);

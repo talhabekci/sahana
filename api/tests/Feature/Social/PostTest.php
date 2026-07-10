@@ -3,6 +3,8 @@
 use App\Models\Post;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 it('creates a text post', function () {
     $User = User::factory()->create();
@@ -81,4 +83,68 @@ it('forbids a stranger from deleting a post', function () {
     $Post = Post::factory()->for($User)->create();
 
     $this->actingAs($Stranger)->deleteJson('/api/v1/posts/'.$Post->public_id)->assertStatus(403);
+});
+
+it('lets a user attach a photo to a post', function () {
+    Storage::fake('public');
+    $User = User::factory()->create();
+
+    $Response = $this->actingAs($User)->postJson('/api/v1/posts', [
+        'body' => 'Bugünkü maçtan bir kare.',
+        'image' => UploadedFile::fake()->image('photo.jpg', 200, 200),
+    ])->assertCreated();
+
+    $ImageUrl = $Response->json('data.image_url');
+    expect($ImageUrl)->not->toBeNull();
+
+    $Post = Post::first();
+    expect($Post->image_path)->not->toBeNull();
+    Storage::disk('public')->assertExists($Post->image_path);
+});
+
+it('rejects a corrupt file disguised as an image', function () {
+    Storage::fake('public');
+    $User = User::factory()->create();
+
+    $this->actingAs($User)->postJson('/api/v1/posts', [
+        'body' => 'Deneme',
+        'image' => UploadedFile::fake()->create('fake.jpg', 10, 'image/jpeg'),
+    ])->assertStatus(422)->assertJsonPath('code', 'invalid_image');
+});
+
+it('lets a user attach their own teams lineup to a post', function () {
+    $User = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($User->id, ['role' => 'captain', 'joined_at' => now()]);
+    $Lineup = $Team->lineups()->create([
+        'name' => 'Perşembe Kadrosu',
+        'formation' => null,
+        'positions' => [],
+        'created_by' => $User->id,
+    ]);
+
+    $this->actingAs($User)->postJson('/api/v1/posts', [
+        'body' => 'Bu haftaki kadromuz',
+        'lineup_id' => $Lineup->public_id,
+    ])->assertCreated()
+        ->assertJsonPath('data.lineup.id', $Lineup->public_id)
+        ->assertJsonPath('data.lineup.name', 'Perşembe Kadrosu');
+});
+
+it('rejects attaching a lineup from a team the user is not a member of', function () {
+    $User = User::factory()->create();
+    $Captain = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+    $Lineup = $Team->lineups()->create([
+        'name' => 'Kadro',
+        'formation' => null,
+        'positions' => [],
+        'created_by' => $Captain->id,
+    ]);
+
+    $this->actingAs($User)->postJson('/api/v1/posts', [
+        'body' => 'Deneme',
+        'lineup_id' => $Lineup->public_id,
+    ])->assertStatus(403);
 });

@@ -1,7 +1,10 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,7 +16,7 @@ import {
 } from 'react-native';
 
 import { createPost } from '@/features/social/api';
-import { listTeams } from '@/features/team/api';
+import { listLineups, listTeams } from '@/features/team/api';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
@@ -27,10 +30,42 @@ export default function CreatePost() {
 
   const [Body, setBody] = useState('');
   const [TeamId, setTeamId] = useState<string | null>(null);
+  const [LineupId, setLineupId] = useState<string | null>(null);
+  const [Image_, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [Error_, setError] = useState<string | null>(null);
 
+  const Lineups = useQuery({
+    queryKey: ['teams', TeamId, 'lineups'],
+    queryFn: () => listLineups(TeamId ?? ''),
+    enabled: TeamId != null,
+  });
+
+  const pickImage = async () => {
+    const Result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+    });
+
+    if (!Result.canceled) {
+      setImage(Result.assets[0]);
+    }
+  };
+
   const Create = useMutation({
-    mutationFn: () => createPost({ body: Body.trim(), team_id: TeamId }),
+    mutationFn: () =>
+      createPost({
+        body: Body.trim(),
+        team_id: TeamId,
+        lineup_id: LineupId,
+        image:
+          Image_ != null
+            ? {
+                uri: Image_.uri,
+                name: Image_.fileName ?? 'photo.jpg',
+                type: Image_.mimeType ?? 'image/jpeg',
+              }
+            : null,
+      }),
     onSuccess: () => {
       void QueryClient.invalidateQueries({ queryKey: ['feed'] });
       Router.back();
@@ -82,10 +117,56 @@ export default function CreatePost() {
                       key={Team.id}
                       accessibilityRole="radio"
                       accessibilityState={{ selected: Active }}
-                      onPress={() => setTeamId(Active ? null : Team.id)}
+                      onPress={() => {
+                        setTeamId(Active ? null : Team.id);
+                        setLineupId(null);
+                      }}
                       style={[styles.chip, Active && styles.chipActive]}>
                       <Text style={[styles.chipText, Active && styles.chipTextActive]}>
                         {Team.name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          <Text style={styles.sectionLabel}>FOTOĞRAF (opsiyonel)</Text>
+          {Image_ != null ? (
+            <View style={styles.photoPreviewWrap}>
+              <Image source={{ uri: Image_.uri }} style={styles.photoPreview} />
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setImage(null)}
+                style={styles.photoRemove}
+                hitSlop={8}>
+                <Ionicons name="close" size={16} color={Palette.chalk} />
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable accessibilityRole="button" onPress={() => void pickImage()} style={styles.photoPicker}>
+              <Ionicons name="image-outline" size={20} color={Palette.moss} />
+              <Text style={styles.photoPickerText}>Galeriden fotoğraf seç</Text>
+            </Pressable>
+          )}
+
+          {TeamId != null && (Lineups.data ?? []).length > 0 && (
+            <>
+              <Text style={styles.sectionLabel}>KADRO EKLE (opsiyonel)</Text>
+              <View style={styles.chipWrap}>
+                {(Lineups.data ?? []).map((Lineup_) => {
+                  const Active = LineupId === Lineup_.id;
+
+                  return (
+                    <Pressable
+                      key={Lineup_.id}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: Active }}
+                      onPress={() => setLineupId(Active ? null : Lineup_.id)}
+                      style={[styles.chip, Active && styles.chipActive]}>
+                      <Text style={[styles.chipText, Active && styles.chipTextActive]}>
+                        {Lineup_.name}
                       </Text>
                     </Pressable>
                   );
@@ -113,6 +194,42 @@ export default function CreatePost() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+  },
+  photoPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: Palette.lineFaint,
+    paddingVertical: space(4),
+    paddingHorizontal: space(4),
+  },
+  photoPickerText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.moss,
+  },
+  photoPreviewWrap: {
+    position: 'relative',
+  },
+  photoPreview: {
+    width: '100%',
+    height: 180,
+    borderRadius: Radius.m,
+    backgroundColor: Palette.turf,
+  },
+  photoRemove: {
+    position: 'absolute',
+    top: space(2),
+    right: space(2),
+    width: 26,
+    height: 26,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(11,26,15,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   back: {
     fontFamily: Type.bodyMedium,

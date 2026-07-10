@@ -21,6 +21,7 @@ class Post extends Model
         'team_id',
         'type',
         'body',
+        'image_path',
         'match_id',
         'lineup_id',
         'video_id',

@@ -3,6 +3,42 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (4) — Backlog #7: gönderiye fotoğraf + kadro ekleme
+
+- **Kararlar (kullanıcı):** kadro ekleme, fotoğraf ekleme (güvenlik
+  öncelikli), zengin editör yok.
+- **Backend:** `posts.image_path` migration (`Post::$fillable`'a da
+  eklendi — ilk denemede unutulup mass-assignment'ın sessizce düşürdüğü
+  ortaya çıktı, Pest testiyle yakalandı). `CreatePost` Action: `image`
+  dosyası GD (`imagecreatefromstring`) ile gerçekten decode edilip
+  doğrulanıyor (sahte uzantılı/bozuk dosya → `422 invalid_image`), her
+  zaman JPEG'e yeniden encode ediliyor (EXIF/GPS metadata temizliği +
+  orijinal bayt dizisi hiç diske yazılmıyor), rastgele UUID adla
+  `Storage::disk('public')`a kaydediliyor (`php artisan storage:link`
+  çalıştırıldı). `lineup_id` — `Lineup->team->isMember` ile sahiplik
+  doğrulanıyor. `PostResource.lineup` artık tam `LineupResource` embed'i
+  (positions dahil) — `PostController`/`BuildFeed`/`PlayerController`'daki
+  eager-load'lara `lineup.team.members` eklendi. 4 yeni Pest testi (218
+  toplam, hepsi yeşil), Pint + Larastan temiz.
+  **Bilinen kısıt:** yerel GD kurulumunda Imagick yok, HEIC decode
+  edilemiyor — ham HEIC baytı `422` ile reddedilir (bkz.
+  04-social-feed.md "Bilinen kısıt").
+- **Mobil:** `expo-image-picker` kuruldu (+ `app.json` izin metinleri).
+  `post/create.tsx`'e galeriden fotoğraf seçme (önizleme + kaldır butonu)
+  ve seçili takımın kayıtlı kadrolarından seçim eklendi. Yeni
+  `features/team/PitchPreview.tsx` — `PitchBoard`'ın jestsiz/salt-okunur
+  versiyonu (PanGesture, FlatList scroll'uyla çakışacağından ayrı bir
+  bileşen olarak yazıldı, yüzde-tabanlı konumlandırma). `PostCard`'da
+  hem sistem "kadro paylaşıldı" hem manuel eklenen kadro artık bu görsel
+  önizlemeyle gösteriliyor (önceki düz isim yazan kart kaldırıldı) —
+  kullanıcının #8'de belirttiği "kartlar zayıf" geri bildirimini de
+  kısmen karşılıyor.
+- Doğrulama: `npx tsc --noEmit` + `npm run lint` temiz.
+
+### Sonraki adım
+- Sırada #8 (feed'de ilan kartları — kullanıcı "rakip ilanı ve adam eksik
+  ilanı yeni bir kart olarak görünsün, genel olarak kartlar zayıf" dedi).
+
 ## 2026-07-10 (3) — Backlog #19: boş durumlar (empty states)
 
 - 14 boş-durum noktasının (feed, keşfet x2, sohbetler, takımlar, arama x2,

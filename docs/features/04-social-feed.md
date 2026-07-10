@@ -8,8 +8,9 @@ kadro paylaşımları ve gönderilerden oluşan akış + takip mekanizması.
 
 ## Kapsam (v1)
 - Feed: takip ettiklerim + takımlarımın aktiviteleri (kronolojik; algoritma yok)
-- İçerik türleri: **metin gönderisi** (fotoğrafsız — bkz. not), **maç oynandı**
-  auto-kartı, **kadro paylaşıldı** auto-kartı
+- İçerik türleri: **metin gönderisi** (opsiyonel **fotoğraf** + opsiyonel
+  **kadro ekleme** ile — kullanıcı kararı 2026-07-10, BACKLOG.md #7), **maç
+  oynandı** auto-kartı, **kadro paylaşıldı** auto-kartı
 - Takip et / takipçi modeli (onaysız, herkese açık profil varsayımı — Modül 1'in
   `GET /players/{id}` zaten herkese açık)
 - Beğeni + yorum
@@ -23,8 +24,6 @@ kadro paylaşımları ve gönderilerden oluşan akış + takip mekanizması.
 
 ### Kapsam dışı (v1)
 - Algoritmik sıralama · hikayeler · DM (Modül 7'de takım sohbeti önce)
-- **Fotoğraflı gönderi:** R2 presigned upload akışı henüz kurulmadı (Modül 1
-  avatar, Modül 2 logo kararlarıyla aynı çizgide) — v1'de gönderiler metin only.
 - **Video gönderisi:** Modül 5 henüz yok; özel bir `video` post tipi
   tanımlanmadı. Kullanıcı isterse metin gönderisine link yapıştırabilir
   (özel önizleme/embed yok, Modül 5'i bekliyor).
@@ -42,6 +41,41 @@ Feed'i kullanıcı üretimi beklemeden dolduran sistem olayları:
   paylaşıldı" kartı düşer (WhatsApp'a export ayrı, bu sadece feed içi).
 - **Kural:** otomatik kartlar profil ayarından kapatılabilir olmalı
   (`auto_posts_enabled` — Modül 1 `PlayerProfile`'a eklenir).
+
+## Gönderiye fotoğraf + kadro ekleme (kullanıcı kararı 2026-07-10, BACKLOG.md #7)
+- **Kapsam:** post/create ekranında opsiyonel **tek fotoğraf** ve/veya
+  opsiyonel **kendi takımının kayıtlı kadrolarından biri** eklenebilir.
+  Zengin bir editöre gerek yok — sadece metin + tek fotoğraf + tek kadro.
+- **Fotoğraf güvenliği (kullanıcı: "güvenlik çok önemli"):**
+  - İzin verilen tür/limit api-conventions.md ile aynı: jpg/png/webp/heic,
+    max 10 MB.
+  - Sunucu tarafında sadece MIME/uzantıya güvenilmez: dosya GD ile
+    (`imagecreatefromstring`) gerçekten decode edilmeye çalışılır; başarısız
+    olursa (bozuk dosya ya da sahte uzantılı zararlı dosya) `422
+    invalid_image` döner.
+  - Decode başarılıysa görsel **her zaman JPEG'e yeniden encode edilir**
+    (kalite 85) — bu hem EXIF metadata'sını (ör. GPS konumu) tamamen siler
+    hem de dosyanın payload'ını normalize eder. Orijinal bayt dizisi asla
+    diske yazılmaz.
+  - Dosya adı kullanıcıdan gelmez, rastgele UUID ile üretilir (path
+    traversal / üzerine yazma riski yok); `storage/app/public/posts/`
+    altında (`Storage::disk('public')`).
+  - **Bilinen kısıt:** Bu ortamın GD kurulumu HEIC decode edemiyor
+    (`gd_info()` içinde HEIC/AVIF codec yok, Imagick da kurulu değil).
+    api-conventions.md'nin izin verdiği HEIC formatı pratikte yalnızca
+    istemcinin (Expo image picker, iOS'ta genelde otomatik JPEG'e çeviriyor)
+    zaten JPEG/PNG/WebP olarak gönderdiği durumlarda çalışır; ham HEIC
+    baytı sunucuya ulaşırsa `422 invalid_image` ile reddedilir. İleride
+    gerekirse `ext-imagick` eklenip HEIC decode desteklenebilir.
+- **Kadro ekleme:** `posts.lineup_id` zaten mevcuttu (sistem otomatik "kadro
+  paylaşıldı" kartı için) — sadece kullanıcının kendi paylaşımına manuel
+  seçmesi açıldı. Yalnızca kendi üyesi olduğu bir takımın kadrosu
+  seçilebilir (`Team::isMember` kontrolü, aksi halde 403).
+- **Görünüm:** feed'de hem sistem "kadro paylaşıldı" kartı hem kullanıcının
+  manuel eklediği kadro, aynı küçük/salt-okunur saha önizlemesiyle
+  (`PitchPreview` — mevcut `PitchBoard`'ın sürükle-bırak/jest içermeyen
+  versiyonu, liste kaydırmasıyla çakışmaması için) gösterilir; önceki sadece
+  isim yazan düz kart kaldırıldı.
 
 ## Takım adına paylaşım (kullanıcı kararı 2026-07-04)
 **Herhangi bir takım üyesi**, gönderiyi o takıma etiketleyerek paylaşabilir
@@ -63,7 +97,7 @@ search/               → oyuncu/takım arama
 | Method | Endpoint | Açıklama |
 |---|---|---|
 | GET | /feed | Takip + takım akışı (cursor) |
-| POST | /posts | Metin gönderisi oluştur (`body`, `team_id?`) |
+| POST | /posts | Metin gönderisi oluştur (multipart: `body`, `team_id?`, `image?`, `lineup_id?`) |
 | GET | /posts/{id} | Gönderi detay |
 | DELETE | /posts/{id} | Sahibi veya (takım gönderisiyse) kaptan silebilir |
 | POST | /posts/{id}/like · DELETE /posts/{id}/like | Beğen/geri al (idempotent) |
@@ -77,7 +111,8 @@ search/               → oyuncu/takım arama
 
 ## Veri Modeli
 `posts` (id, public_id, user_id, team_id?, type: text|match_played|lineup_shared,
-body?, subject_type/subject_id polimorfik [match/lineup için], created_at) ·
+body?, image_path? [JPEG'e yeniden encode edilmiş, EXIF'siz], lineup_id?,
+subject_type/subject_id polimorfik [match/lineup için], created_at) ·
 `likes` (post_id, user_id) · `comments` (id, public_id, post_id, user_id, body,
 created_at) · `follows` (follower_id, followed_id) · `blocks` (user_id,
 blocked_user_id) · `reports` (id, reporter_id, subject_type, subject_id,

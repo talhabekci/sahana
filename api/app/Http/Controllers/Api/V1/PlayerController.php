@@ -37,7 +37,7 @@ class PlayerController extends Controller
         }
 
         $Posts = $User->posts()
-            ->with(['user.profile', 'team', 'match.opponentTeam', 'lineup', 'video'])
+            ->with(['user.profile', 'team', 'match.opponentTeam', 'lineup.team.members', 'video'])
             ->withCount(['likes', 'comments'])
             ->latest()
             ->limit(30)

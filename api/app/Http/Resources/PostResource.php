@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @mixin Post
@@ -22,6 +23,7 @@ class PostResource extends JsonResource
             'id' => $this->public_id,
             'type' => $this->type,
             'body' => $this->body,
+            'image_url' => $this->image_path !== null ? Storage::disk('public')->url($this->image_path) : null,
             'author' => $this->whenLoaded('user', fn (): array => [
                 'id' => $this->user->public_id,
                 'name' => $this->user->name,
@@ -39,10 +41,9 @@ class PostResource extends JsonResource
                 'starts_at' => $this->match->starts_at->toIso8601String(),
                 'opponent_team_name' => $this->match->opponentTeam?->name,
             ] : null),
-            'lineup' => $this->whenLoaded('lineup', fn (): ?array => $this->lineup !== null ? [
-                'id' => $this->lineup->public_id,
-                'name' => $this->lineup->name,
-            ] : null),
+            'lineup' => $this->whenLoaded('lineup', fn (): ?array => $this->lineup !== null
+                ? (new LineupResource($this->lineup))->resolve($Request)
+                : null),
             'video' => $this->whenLoaded('video', fn (): ?array => $this->video !== null ? [
                 'id' => $this->video->public_id,
                 'url' => $this->video->url,

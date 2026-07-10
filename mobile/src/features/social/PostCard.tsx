@@ -5,6 +5,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Post } from './api';
 import VideoDefaultCover from '@/assets/images/video-default-cover.png';
 import { badgeIonicon } from '@/features/team/constants';
+import { PitchPreview } from '@/features/team/PitchPreview';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
 function formatWhen(iso: string): string {
@@ -40,6 +41,10 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor }: Props) 
 
       {post.type === 'text' && post.body != null && <Text style={styles.body}>{post.body}</Text>}
 
+      {post.image_url != null && (
+        <Image source={{ uri: post.image_url }} style={styles.photo} />
+      )}
+
       {post.type === 'match_played' && post.match != null && (
         <View style={styles.autoCard}>
           <Text style={styles.autoKicker}>⚽ MAÇ OYNANDI</Text>
@@ -50,10 +55,12 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor }: Props) 
         </View>
       )}
 
-      {post.type === 'lineup_shared' && post.lineup != null && (
-        <View style={styles.autoCard}>
-          <Text style={styles.autoKicker}>📋 KADRO PAYLAŞILDI</Text>
-          <Text style={styles.autoText}>{post.lineup.name}</Text>
+      {post.lineup != null && (
+        <View style={styles.lineupCard}>
+          <Text style={styles.autoKicker}>📋 {post.lineup.name}</Text>
+          <View style={styles.lineupBoard}>
+            <PitchPreview positions={post.lineup.positions} />
+          </View>
         </View>
       )}
 
@@ -147,11 +154,29 @@ const styles = StyleSheet.create({
     color: Palette.chalk,
     marginTop: space(3),
   },
+  photo: {
+    width: '100%',
+    height: 220,
+    borderRadius: Radius.m,
+    backgroundColor: Palette.turfRaised,
+    marginTop: space(3),
+  },
   autoCard: {
     marginTop: space(3),
     backgroundColor: Palette.turfRaised,
     borderRadius: Radius.m,
     padding: space(3),
+  },
+  lineupCard: {
+    marginTop: space(3),
+    backgroundColor: Palette.turfRaised,
+    borderRadius: Radius.m,
+    padding: space(3),
+  },
+  lineupBoard: {
+    marginTop: space(2),
+    width: 140,
+    alignSelf: 'center',
   },
   autoKicker: {
     fontFamily: Type.mono,

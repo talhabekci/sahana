@@ -39,7 +39,14 @@
       ],
       "expo-secure-store",
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Gönderine fotoğraf eklemek için galerine erişim gerekiyor.",
+          "cameraPermission": "Gönderine fotoğraf çekmek için kameraya erişim gerekiyor."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
