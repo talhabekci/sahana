@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
@@ -19,6 +20,7 @@ import {
 import { createPost } from '@/features/social/api';
 import { listLineups, listTeams } from '@/features/team/api';
 import { toApiFailure } from '@/shared/api/client';
+import { ensureJpeg } from '@/shared/media/ensureJpeg';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -32,7 +34,8 @@ export default function CreatePost() {
   const [Body, setBody] = useState('');
   const [TeamId, setTeamId] = useState<string | null>(null);
   const [LineupId, setLineupId] = useState<string | null>(null);
-  const [Image_, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [Image_, setImage] = useState<{ uri: string; name: string; type: string } | null>(null);
+  const [Converting, setConverting] = useState(false);
   const [Error_, setError] = useState<string | null>(null);
 
   const Lineups = useQuery({
@@ -41,6 +44,18 @@ export default function CreatePost() {
     enabled: TeamId != null,
   });
 
+  const convertAndSetImage = async (Uri: string) => {
+    setConverting(true);
+
+    try {
+      setImage(await ensureJpeg(Uri));
+    } catch {
+      Alert.alert('Olmadı', 'Görsel işlenemedi, başka bir fotoğraf dene.');
+    } finally {
+      setConverting(false);
+    }
+  };
+
   const pickFromLibrary = async () => {
     const Result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -48,7 +63,7 @@ export default function CreatePost() {
     });
 
     if (!Result.canceled) {
-      setImage(Result.assets[0]);
+      await convertAndSetImage(Result.assets[0].uri);
     }
   };
 
@@ -64,7 +79,7 @@ export default function CreatePost() {
     const Result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
 
     if (!Result.canceled) {
-      setImage(Result.assets[0]);
+      await convertAndSetImage(Result.assets[0].uri);
     }
   };
 
@@ -82,14 +97,7 @@ export default function CreatePost() {
         body: Body.trim(),
         team_id: TeamId,
         lineup_id: LineupId,
-        image:
-          Image_ != null
-            ? {
-                uri: Image_.uri,
-                name: Image_.fileName ?? 'photo.jpg',
-                type: Image_.mimeType ?? 'image/jpeg',
-              }
-            : null,
+        image: Image_,
       }),
     onSuccess: () => {
       void QueryClient.invalidateQueries({ queryKey: ['feed'] });
@@ -170,9 +178,19 @@ export default function CreatePost() {
               </Pressable>
             </View>
           ) : (
-            <Pressable accessibilityRole="button" onPress={promptPickImage} style={styles.photoPicker}>
-              <Ionicons name="image-outline" size={20} color={Palette.moss} />
-              <Text style={styles.photoPickerText}>Fotoğraf ekle</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={promptPickImage}
+              disabled={Converting}
+              style={styles.photoPicker}>
+              {Converting ? (
+                <ActivityIndicator color={Palette.moss} size="small" />
+              ) : (
+                <Ionicons name="image-outline" size={20} color={Palette.moss} />
+              )}
+              <Text style={styles.photoPickerText}>
+                {Converting ? 'İşleniyor...' : 'Fotoğraf ekle'}
+              </Text>
             </Pressable>
           )}
 

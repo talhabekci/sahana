@@ -21,7 +21,7 @@ export const TEAM_COLORS = [
   '#C9F24E', '#4EE2C9', '#4E9DF2', '#B14EF2', '#F24EA0', '#F2764E', '#F2D24E', '#EAF2EA',
 ] as const;
 
-function hslToHex(Hue: number, Saturation: number, Lightness: number): string {
+export function hslToHex(Hue: number, Saturation: number, Lightness: number): string {
   const A = Saturation * Math.min(Lightness, 1 - Lightness);
   const f = (N: number): string => {
     const K = (N + Hue / 30) % 12;
@@ -35,10 +35,29 @@ function hslToHex(Hue: number, Saturation: number, Lightness: number): string {
   return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
 }
 
-/** Geniş palet — kullanıcı önerilen renklerin dışında bir ton isterse (BACKLOG.md #30). */
-export const EXTENDED_TEAM_COLORS: string[] = Array.from({ length: 24 }, (_, Index) =>
-  hslToHex((Index * 360) / 24, 0.78, 0.62),
-);
+export function hexToHue(Hex: string): number {
+  const R = parseInt(Hex.slice(1, 3), 16) / 255;
+  const G = parseInt(Hex.slice(3, 5), 16) / 255;
+  const B = parseInt(Hex.slice(5, 7), 16) / 255;
+  const Max = Math.max(R, G, B);
+  const Min = Math.min(R, G, B);
+  const Delta = Max - Min;
+  let H = 0;
+
+  if (Delta !== 0) {
+    if (Max === R) {
+      H = ((G - B) / Delta) % 6;
+    } else if (Max === G) {
+      H = (B - R) / Delta + 2;
+    } else {
+      H = (R - G) / Delta + 4;
+    }
+  }
+
+  H *= 60;
+
+  return H < 0 ? H + 360 : H;
+}
 
 type SlotTemplate = Pick<LineupPosition, 'id' | 'x' | 'y' | 'label'>;
 

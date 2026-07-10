@@ -10,9 +10,12 @@ bu ürünün viral büyüme motorudur** — davetsiz kullanıcı, görseldeki li
 ## Kapsam (v1)
 - Takım oluşturma: isim, logo (hazır ikon seti + kullanıcı arma fotoğrafı
   yükleme — kullanıcı kararı 2026-07-10, BACKLOG.md #30, ilk uygulamada
-  sadece hazır ikon vardı), forma rengi (8 önerilen renk + 24 renklik
-  geniş palet, herhangi bir hex zaten API'de destekleniyordu — eksik olan
-  mobil UI'daki seçenek genişliğiydi)
+  sadece hazır ikon vardı), forma rengi (8 önerilen renk + sürekli bir
+  ton/hue seçici — `shared/ui/HueColorPicker.tsx`; ilk uygulamadaki 24
+  sabit renk swatch'ı kullanıcı isteğiyle kaldırıldı, "seçeneklerden
+  seçmesin, istediği rengi belirlesin" — kullanıcı kararı 2026-07-11,
+  BACKLOG.md #36. `color_home` API'de zaten herhangi bir hex kabul
+  ediyordu, eksik olan mobil UI'daki seçim serbestliğiydi)
 - Davet: paylaşılabilir link + QR (linke tıklayan → uygulama/store → takıma katılır)
 - Roller: kaptan (kurucu; devredilebilir) / üye
 - Kadro tahtası: 5/6/7/8 kişilik saha dizilimi, sürükle-bırak

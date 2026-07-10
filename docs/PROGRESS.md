@@ -3,6 +3,29 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 — Backlog #34/#35/#36: HEIC bug fix + gerçek renk seçici
+
+- **#34/#35 (bug, aynı kök neden):** Kamera/galeriden gelen fotoğraflar
+  iOS'ta gerçek HEIC baytı olarak geliyordu ("iOS otomatik JPEG'e
+  çeviriyor" varsayımı yanlıştı), sunucudaki GD bunu decode edemediği
+  için hem feed fotoğrafı ("Doğrulama hatası") hem takım arması ("bozuk
+  görsel dosyası") reddediliyordu. Kalıcı çözüm: `expo-image-manipulator`
+  kuruldu; yeni `shared/media/ensureJpeg.ts` seçilen/çekilen her görseli
+  yüklemeden önce gerçek JPEG'e yeniden encode ediyor —
+  `post/create.tsx` ve `team/create.tsx` buna geçirildi, "İşleniyor..."
+  göstergesi eklendi. **Yeni native modül — yeni EAS development build
+  gerekiyor.**
+- **#36:** "Paletten seç"teki 24 sabit renk swatch'ı kaldırıldı, yerine
+  `shared/ui/HueColorPicker.tsx` — sürüklenebilir, sürekli bir ton (hue)
+  seçici (React Native View'larla simüle edilmiş gradyan, `react-native-svg`
+  gibi ek native bağımlılık yok — rebuild gerekmez). "Önerilen" 8 renk
+  bölümü korundu.
+- Doğrulama: `npx tsc --noEmit` + lint temiz. Backend değişikliği yok.
+
+### Sonraki adım
+- Kullanıcı EAS rebuild sonrası cihazda test edecek. Sonra kalan backlog
+  maddeleri (#28, #27, #29, #26, #23) devam edecek.
+
 ## 2026-07-10 (10) — Backlog #30: takım arma fotoğrafı + özel renk seçimi
 
 - **Backend:** `teams.logo_path` (nullable), `badge_icon` nullable oldu

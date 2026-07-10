@@ -530,52 +530,38 @@
   nereye düşecek, giriş yapmamış kullanıcı ne görecek) netleşmeden
   kodlanmayacak.
 
-### 34. Bug: kameradan çekilen fotoğraf feed gönderisine eklenirken "Doğrulama hatası"
+### 34. Bug: kameradan çekilen fotoğraf feed gönderisine eklenirken "Doğrulama hatası" ✅
+- **Tamamlandı:** 2026-07-11 — kök neden #35 ile aynı çıktı: iOS kamera/
+  galeri çıktısı gerçek HEIC baytı, GD decode edemiyor. Bkz. #35'teki
+  çözüm.
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
   (BACKLOG #7/#24'ün devamı)
 - **Talep tarihi:** 2026-07-10
-- Kullanıcı cihazda test etti: `post/create.tsx`'te "Kamerayla çek" ile
-  çekilen fotoğraf gönderiye eklenmeye çalışılınca genel "Doğrulama hatası"
-  (`validation_failed`) alınıyor — bu, `App\Support\ImageUploader`'ın
-  kendi özel `invalid_image` hatasından **farklı**, yani sorun
-  `StorePostRequest`'in `mimes:jpg,jpeg,png,webp,heic` kuralında,
-  `ImageUploader`'ın GD decode adımına hiç ulaşmadan reddediliyor.
-  **Şüphe:** Laravel'in `mimes` kuralı dosyanın gerçek içeriğinden MIME
-  tahmini yapıyor (sadece istemcinin gönderdiği `name`/`type`'a güvenmiyor);
-  iOS kamerasının varsayılan çıktısı HEIC olabilir ve mobil tarafta
-  `{uri, name: 'photo.jpg', type: 'image/jpeg'}` şeklinde manuel
-  etiketlenen `FormData` parçası ile gerçek bayt içeriği uyuşmuyor olabilir.
-  Kod tabanına dokunulmadı, kullanıcı isteğiyle sadece kayıt altına alındı.
 
-### 35. Bug: takım arması yüklerken "Desteklenmeyen ya da bozuk görsel dosyası"
+### 35. Bug: takım arması yüklerken "Desteklenmeyen ya da bozuk görsel dosyası" ✅
+- **Tamamlandı:** 2026-07-11 — kalıcı çözüm: `expo-image-manipulator`
+  kuruldu, yeni `shared/media/ensureJpeg.ts` yardımcı fonksiyonu seçilen/
+  çekilen her görseli yüklemeden önce gerçek JPEG'e yeniden encode ediyor.
+  `post/create.tsx` (galeri+kamera) ve `team/create.tsx` (arma) bu
+  fonksiyonu kullanacak şekilde güncellendi, dönüşüm sırasında kısa bir
+  "İşleniyor..." göstergesi eklendi. **Not:** `expo-image-manipulator`
+  yeni bir native modül — bu değişiklik için yeni bir EAS development
+  build gerekiyor.
 - **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
   (BACKLOG #30'un devamı)
 - **Talep tarihi:** 2026-07-10
-- Kullanıcı cihazda test etti: galeriden seçtiği bir fotoğrafla takım
-  kurmaya çalışınca `ImageUploader`'ın `invalid_image` hatasını
-  (GD `imagecreatefromstring` decode başarısız) alıyor. **Bu muhtemelen
-  #34 ile aynı kök neden** — `04-social-feed.md`'de zaten "Bilinen kısıt"
-  olarak not düşülen HEIC/GD sınırlaması, düşünüldüğünden daha sık
-  tetikleniyor olabilir (iOS galerisindeki orijinal fotoğraflar da HEIC
-  saklanıyor olabilir, sadece kamera çekimi değil). **Olası kalıcı çözüm
-  (henüz uygulanmadı):** İstemci tarafında `expo-image-manipulator` ile
-  seçilen/çekilen her görseli yüklemeden önce garantili JPEG'e
-  dönüştürmek (yaygın, güvenilir bir desen) — sunucuya HEIC baytı hiç
-  ulaşmaz. Alternatif: sunucuya `ext-imagick` eklemek. Kodlanmadı,
-  kullanıcı isteğiyle sadece kayıt altına alındı.
 
-### 36. Takım rengi — "Paletten seç" 24 sabit seçenek yerine gerçek bir renk seçici olmalı
+### 36. Takım rengi — "Paletten seç" 24 sabit seçenek yerine gerçek bir renk seçici olmalı ✅
+- **Tamamlandı:** 2026-07-11 — 24 sabit renk swatch'ı kaldırıldı, yerine
+  yeni `shared/ui/HueColorPicker.tsx` geldi: sürüklenebilir bir ton (hue)
+  şeridi, tam renk yelpazesinden herhangi bir tonu sürekli olarak seçmeye
+  izin veriyor (sabit S/L, 0-360° hue serbest). `react-native-svg` gibi
+  ek bir native bağımlılık gerektirmeden (gradyan çok sayıda ince View
+  segmentiyle simüle edildi) — mevcut build'de çalışır, yeni rebuild
+  gerekmez. "Önerilen" 8 renk bölümü korundu.
 - **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
   (BACKLOG #30'un düzeltmesi)
 - **Talep tarihi:** 2026-07-10
-- Kullanıcı: `team/create.tsx`'teki "Paletten seç" bölümüne eklenen 24
-  sabit renk swatch'ını istemiyor — "kullanıcı istediği rengi
-  belirleyebilsin, seçeneklerden seçmesin." Yani sabit swatch listesi
-  yerine gerçek, sürekli bir renk seçici (ör. hue/saturation/lightness
-  gradyanlı bir seçici ya da renk çemberi) gerekiyor. `color_home` API'de
-  zaten herhangi bir hex kabul ediyor (regex validasyonu) — sadece mobil
-  UI'da gerçek bir seçici bileşeni eksik. Kodlanmadı, kullanıcı isteğiyle
-  sadece kayıt altına alındı.
 
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).

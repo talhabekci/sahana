@@ -64,13 +64,19 @@ Feed'i kullanıcı üretimi beklemeden dolduran sistem olayları:
   - Dosya adı kullanıcıdan gelmez, rastgele UUID ile üretilir (path
     traversal / üzerine yazma riski yok); `storage/app/public/posts/`
     altında (`Storage::disk('public')`).
-  - **Bilinen kısıt:** Bu ortamın GD kurulumu HEIC decode edemiyor
-    (`gd_info()` içinde HEIC/AVIF codec yok, Imagick da kurulu değil).
-    api-conventions.md'nin izin verdiği HEIC formatı pratikte yalnızca
-    istemcinin (Expo image picker, iOS'ta genelde otomatik JPEG'e çeviriyor)
-    zaten JPEG/PNG/WebP olarak gönderdiği durumlarda çalışır; ham HEIC
-    baytı sunucuya ulaşırsa `422 invalid_image` ile reddedilir. İleride
-    gerekirse `ext-imagick` eklenip HEIC decode desteklenebilir.
+  - **Düzeltme (kullanıcı 2026-07-11, BACKLOG.md #34/#35):** İlk uygulamada
+    "iOS otomatik JPEG'e çeviriyor" varsayımı yanlış çıktı — hem kamera
+    çekimi hem galeriden seçilen orijinal fotoğraflar gerçekten HEIC
+    baytı olarak geliyordu, GD bunu decode edemediğinden kullanıcı hem
+    feed fotoğrafında ("Doğrulama hatası" — `mimes` kuralı reddediyordu)
+    hem takım arması yüklerken ("bozuk görsel dosyası" — `ImageUploader`
+    reddediyordu) hata alıyordu. Kalıcı çözüm: istemci artık
+    `expo-image-manipulator` (`shared/media/ensureJpeg.ts`) ile seçilen/
+    çekilen her görseli yüklemeden **önce** gerçek JPEG'e yeniden encode
+    ediyor — sunucuya hiçbir zaman ham HEIC bayt dizisi ulaşmıyor. GD'nin
+    HEIC decode edememesi hâlâ doğru ama artık pratikte tetiklenmiyor.
+    **Not:** `expo-image-manipulator` yeni bir native modül — bu
+    değişiklik için yeni bir EAS development build gerekir.
 - **Kadro ekleme:** `posts.lineup_id` zaten mevcuttu (sistem otomatik "kadro
   paylaşıldı" kartı için) — sadece kullanıcının kendi paylaşımına manuel
   seçmesi açıldı. Yalnızca kendi üyesi olduğu bir takımın kadrosu

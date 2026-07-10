@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -15,9 +16,11 @@ import {
 } from 'react-native';
 
 import { createTeam } from '@/features/team/api';
-import { BADGE_ICONS, EXTENDED_TEAM_COLORS, TEAM_COLORS } from '@/features/team/constants';
+import { BADGE_ICONS, TEAM_COLORS } from '@/features/team/constants';
 import { toApiFailure } from '@/shared/api/client';
+import { ensureJpeg } from '@/shared/media/ensureJpeg';
 import { Button } from '@/shared/ui/Button';
+import { HueColorPicker } from '@/shared/ui/HueColorPicker';
 import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -31,7 +34,8 @@ export default function CreateTeam() {
   const [StepIndex, setStepIndex] = useState(0);
   const [Name, setName] = useState('');
   const [BadgeIcon, setBadgeIcon] = useState<string | null>(BADGE_ICONS[0].key);
-  const [Logo, setLogo] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [Logo, setLogo] = useState<{ uri: string; name: string; type: string } | null>(null);
+  const [ConvertingLogo, setConvertingLogo] = useState(false);
   const [ColorHome, setColorHome] = useState<string>(TEAM_COLORS[0]);
   const [Error_, setError] = useState<string | null>(null);
 
@@ -40,9 +44,19 @@ export default function CreateTeam() {
   const pickLogo = async () => {
     const Result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
 
-    if (!Result.canceled) {
-      setLogo(Result.assets[0]);
+    if (Result.canceled) {
+      return;
+    }
+
+    setConvertingLogo(true);
+
+    try {
+      setLogo(await ensureJpeg(Result.assets[0].uri));
       setBadgeIcon(null);
+    } catch {
+      setError('Görsel işlenemedi, başka bir fotoğraf dene.');
+    } finally {
+      setConvertingLogo(false);
     }
   };
 
@@ -57,10 +71,7 @@ export default function CreateTeam() {
         name: Name.trim(),
         badge_icon: BadgeIcon,
         color_home: ColorHome,
-        logo:
-          Logo != null
-            ? { uri: Logo.uri, name: Logo.fileName ?? 'logo.jpg', type: Logo.mimeType ?? 'image/jpeg' }
-            : null,
+        logo: Logo,
       }),
     onSuccess: async (Team) => {
       await QueryClient.invalidateQueries({ queryKey: ['teams'] });
@@ -159,9 +170,19 @@ export default function CreateTeam() {
                 </Pressable>
               </View>
             ) : (
-              <Pressable accessibilityRole="button" onPress={() => void pickLogo()} style={styles.logoPicker}>
-                <Ionicons name="image-outline" size={20} color={Palette.moss} />
-                <Text style={styles.logoPickerText}>Galeriden arma fotoğrafı seç</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => void pickLogo()}
+                disabled={ConvertingLogo}
+                style={styles.logoPicker}>
+                {ConvertingLogo ? (
+                  <ActivityIndicator color={Palette.moss} size="small" />
+                ) : (
+                  <Ionicons name="image-outline" size={20} color={Palette.moss} />
+                )}
+                <Text style={styles.logoPickerText}>
+                  {ConvertingLogo ? 'İşleniyor...' : 'Galeriden arma fotoğrafı seç'}
+                </Text>
               </Pressable>
             )}
           </ScrollView>
@@ -192,26 +213,8 @@ export default function CreateTeam() {
               })}
             </View>
 
-            <Text style={styles.sectionLabel}>PALETTEN SEÇ</Text>
-            <View style={styles.colorGrid}>
-              {EXTENDED_TEAM_COLORS.map((Color) => {
-                const Active = Color === ColorHome;
-
-                return (
-                  <Pressable
-                    key={Color}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: Active }}
-                    onPress={() => setColorHome(Color)}
-                    style={[
-                      styles.colorSwatch,
-                      { backgroundColor: Color },
-                      Active && styles.colorSwatchActive,
-                    ]}
-                  />
-                );
-              })}
-            </View>
+            <Text style={styles.sectionLabel}>YA DA PALETTEN SEÇ</Text>
+            <HueColorPicker value={ColorHome} onChange={setColorHome} />
 
             <View style={styles.preview}>
               {Logo != null ? (
