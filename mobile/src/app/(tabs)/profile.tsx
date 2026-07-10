@@ -10,6 +10,7 @@ import { PostCard } from '@/features/social/PostCard';
 import { getPlayerStats } from '@/features/stats/api';
 import { StatsCard } from '@/features/stats/StatsCard';
 import { Button } from '@/shared/ui/Button';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -68,6 +69,14 @@ export default function Profile() {
       ],
     );
   };
+
+  if (Me.isError) {
+    return (
+      <Screen>
+        <ErrorState onRetry={() => void Me.refetch()} />
+      </Screen>
+    );
+  }
 
   if (Me.isPending) {
     return (

@@ -24,6 +24,7 @@ import {
 import { FALLBACK_CENTER, formatDayLabel, formatTimeLabel } from '@/features/match/constants';
 import { listTeams } from '@/features/team/api';
 import { toApiFailure } from '@/shared/api/client';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -180,6 +181,7 @@ export default function Discover() {
   );
 
   const Loading = Near == null || (Tab === 'players' ? PlayerListings.isPending : OpponentListings.isPending);
+  const IsError = Tab === 'players' ? PlayerListings.isError : OpponentListings.isError;
 
   return (
     <Screen>
@@ -234,6 +236,10 @@ export default function Discover() {
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
         </View>
+      ) : IsError ? (
+        <ErrorState
+          onRetry={() => void (Tab === 'players' ? PlayerListings.refetch() : OpponentListings.refetch())}
+        />
       ) : Tab === 'players' ? (
         <FlatList
           data={PlayerListings.data}

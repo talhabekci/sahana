@@ -6,6 +6,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, Vi
 
 import { PublicPlayer, searchPlayers, searchTeams, TeamSearchResult } from '@/features/social/api';
 import { badgeIonicon } from '@/features/team/constants';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -30,6 +31,7 @@ export default function Search() {
   });
 
   const Loading = ActiveTab === 'player' ? Players.isFetching : Teams.isFetching;
+  const IsError = ActiveTab === 'player' ? Players.isError : Teams.isError;
   const TooShort = Query.trim().length < 2;
 
   return (
@@ -76,6 +78,10 @@ export default function Search() {
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
         </View>
+      ) : IsError ? (
+        <ErrorState
+          onRetry={() => void (ActiveTab === 'player' ? Players.refetch() : Teams.refetch())}
+        />
       ) : ActiveTab === 'player' ? (
         <FlatList
           data={Players.data ?? []}

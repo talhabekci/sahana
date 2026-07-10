@@ -18,6 +18,7 @@ import { getMe } from '@/features/auth/api';
 import { ChatMessage, listDirectMessages, sendDirectMessage } from '@/features/chat/api';
 import { getPlayer } from '@/features/social/api';
 import { disconnectEcho, getEcho } from '@/shared/api/echo';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -137,6 +138,8 @@ export default function DirectChat() {
           <View style={styles.center}>
             <ActivityIndicator color={Palette.lime} />
           </View>
+        ) : List.isError ? (
+          <ErrorState onRetry={() => void List.refetch()} />
         ) : (
           <FlatList
             data={Messages}

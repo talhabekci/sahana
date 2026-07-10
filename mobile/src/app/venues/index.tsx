@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { listVenues } from '@/features/venue/api';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -43,6 +44,8 @@ export default function Venues() {
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
         </View>
+      ) : Venues_.isError ? (
+        <ErrorState onRetry={() => void Venues_.refetch()} />
       ) : (
         <FlatList
           data={Venues_.data ?? []}

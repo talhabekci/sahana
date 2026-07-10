@@ -13,6 +13,7 @@ import {
 
 import { getFeed, likePost, Post, unlikePost } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Type, space } from '@/shared/ui/theme';
 
@@ -79,6 +80,8 @@ export default function Feed() {
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
         </View>
+      ) : Feed_.isError ? (
+        <ErrorState onRetry={() => void Feed_.refetch()} />
       ) : (
         <FlatList
           data={Posts}

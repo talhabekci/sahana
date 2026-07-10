@@ -17,6 +17,7 @@ import { acceptInvite } from '@/features/team/api';
 import { usePendingInviteStore } from '@/features/team/pendingInviteStore';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -176,30 +177,34 @@ export default function Onboarding() {
                 placeholder="İstanbul, Ankara…"
                 autoCorrect={false}
               />
-              <FlatList
-                data={FilteredCities}
-                keyExtractor={(City) => String(City.id)}
-                style={styles.cityList}
-                keyboardShouldPersistTaps="handled"
-                renderItem={({ item }) => {
-                  const Active = CityId === item.id;
+              {Cities.isError ? (
+                <ErrorState onRetry={() => void Cities.refetch()} />
+              ) : (
+                <FlatList
+                  data={FilteredCities}
+                  keyExtractor={(City) => String(City.id)}
+                  style={styles.cityList}
+                  keyboardShouldPersistTaps="handled"
+                  renderItem={({ item }) => {
+                    const Active = CityId === item.id;
 
-                  return (
-                    <Pressable
-                      accessibilityRole="radio"
-                      accessibilityState={{ selected: Active }}
-                      onPress={() => setCityId(item.id)}
-                      style={styles.cityRow}>
-                      <Text style={[styles.cityName, Active && styles.cityNameActive]}>
-                        {item.name}
-                      </Text>
-                      <Text style={[styles.cityPlate, Active && styles.cityPlateActive]}>
-                        {String(item.id).padStart(2, '0')}
-                      </Text>
-                    </Pressable>
-                  );
-                }}
-              />
+                    return (
+                      <Pressable
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: Active }}
+                        onPress={() => setCityId(item.id)}
+                        style={styles.cityRow}>
+                        <Text style={[styles.cityName, Active && styles.cityNameActive]}>
+                          {item.name}
+                        </Text>
+                        <Text style={[styles.cityPlate, Active && styles.cityPlateActive]}>
+                          {String(item.id).padStart(2, '0')}
+                        </Text>
+                      </Pressable>
+                    );
+                  }}
+                />
+              )}
             </View>
           )}
         </View>

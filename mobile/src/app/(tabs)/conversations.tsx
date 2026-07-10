@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 
 import { listConversations } from '@/features/chat/api';
 import { badgeIonicon } from '@/features/team/constants';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -39,6 +40,8 @@ export default function Conversations() {
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
         </View>
+      ) : List.isError ? (
+        <ErrorState onRetry={() => void List.refetch()} />
       ) : (
         <FlatList
           data={List.data ?? []}

@@ -7,6 +7,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { listMatches, Match } from '@/features/match/api';
 import { formatDayLabel, formatTimeLabel, MATCH_STATUS_LABELS } from '@/features/match/constants';
 import { Button } from '@/shared/ui/Button';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -98,6 +99,8 @@ export default function Matches() {
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
         </View>
+      ) : Matches_.isError ? (
+        <ErrorState onRetry={() => void Matches_.refetch()} />
       ) : (
         <FlatList
           data={Matches_.data}

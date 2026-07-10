@@ -16,6 +16,7 @@ import {
 
 import { ChatMessage, listTeamMessages, sendTeamMessage } from '@/features/chat/api';
 import { disconnectEcho, getEcho } from '@/shared/api/echo';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -147,6 +148,8 @@ export default function TeamChat() {
           <View style={styles.center}>
             <ActivityIndicator color={Palette.lime} />
           </View>
+        ) : List.isError ? (
+          <ErrorState onRetry={() => void List.refetch()} />
         ) : (
           <FlatList
             data={Messages}

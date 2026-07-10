@@ -3,6 +3,27 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (2) — Backlog #20 + #21: hata/yeniden deneme ve yükleme tutarlılığı
+
+- **#20 (hata/retry) tamamlandı:** 13 ekranın hiçbirinde `isError` kontrolü
+  yoktu — network hatası, kullanıcıya yanlışlıkla "içerik yok" (boş liste)
+  ya da bazı ekranlarda sonsuz spinner (`player/[id].tsx`, `Player.isPending
+  || Player.data == null` koşulu hata sonrası hiç `false` olmuyordu) olarak
+  görünüyordu. `shared/ui/ErrorState.tsx` (ikon + mesaj + "Tekrar dene")
+  eklendi ve feed, maçlar, sohbetler, takımlar, bildirimler, saha rehberi,
+  DM, takım sohbeti, oyuncu profili, kendi profilim, keşfet, arama,
+  onboarding şehir adımı olmak üzere 13 ekrana uygulandı.
+- **#21 (yükleme tutarlılığı) kapatıldı — kod değişikliği gerekmedi:** aynı
+  denetimde tüm ekranların zaten aynı `ActivityIndicator`/`Button.loading`
+  desenini kullandığı doğrulandı.
+- Doğrulama: `npx tsc --noEmit` ve `npm run lint` temiz (mevcut, alakasız 1
+  axios import uyarısı hariç).
+
+### Sonraki adım
+- Sırada #19 (empty states — mevcut durumda her ekranda zaten bağlamsal
+  metin var, geliştirme daha çok görsel/ikon tutarlılığı) ve ardından
+  kullanıcı netleştirmesi gereken #7/#8/#10/#18/#16.
+
 ## 2026-07-10 — Marka ikonu + splash ekranı, yeni backlog maddeleri (#19-21)
 
 - **Uygulama ikonu/splash:** `mobile/assets/images/{icon,splash-icon,

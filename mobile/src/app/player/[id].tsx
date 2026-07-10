@@ -20,6 +20,7 @@ import { getPlayerStats } from '@/features/stats/api';
 import { StatsCard } from '@/features/stats/StatsCard';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -104,6 +105,14 @@ export default function PlayerProfile() {
       ],
     );
   };
+
+  if (Player.isError) {
+    return (
+      <Screen>
+        <ErrorState onRetry={() => void Player.refetch()} />
+      </Screen>
+    );
+  }
 
   if (Player.isPending || Player.data == null) {
     return (

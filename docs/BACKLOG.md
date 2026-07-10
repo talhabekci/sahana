@@ -294,7 +294,19 @@
   3. Her ekrana bağlamına uygun metin/CTA ile uygulanmalı — jenerik
      "Kayıt yok" yazısı yerine ekrana özel, teşvik edici bir ton.
 
-### 20. Hata / yeniden deneme durumları — network hatası kullanıcıya nasıl göründüğü denetlenmedi
+### 20. Hata / yeniden deneme durumları — network hatası kullanıcıya nasıl göründüğü denetlenmedi ✅
+- **Tamamlandı:** 2026-07-10 — denetim doğruladı: 13 `FlatList`/tekil-veri
+  ekranından **hiçbirinde** `isError` kontrolü yoktu. İki somut ek bulgu:
+  `player/[id].tsx` hata durumunda `Player.isPending || Player.data == null`
+  koşulu yüzünden sonsuza kadar spinner'da kalıyordu; `(tabs)/profile.tsx`
+  da benzer şekilde hata anında sessizce eksik/boş görünüyordu. Ortak
+  `shared/ui/ErrorState.tsx` (ikon + mesaj + "Tekrar dene" butonu, mevcut
+  `Button`/tema token'larıyla) eklendi; feed, maçlar, sohbetler listesi,
+  takımlar, bildirimler, saha rehberi, DM, takım sohbeti, oyuncu profili,
+  kendi profilim, keşfet (adam eksik + rakip arayan sekmeleri), arama
+  (oyuncu + takım sekmeleri), onboarding şehir adımı — toplam 13 ekrana
+  uygulandı. Mutasyon hataları (madde 3) zaten `toApiFailure`/inline metin
+  deseniyle tutarlıydı, ek iş gerekmedi.
 - **Bağlı modül:** cross-cutting
 - **Talep tarihi:** 2026-07-10
 - TanStack Query zaten `isError`/`refetch` state'i sağlıyor, ama ekranların
@@ -314,7 +326,13 @@
      görünüyor (bkz. onboarding.tsx `Error_` deseni) — bu desenin tüm
      mutasyonlarda tutarlı uygulandığı da denetlenmeli.
 
-### 21. Yükleme durumları — spinner/skeleton tutarlılığı
+### 21. Yükleme durumları — spinner/skeleton tutarlılığı ✅
+- **Tamamlandı (denetim, kod değişikliği gerekmedi):** 2026-07-10 — madde
+  #20 denetimi sırasında 13 ekranın tamamı tek tek incelendi: hepsi zaten
+  aynı deseni kullanıyor — tam-sayfa yüklemede merkezi
+  `<ActivityIndicator color={Palette.lime}/>`, aksiyon butonlarında
+  `Button`'ın kendi `loading` prop'u. Sapma bulunmadı; skeleton'a geçiş
+  şu an için gerekli görülmedi (liste boyutları küçük, gecikme az).
 - **Bağlı modül:** cross-cutting
 - **Talep tarihi:** 2026-07-10
 - Ekranlar arası yükleme göstergesi için tek bir standart hiç belirlenmedi

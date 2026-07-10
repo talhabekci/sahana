@@ -9,6 +9,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '@/features/notifications/api';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -106,6 +107,8 @@ export default function Notifications() {
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
         </View>
+      ) : List.isError ? (
+        <ErrorState onRetry={() => void List.refetch()} />
       ) : (
         <FlatList
           data={Items}

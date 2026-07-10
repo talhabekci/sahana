@@ -6,6 +6,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { listTeams, Team } from '@/features/team/api';
 import { badgeIonicon } from '@/features/team/constants';
 import { Button } from '@/shared/ui/Button';
+import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -43,6 +44,8 @@ export default function Teams() {
         <View style={styles.center}>
           <ActivityIndicator color={Palette.lime} />
         </View>
+      ) : Teams.isError ? (
+        <ErrorState onRetry={() => void Teams.refetch()} />
       ) : (
         <FlatList
           data={Teams.data}
