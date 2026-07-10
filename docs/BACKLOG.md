@@ -407,16 +407,26 @@
   JS tarafında özel bir animasyonlu bileşen (Reanimated) gösterilip
   ardından `hideAsync()` çağrılması gerekiyor.
 
-### 23. Gol videosu yükleme — kullanıcı kendi videosunu yükleyebilmeli
+### 23. Gol videosu yükleme — kullanıcı kendi videosunu yükleyebilmeli ✅
+- **Tamamlandı:** 2026-07-11 — "lite" kapsam (tam R2/ffmpeg/HLS pipeline'ı
+  hâlâ yok, kullanıcının "sistemimizi yormamalı" talimatına uygun bilinçli
+  küçültme). **Backend:** `POST /matches/{id}/videos` artık `url` yerine
+  multipart `video` dosyası da kabul ediyor (`videos.storage_path` zaten
+  v1 migration'ında vardı, ek migration gerekmedi). Limit: max 60MB,
+  max 90 sn (client bildirir, sunucu asıl korumayı dosya boyutuyla yapıyor
+  — ffprobe yok). `mimes:mp4,mov,m4v` + `mimetypes:...` ile içerik
+  doğrulama. `DELETE /videos/{id}` artık depodaki dosyayı da siliyor
+  (önceden unutulmuştu — link'ler için sorun değildi, upload ile gerekli
+  oldu). 4 yeni Pest testi (245 toplam), Pint/Larastan temiz.
+  **Mobil:** "Video ekle" artık "Cihazdan yükle" / "Link yapıştır" seçimi
+  sunuyor; galeri video seçimi + 90 sn üstü client-side red + `axios`
+  `onUploadProgress` ile yüzde göstergesi (UI kilitlenmiyor). Video oynatma
+  hâlâ `expo-web-browser` (yeni bir `expo-video` bağımlılığı eklenmedi —
+  bu oturumda zaten 2 yeni native modül eklendiğinden 3'üncüsünden
+  kaçınıldı).
 - **Bağlı modül:** Modül 5 — [05-videos.md](features/05-videos.md) (v1
   spec'i bunu açıkça v2'ye ertelemişti: "R2 + HLS")
 - **Talep tarihi:** 2026-07-10
-- Kullanıcı: "çok uzun olmayacak şekilde, sistemimizi de yormamalı, UI/UX
-  bozulmamalı." Tam HLS transcoding pipeline'ı olmadan, süre/boyut limitli
-  (ör. 60-90 sn, düşük çözünürlük sınırı) doğrudan dosya yükleme + mevcut
-  fotoğraf güvenliği desenine benzer doğrulama (gerçek video içeriği
-  kontrolü, güvenli depolama) ile ele alınmalı. Yükleme sırasında UI'ı
-  kilitlememesi için arka planda ilerleme göstergesiyle yüklenmeli.
 
 ### 24. Gönderi fotoğrafı — kameradan çekme seçeneği eksik ✅
 - **Tamamlandı:** 2026-07-10 — "Fotoğraf ekle" butonu artık galeri/kamera

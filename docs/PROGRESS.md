@@ -3,6 +3,48 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (6) — Backlog #23: gol videosu yükleme (Modül 5 v2-lite)
+
+- Kullanıcının açık talimatı ("çok uzun olmayacak şekilde, sistemimizi de
+  yormamalı, UI/UX bozulmamalı") gereği, spec'teki tam v2 vizyonu (presigned
+  URL → R2 → ffmpeg transcode → HLS) bilinçli olarak "lite" bir sürüme
+  küçültüldü — gerçek altyapı hâlâ kurulmadı, `docs/features/05-videos.md`
+  bunu net şekilde ayırıyor.
+- **Backend:** `POST /matches/{id}/videos`, `url` yanında multipart `video`
+  dosyası da kabul ediyor artık. `videos.storage_path`/`type: uploaded`
+  zaten v1 migration'ında öngörülmüştü — ek migration gerekmedi. Limitler:
+  max 60MB, max 90 sn (`duration_seconds` client'tan geliyor, sunucu
+  tarafında yumuşak doğrulama — ffprobe/ffmpeg kurulu olmadığından gerçek
+  süre server-side doğrulanamıyor; asıl koruma dosya boyutu sınırı).
+  `mimes:mp4,mov,m4v` + `mimetypes:video/mp4,video/quicktime,video/x-m4v`
+  ile içerik doğrulama (görsellerdeki GD decode kadar derin değil ama
+  BACKLOG #7 deseniyle orantılı). `VideoResource`'a `video_url` eklendi.
+- **Önemli düzeltme:** `DELETE /videos/{id}` önceden sadece DB kaydını
+  siliyordu, depodaki dosyayı hiç temizlemiyordu — upload ile birlikte bu
+  artık gerekli olduğundan düzeltildi (link'ler için zaten sorun değildi).
+- 4 yeni Pest testi (245 toplam), Pint + Larastan temiz.
+- **Mobil:** `match/[id]/index.tsx`'teki "Video ekle" butonu artık bir
+  seçim sunuyor: "Cihazdan yükle" (galeriden video seç, 90 sn üstü
+  client-side reddedilir, `axios`'un `onUploadProgress`'i ile yüzde
+  göstergesi — UI kilitlenmiyor, arka planda devam ediyor) veya
+  "Link yapıştır" (mevcut v1 akışı, hiç değişmedi). Video satırına
+  dokununca hem harici link hem yüklenen video aynı `expo-web-browser`
+  `openBrowserAsync` ile açılıyor — yeni bir `expo-video` player
+  bağımlılığı **eklenmedi**: bu oturumda zaten `expo-image-manipulator`
+  ve `expo-audio` eklendiğinden üçüncü bir native modül/rebuild'den
+  kaçınmak bilinçli bir tercihti.
+- Doğrulama: `npx tsc --noEmit` + lint temiz.
+
+### Sonraki adım
+- Backlog'daki bu oturumda planlanan tüm maddeler (#22, #24, #25, #26,
+  #27, #28, #29, #30, #31, #34, #35, #36, #23) tamamlandı. Kalan:
+  #32/#33 (kadro sohbette paylaşma, adam eksik/rakip için paylaşılabilir
+  link — sadece backlog'a not düşülmüştü, kapsam netleşmedi) ve
+  infra/production-readiness işi (Virtuozzo deploy, R2, yasal metin
+  içeriği — hepsi kullanıcı kararı bekliyor). Kullanıcının `expo-image-
+  manipulator` + `expo-audio` için yeni bir development build alması
+  gerekiyor, bu oturumda teyit edilmedi.
+
 ## 2026-07-11 (5) — Backlog #26: takım sohbetinde fotoğraf + ses kaydı
 
 - **Backend:** `Message::TYPES`'a `audio` eklendi (`audio_path`,

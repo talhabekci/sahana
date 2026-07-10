@@ -63,6 +63,7 @@ export type MatchVideo = {
   type: 'external_link' | 'uploaded';
   provider: VideoProvider;
   url: string | null;
+  video_url: string | null;
   title: string | null;
   thumbnail_url: string | null;
   uploader?: { id: string; name: string | null };
@@ -242,6 +243,32 @@ export async function listMatchVideos(matchId: string): Promise<MatchVideo[]> {
 
 export async function addMatchVideo(matchId: string, url: string): Promise<MatchVideo> {
   const { data } = await Api.post<{ data: MatchVideo }>(`/matches/${matchId}/videos`, { url });
+
+  return data.data;
+}
+
+export async function uploadMatchVideo(
+  matchId: string,
+  file: { uri: string; name: string; type: string },
+  durationSeconds: number | null,
+  onProgress?: (percent: number) => void,
+): Promise<MatchVideo> {
+  const Form = new FormData();
+  Form.append('video', { uri: file.uri, name: file.name, type: file.type } as unknown as Blob);
+
+  if (durationSeconds != null) {
+    Form.append('duration_seconds', String(durationSeconds));
+  }
+
+  const { data } = await Api.post<{ data: MatchVideo }>(`/matches/${matchId}/videos`, Form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000,
+    onUploadProgress: (Event) => {
+      if (onProgress != null && Event.total != null) {
+        onProgress(Math.round((Event.loaded / Event.total) * 100));
+      }
+    },
+  });
 
   return data.data;
 }

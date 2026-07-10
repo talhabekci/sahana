@@ -12,6 +12,7 @@ use App\Models\Video;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Storage;
 
 class VideoController extends Controller
 {
@@ -31,7 +32,13 @@ class VideoController extends Controller
         /** @var User $Uploader */
         $Uploader = $Request->user();
 
-        $Video = $Action->handle($Match, $Uploader, $Request->validated('url'));
+        if ($Request->hasFile('video')) {
+            $StoragePath = $Request->file('video')->store('match-videos', 'public');
+            $Video = $Action->handleUpload($Match, $Uploader, $StoragePath);
+        } else {
+            $Video = $Action->handle($Match, $Uploader, $Request->validated('url'));
+        }
+
         $Video->load('user');
 
         return (new VideoResource($Video))->response()->setStatusCode(201);
@@ -40,6 +47,10 @@ class VideoController extends Controller
     public function destroy(Request $Request, Video $Video): JsonResponse
     {
         $this->authorize('delete', $Video);
+
+        if ($Video->storage_path !== null) {
+            Storage::disk('public')->delete($Video->storage_path);
+        }
 
         $Video->delete();
 

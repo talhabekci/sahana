@@ -34,4 +34,20 @@ class AddVideoToMatch
 
         return $Video;
     }
+
+    /** Kullanıcının kendi çektiği video — harici link/oEmbed yok, dosya zaten yüklenmiş (Modül 5 v2). */
+    public function handleUpload(FootballMatch $Match, User $Uploader, string $StoragePath): Video
+    {
+        $Video = Video::create([
+            'match_id' => $Match->id,
+            'user_id' => $Uploader->id,
+            'type' => 'uploaded',
+            'provider' => 'other',
+            'storage_path' => $StoragePath,
+        ]);
+
+        $this->CreateSharedPost->handle($Video, $Uploader);
+
+        return $Video;
+    }
 }

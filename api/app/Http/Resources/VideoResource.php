@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Video;
+use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,6 +22,7 @@ class VideoResource extends JsonResource
             'type' => $this->type,
             'provider' => $this->provider,
             'url' => $this->url,
+            'video_url' => ImageUploader::url($this->storage_path),
             'title' => $this->title,
             'thumbnail_url' => $this->thumbnail_url,
             'uploader' => $this->whenLoaded('user', fn (): array => [

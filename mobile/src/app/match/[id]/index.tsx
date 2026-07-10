@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
@@ -33,6 +34,7 @@ import {
   Rsvp,
   submitPlayerStat,
   submitRsvp,
+  uploadMatchVideo,
 } from '@/features/match/api';
 import {
   formatDayLabel,
@@ -77,6 +79,57 @@ export default function MatchDetail() {
     },
     onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
   });
+
+  const [UploadProgress, setUploadProgress] = useState<number | null>(null);
+
+  const UploadVideo = useMutation({
+    mutationFn: ({
+      file,
+      durationSeconds,
+    }: {
+      file: { uri: string; name: string; type: string };
+      durationSeconds: number | null;
+    }) => uploadMatchVideo(id, file, durationSeconds, setUploadProgress),
+    onSuccess: () => {
+      setUploadProgress(null);
+      void QueryClient.invalidateQueries({ queryKey: ['matches', id, 'videos'] });
+    },
+    onError: (E) => {
+      setUploadProgress(null);
+      Alert.alert('Olmadı', toApiFailure(E).message);
+    },
+  });
+
+  const pickVideoFile = async () => {
+    const Result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 0.7 });
+
+    if (Result.canceled) {
+      return;
+    }
+
+    const Asset = Result.assets[0];
+    const DurationSeconds = Asset.duration != null ? Math.round(Asset.duration / 1000) : null;
+
+    if (DurationSeconds != null && DurationSeconds > 90) {
+      Alert.alert('Video çok uzun', 'En fazla 90 saniyelik video yükleyebilirsin.');
+
+      return;
+    }
+
+    setUploadProgress(0);
+    UploadVideo.mutate({
+      file: { uri: Asset.uri, name: 'video.mp4', type: Asset.mimeType ?? 'video/mp4' },
+      durationSeconds: DurationSeconds,
+    });
+  };
+
+  const promptAddVideo = () => {
+    Alert.alert('Video ekle', undefined, [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Cihazdan yükle (max 90 sn)', onPress: () => void pickVideoFile() },
+      { text: 'Link yapıştır', onPress: () => setVideoModalVisible(true) },
+    ]);
+  };
 
   const [ResultModalVisible, setResultModalVisible] = useState(false);
   const [HomeScore, setHomeScore] = useState('');
@@ -401,8 +454,10 @@ export default function MatchDetail() {
                     key={Video_.id}
                     accessibilityRole="button"
                     onPress={() => {
-                      if (Video_.url != null) {
-                        void WebBrowser.openBrowserAsync(Video_.url);
+                      const PlayableUrl = Video_.video_url ?? Video_.url;
+
+                      if (PlayableUrl != null) {
+                        void WebBrowser.openBrowserAsync(PlayableUrl);
                       }
                     }}
                     style={styles.videoRow}>
@@ -418,10 +473,17 @@ export default function MatchDetail() {
               </View>
             )}
 
-            {Data.i_am_participant === true && (
+            {UploadProgress != null && (
+              <View style={styles.uploadProgressRow}>
+                <ActivityIndicator color={Palette.lime} size="small" />
+                <Text style={styles.uploadProgressText}>Video yükleniyor... %{UploadProgress}</Text>
+              </View>
+            )}
+
+            {Data.i_am_participant === true && UploadProgress == null && (
               <Pressable
                 accessibilityRole="button"
-                onPress={() => setVideoModalVisible(true)}
+                onPress={promptAddVideo}
                 style={styles.addVideoButton}
                 hitSlop={8}>
                 <Ionicons name="add-circle-outline" size={18} color={Palette.lime} />
@@ -812,6 +874,17 @@ const styles = StyleSheet.create({
     fontFamily: Type.bodyMedium,
     fontSize: 14,
     color: Palette.lime,
+  },
+  uploadProgressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    marginTop: space(3),
+  },
+  uploadProgressText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.moss,
   },
   modalBackdrop: {
     flex: 1,

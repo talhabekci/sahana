@@ -1,6 +1,7 @@
 # Modül 5 — Maç Videoları
 
-> Durum: **v1 uygulandı** (2026-07-06, API + mobil) · v1.5/v2/v3 bekliyor ·
+> Durum: **v1 + v1.5 + v2-lite uygulandı** (v1: 2026-07-06, v2-lite: 2026-07-11) ·
+> v3 bekliyor · gerçek R2/ffmpeg pipeline'ı hâlâ açık (bkz. v2 bölümü) ·
 > MVP sonrası · Bağımlılık: Modül 3, 4
 > Araştırma: [../research/sosyalhalisaha.md](../research/sosyalhalisaha.md)
 
@@ -57,8 +58,42 @@ Kullanıcının videosunu sosyalhalisaha'da bulmasını kolaylaştıran, ama
 - Bu adım tamamen opsiyonel ve kullanıcı inisiyatifli; otomatik/arka planda
   video varlığı kontrolü **yapılmayacak**.
 
-## v2 — Kullanıcı Yüklemesi
-- Telefonla çekilen maç/highlight videosu yükleme
+## v2 — Kullanıcı Yüklemesi ✅ (2026-07-11, "lite" kapsam — BACKLOG #23)
+
+Kullanıcı açık talimat verdi: "çok uzun olmayacak şekilde, sistemimizi de
+yormamalı, UI/UX bozulmamalı." Bu nedenle aşağıdaki tam v2 vizyonu
+**bilinçli olarak küçültüldü** — R2/presigned URL/ffmpeg transcode/HLS
+pipeline'ı hâlâ yok (Açık Sorular'daki ffmpeg worker kararı bekliyor).
+
+- **Gerçekte uygulanan:** `POST /matches/{id}/videos`, `url` yerine
+  multipart `video` dosyası alır (`type: uploaded`, `videos.storage_path`
+  zaten v1 migration'ında öngörülmüştü). Doğrudan `Storage::disk('public')`
+  üzerine kaydedilir — transcode/HLS yok, tek dosya sunucudan doğrudan
+  servis edilir.
+- **Limitler:** max 60MB dosya boyutu, max 90 saniye (client `duration_seconds`
+  ile bildirir, sunucu tarafında yumuşak doğrulama — sunucunun asıl
+  koruması dosya boyutu sınırı; ffprobe/ffmpeg kurulu olmadığından gerçek
+  süre server-side doğrulanamıyor, bu bilinçli bir sınırlama).
+  `mimes:mp4,mov,m4v` + `mimetypes:video/mp4,video/quicktime,video/x-m4v`
+  ile "gerçek içerik" kontrolü (görsellerdeki GD decode kadar derin değil,
+  ama BACKLOG #7 deseniyle aynı seviyede orantılı bir doğrulama).
+- **Mobil:** `match/[id]/index.tsx`'teki "Video ekle" artık bir seçim
+  sunuyor: "Cihazdan yükle" (galeriden video seç, 90 sn üstü client-side
+  reddedilir, `axios` `onUploadProgress` ile yükleme yüzdesi gösterilir —
+  UI kilitlenmiyor) veya "Link yapıştır" (mevcut v1 akışı, değişmedi).
+  Video satırına dokununca hem harici link hem yüklenen video aynı
+  `expo-web-browser` `openBrowserAsync` ile açılıyor (yeni bir video
+  player native bağımlılığı — `expo-video` — eklenmedi; bu oturumda zaten
+  iki yeni native modül (`expo-image-manipulator`, `expo-audio`) eklendiği
+  için üçüncüsünü eklememek bilinçli bir tercih).
+- Silme (`DELETE /videos/{id}`) artık depodaki dosyayı da temizliyor
+  (önceden sadece DB kaydı siliniyordu — v1'de link'ler için bu bir sorun
+  değildi, upload ile birlikte gerekli oldu).
+- **Yapılmadı (asıl v2 vizyonu, hâlâ açık):** presigned URL → R2, ffmpeg
+  transcode/HLS, 3 dk/500 MB limiti. Aşağıdaki orijinal not olduğu gibi
+  kalıyor, gelecekte gerçek altyapı kurulunca bu "lite" sürüm yerini alır.
+
+### Orijinal v2 vizyonu (henüz kurulmadı)
 - Akış: presigned URL → doğrudan R2'ye upload → transcode job (ffmpeg,
   720p/1080p HLS) → hazır olunca push
 - Limitler (ilk öneri): max 3 dk / 500 MB; maça bağlı olma şartı
@@ -70,10 +105,10 @@ Kullanıcının videosunu sosyalhalisaha'da bulmasını kolaylaştıran, ama
   ama sosyal ağa gömülü)
 - Otomatik highlight kesme (gol anı tespiti) — ML araştırma konusu
 
-## Taslak API
-`POST /matches/{id}/videos` `{url}` veya `{upload_path}` ·
-`GET /matches/{id}/videos` · `DELETE /videos/{id}` ·
-`POST /uploads/video` → presigned URL (v2)
+## API
+`POST /matches/{id}/videos` — `{url}` (harici link, v1) **veya** multipart
+`{video: file, duration_seconds?}` (kullanıcı yüklemesi, v2-lite) ·
+`GET /matches/{id}/videos` · `DELETE /videos/{id}` (yüklenen dosyayı da siler)
 
 ## Kabul Kriterleri (v1)
 - [x] Maça katılan bir oyuncu video linki ekleyebiliyor; katılmayan biri ekleyemiyor (403)
@@ -82,6 +117,13 @@ Kullanıcının videosunu sosyalhalisaha'da bulmasını kolaylaştıran, ama
 - [x] sosyalhalisaha/diğer linkler otomatik çekilmiyor/parse edilmiyor (job sadece OG meta okur, sonucu re-host etmez)
 - [x] Video eklenince takım/takipçi feed'inde `video_shared` kartı görünüyor
 - [x] Ekleyen ya da takım kaptanı videoyu silebiliyor; başka katılımcı silemiyor (403)
+
+## Kabul Kriterleri (v2-lite)
+- [x] Maça katılan bir oyuncu cihazından video yükleyebiliyor; katılmayan biri yükleyemiyor (403)
+- [x] 60MB üstü ya da mp4/mov/m4v dışı dosya 422 ile reddediliyor
+- [x] Yüklenen video da `video_shared` feed kartı oluşturuyor (link ile aynı davranış)
+- [x] Video silinince hem DB kaydı hem depodaki dosya temizleniyor
+- [x] Yükleme sırasında UI kilitlenmiyor (ilerleme yüzdesi gösteriliyor)
 
 ## Açık Sorular
 - [ ] v2 transcode: VPS'te ffmpeg worker mı, Cloudflare Stream mi? (maliyet analizi)

@@ -4,7 +4,9 @@ use App\Models\FootballMatch;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Video;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 function videoMatchWithParticipant(): array
 {
@@ -76,6 +78,62 @@ it('validates the video url', function () {
     $this->actingAs($Player)->postJson("/api/v1/matches/{$Match->public_id}/videos", [
         'url' => 'bu-bir-url-degil',
     ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
+it('lets a participant upload their own match video', function () {
+    Storage::fake('public');
+    [$Match, $Player] = videoMatchWithParticipant();
+
+    $Response = $this->actingAs($Player)->post("/api/v1/matches/{$Match->public_id}/videos", [
+        'video' => UploadedFile::fake()->create('gol.mp4', 2048, 'video/mp4'),
+        'duration_seconds' => 45,
+    ])->assertCreated();
+
+    $Response->assertJsonPath('data.type', 'uploaded');
+    expect($Response->json('data.video_url'))->not->toBeNull();
+
+    $Video = Video::where('match_id', $Match->id)->first();
+    Storage::disk('public')->assertExists($Video->storage_path);
+
+    $this->assertDatabaseHas('posts', [
+        'type' => 'video_shared',
+        'match_id' => $Match->id,
+        'user_id' => $Player->id,
+    ]);
+});
+
+it('rejects an oversized video upload', function () {
+    Storage::fake('public');
+    [$Match, $Player] = videoMatchWithParticipant();
+
+    $this->actingAs($Player)->post("/api/v1/matches/{$Match->public_id}/videos", [
+        'video' => UploadedFile::fake()->create('gol.mp4', 70000, 'video/mp4'),
+    ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
+it('rejects a video upload with a disallowed file type', function () {
+    Storage::fake('public');
+    [$Match, $Player] = videoMatchWithParticipant();
+
+    $this->actingAs($Player)->post("/api/v1/matches/{$Match->public_id}/videos", [
+        'video' => UploadedFile::fake()->create('evil.exe', 100, 'application/x-msdownload'),
+    ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
+it('deletes the stored file when an uploaded video is removed', function () {
+    Storage::fake('public');
+    [$Match, $Player] = videoMatchWithParticipant();
+
+    $Response = $this->actingAs($Player)->post("/api/v1/matches/{$Match->public_id}/videos", [
+        'video' => UploadedFile::fake()->create('gol.mp4', 2048, 'video/mp4'),
+    ])->assertCreated();
+
+    $Video = Video::where('match_id', $Match->id)->first();
+    Storage::disk('public')->assertExists($Video->storage_path);
+
+    $this->actingAs($Player)->deleteJson("/api/v1/videos/{$Response->json('data.id')}")->assertOk();
+
+    Storage::disk('public')->assertMissing($Video->storage_path);
 });
 
 it('skips the auto video_shared post when the uploader disabled auto posts', function () {
