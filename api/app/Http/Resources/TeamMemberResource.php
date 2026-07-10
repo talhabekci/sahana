@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\User;
+use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,7 +20,7 @@ class TeamMemberResource extends JsonResource
         return [
             'id' => $this->public_id,
             'name' => $this->name,
-            'avatar_path' => $this->avatar_path,
+            'avatar_path' => ImageUploader::url($this->avatar_path),
             'role' => $this->pivot->role,
             'jersey_number' => $this->pivot->jersey_number,
             'joined_at' => $this->pivot->joined_at->toIso8601String(),

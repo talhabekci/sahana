@@ -3,6 +3,8 @@
 use App\Models\Follow;
 use App\Models\PlayerProfile;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 it('returns the authenticated user with profile', function () {
     $User = User::factory()->create();
@@ -57,6 +59,48 @@ it('updates an existing profile partially', function () {
     $this->actingAs($User)->patchJson('/api/v1/me', ['level' => 5])
         ->assertOk()
         ->assertJsonPath('data.profile.level', 5);
+});
+
+it('updates the birth date', function () {
+    $User = User::factory()->create();
+    PlayerProfile::factory()->for($User)->create();
+
+    $this->actingAs($User)->patchJson('/api/v1/me', ['birth_date' => '1998-05-20'])
+        ->assertOk()
+        ->assertJsonPath('data.profile.birth_date', '1998-05-20');
+});
+
+it('rejects a birth date in the future', function () {
+    $User = User::factory()->create();
+    PlayerProfile::factory()->for($User)->create();
+
+    $this->actingAs($User)->patchJson('/api/v1/me', ['birth_date' => now()->addDay()->toDateString()])
+        ->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
+it('lets the user upload a profile photo', function () {
+    Storage::fake('public');
+    $User = User::factory()->create();
+
+    $Response = $this->actingAs($User)->post('/api/v1/me', [
+        '_method' => 'PATCH',
+        'avatar' => UploadedFile::fake()->image('avatar.jpg', 200, 200),
+    ])->assertOk();
+
+    expect($Response->json('data.avatar_path'))->not->toBeNull();
+
+    $User->refresh();
+    Storage::disk('public')->assertExists($User->avatar_path);
+});
+
+it('rejects a corrupt file as a profile photo', function () {
+    Storage::fake('public');
+    $User = User::factory()->create();
+
+    $this->actingAs($User)->post('/api/v1/me', [
+        '_method' => 'PATCH',
+        'avatar' => UploadedFile::fake()->create('fake.jpg', 10, 'image/jpeg'),
+    ])->assertStatus(422)->assertJsonPath('code', 'invalid_image');
 });
 
 it('rejects first profile creation with missing required fields', function () {

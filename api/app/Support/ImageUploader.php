@@ -34,4 +34,10 @@ class ImageUploader
 
         return $Path;
     }
+
+    /** Resource'larda depolanan yolu (ör. `avatar_path`) tam bir genel URL'e çevirir. */
+    public static function url(?string $Path): ?string
+    {
+        return $Path !== null ? Storage::disk('public')->url($Path) : null;
+    }
 }

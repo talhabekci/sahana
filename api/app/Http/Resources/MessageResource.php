@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Models\Message;
 use App\Models\User;
+use App\Support\ImageUploader;
 
 /**
  * Message MongoDB modeli olduğu için standart JsonResource (Eloquent
@@ -19,13 +20,13 @@ class MessageResource
             'id' => (string) $Message->id,
             'type' => $Message->type,
             'body' => $Message->body,
-            'image_path' => $Message->image_path,
+            'image_path' => ImageUploader::url($Message->image_path),
             'match_id' => $Message->match_id,
             'lineup_id' => $Message->lineup_id,
             'author' => $Author !== null ? [
                 'id' => $Author->public_id,
                 'name' => $Author->name,
-                'avatar_path' => $Author->avatar_path,
+                'avatar_path' => ImageUploader::url($Author->avatar_path),
             ] : null,
             'created_at' => $Message->created_at->toIso8601String(),
         ];

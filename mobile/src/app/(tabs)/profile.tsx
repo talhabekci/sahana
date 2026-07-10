@@ -1,6 +1,7 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { deleteMe, getMe, logout } from '@/features/auth/api';
 import { POSITIONS } from '@/features/auth/PitchPositionPicker';
@@ -17,6 +18,18 @@ import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
 function positionLabel(Key: string): string {
   return POSITIONS.find((Position) => Position.key === Key)?.label ?? Key;
+}
+
+function initials(name: string | null | undefined): string {
+  if (name == null || name.trim() === '') {
+    return '?';
+  }
+
+  const Parts = name.trim().split(/\s+/);
+  const First = Parts[0]?.[0] ?? '';
+  const Last = Parts.length > 1 ? (Parts[Parts.length - 1]?.[0] ?? '') : '';
+
+  return (First + Last).toUpperCase();
 }
 
 export default function Profile() {
@@ -102,7 +115,25 @@ export default function Profile() {
             <Text style={styles.kicker}>PROFİL</Text>
 
             <View style={styles.card}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => Router.push('/profile-edit')}
+                style={styles.editButton}
+                hitSlop={8}>
+                <Ionicons name="pencil" size={16} color={Palette.moss} />
+              </Pressable>
+
               <View style={styles.cardTop}>
+                <View style={styles.avatarWrap}>
+                  {Data?.avatar_path != null ? (
+                    <Image source={{ uri: Data.avatar_path }} style={styles.avatar} />
+                  ) : (
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarInitials}>{initials(Data?.name)}</Text>
+                    </View>
+                  )}
+                </View>
+
                 <View style={styles.flexShrink}>
                   <Text style={styles.name}>{Data?.name ?? 'İsimsiz Oyuncu'}</Text>
                   <Text style={styles.city}>
@@ -212,11 +243,40 @@ const styles = StyleSheet.create({
     borderColor: Palette.lineFaint,
     padding: space(5),
   },
+  editButton: {
+    position: 'absolute',
+    top: space(4),
+    right: space(4),
+    width: 30,
+    height: 30,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.turfRaised,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
   cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     gap: space(3),
+  },
+  avatarWrap: {
+    marginRight: space(1),
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.turfRaised,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarInitials: {
+    fontFamily: Type.bodyBold,
+    fontSize: 18,
+    color: Palette.lime,
   },
   flexShrink: {
     flexShrink: 1,

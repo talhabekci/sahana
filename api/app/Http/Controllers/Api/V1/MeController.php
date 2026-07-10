@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateMeRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -25,11 +26,17 @@ class MeController extends Controller
         /** @var User $User */
         $User = $Request->user();
 
-        if ($Request->safe()->has('name')) {
-            $User->update(['name' => $Request->validated('name')]);
+        if ($Request->safe()->has('name') || $Request->hasFile('avatar')) {
+            $UserData = $Request->safe()->only(['name']);
+
+            if ($Request->hasFile('avatar')) {
+                $UserData['avatar_path'] = ImageUploader::store($Request->file('avatar'), 'avatars');
+            }
+
+            $User->update($UserData);
         }
 
-        $ProfileData = $Request->safe()->except(['name']);
+        $ProfileData = $Request->safe()->except(['name', 'avatar']);
 
         if ($ProfileData !== []) {
             $Profile = $User->profile;

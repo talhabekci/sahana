@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\ListingApplication;
+use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,7 +24,7 @@ class ListingApplicationResource extends JsonResource
             'applicant' => $this->whenLoaded('user', fn (): array => [
                 'id' => $this->user->public_id,
                 'name' => $this->user->name,
-                'avatar_path' => $this->user->avatar_path,
+                'avatar_path' => ImageUploader::url($this->user->avatar_path),
             ]),
             'created_at' => $this->created_at?->toIso8601String(),
             'decided_at' => $this->decided_at?->toIso8601String(),

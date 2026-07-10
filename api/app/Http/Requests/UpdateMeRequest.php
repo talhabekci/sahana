@@ -28,6 +28,8 @@ class UpdateMeRequest extends FormRequest
             'district' => ['sometimes', 'nullable', 'string', 'max:60'],
             'availability' => ['sometimes', 'nullable', 'array'],
             'bio' => ['sometimes', 'nullable', 'string', 'max:160'],
+            'birth_date' => ['sometimes', 'nullable', 'date', 'before:today'],
+            'avatar' => ['sometimes', 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic', 'max:10240'],
         ];
     }
 }

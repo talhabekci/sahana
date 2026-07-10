@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Post;
+use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +28,7 @@ class PostResource extends JsonResource
             'author' => $this->whenLoaded('user', fn (): array => [
                 'id' => $this->user->public_id,
                 'name' => $this->user->name,
-                'avatar_path' => $this->user->avatar_path,
+                'avatar_path' => ImageUploader::url($this->user->avatar_path),
             ]),
             'team' => $this->whenLoaded('team', fn (): ?array => $this->team !== null ? [
                 'id' => $this->team->public_id,

@@ -6,9 +6,11 @@ use Database\Factories\PlayerProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property array<string, bool>|null $notification_preferences
+ * @property Carbon|null $birth_date
  */
 class PlayerProfile extends Model
 {
@@ -39,6 +41,7 @@ class PlayerProfile extends Model
         'district',
         'availability',
         'bio',
+        'birth_date',
         'auto_posts_enabled',
         'quiet_hours_enabled',
         'notification_preferences',
@@ -52,6 +55,7 @@ class PlayerProfile extends Model
             'positions' => 'array',
             'availability' => 'array',
             'level' => 'integer',
+            'birth_date' => 'date',
             'auto_posts_enabled' => 'boolean',
             'quiet_hours_enabled' => 'boolean',
             'notification_preferences' => 'array',

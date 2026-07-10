@@ -31,7 +31,7 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 | Alan | Tip | Zorunlu | Not |
 |---|---|---|---|
 | name | string | ✅ | Kayıtta istenir |
-| avatar | görsel | – | Crop + EXIF temizleme |
+| avatar | görsel | – | Kamera/galeri, `ImageUploader` ile JPEG'e re-encode + EXIF/GPS temizleme |
 | positions | çoklu seçim | ✅ | kaleci, defans, orta saha, forvet (çoklu) |
 | foot | enum L/R/B | – | |
 | level | 1-5 | ✅ | Kendi beyanı; Modül 6'da reytingle dengelenir |
@@ -39,6 +39,7 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 | district | serbest metin | – | İlçe seed listesi v1.1'de seçime dönüşecek |
 | availability | JSON | – | Haftanın günleri + saat aralıkları |
 | bio | string(160) | – | |
+| birth_date | date | – | Geçmiş tarih zorunlu (`before:today`); yaş bazlı öneri/istatistik için veri toplama amaçlı (Backlog #27) |
 
 ## Ekranlar (expo-router)
 ```
@@ -46,7 +47,8 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 (auth)/identifier   → telefon/e-posta girişi (e-posta OTP kararı sonrası)
 (auth)/otp          → 6 haneli kod, 120sn geri sayım, tekrar gönder
 (auth)/onboarding   → isim → mevki(ler) → seviye → şehir (adım adım, atlanabilir alanlar hariç)
-(tabs)/profile      → kendi profilim + düzenle
+(tabs)/profile      → kendi profilim (avatar, takipçi/takip sayıları, düzenle butonu)
+profile-edit        → profil bilgilerini + fotoğrafını tek form üzerinden düzenleme
 player/[id]         → başka oyuncunun profili
 ```
 
@@ -71,7 +73,8 @@ E-posta OTP kuyruklu Mailable ile; SMS `SmsSender` arayüzü ile (lokal: log dri
 ## Veri Modeli
 `users` (id, public_id, phone uniq nullable, name, avatar_path, provider alanları,
 deleted_at) + `player_profiles` (user_id 1:1, positions JSON, foot, level,
-city_id, district_id, availability JSON, bio). Şehir/ilçe: statik seed tablosu.
+city_id, district_id, availability JSON, bio, birth_date nullable date).
+Şehir/ilçe: statik seed tablosu.
 
 ## Kabul Kriterleri
 - [ ] Yeni numara ile kayıt → onboarding → profil oluşturma < 60 sn tamamlanabiliyor
@@ -85,5 +88,5 @@ city_id, district_id, availability JSON, bio). Şehir/ilçe: statik seed tablosu
 - [x] ~~OTP kanalı~~ → e-posta OTP v1'de aktif (kullanıcı kararı 2026-07-03)
 - [ ] SMS sağlayıcısı seçimi (Netgsm vs İleti Merkezi — fiyat/deliverability)
 - [ ] Kullanıcı adı (@handle) v1'de olsun mu, yoksa Modül 4 (sosyal) ile mi gelsin?
-- [ ] Avatar yükleme: R2 hesabı açılınca presigned URL akışıyla eklenecek
-      (api-conventions §7); o zamana dek profil fotoğrafsız
+- [x] ~~Avatar yükleme~~ → Backlog #27 ile eklendi; şu an `Storage::disk('public')` (yerel),
+      R2'ye taşıma docs/PRODUCTION-READINESS.md'de ayrı madde olarak duruyor

@@ -11,6 +11,7 @@ export type Profile = {
   district: string | null;
   availability: Record<string, string[]> | null;
   bio: string | null;
+  birth_date: string | null;
 };
 
 export type Me = {
@@ -34,6 +35,8 @@ export type UpdateMePayload = Partial<{
   city_id: number;
   district: string | null;
   bio: string | null;
+  birth_date: string | null;
+  avatar: { uri: string; name: string; type: string } | null;
 }>;
 
 export async function requestOtp(Identifier: string): Promise<void> {
@@ -56,7 +59,36 @@ export async function getMe(): Promise<Me> {
 }
 
 export async function updateMe(Payload: UpdateMePayload): Promise<Me> {
-  const { data } = await Api.patch<{ data: Me }>('/me', Payload);
+  if (Payload.avatar == null) {
+    const { data } = await Api.patch<{ data: Me }>('/me', Payload);
+
+    return data.data;
+  }
+
+  const Form = new FormData();
+
+  for (const [Key, Value] of Object.entries(Payload)) {
+    if (Key === 'avatar' || Value == null) {
+      continue;
+    }
+
+    if (Array.isArray(Value)) {
+      Value.forEach((Item) => Form.append(`${Key}[]`, String(Item)));
+    } else {
+      Form.append(Key, String(Value));
+    }
+  }
+
+  Form.append('avatar', {
+    uri: Payload.avatar.uri,
+    name: Payload.avatar.name,
+    type: Payload.avatar.type,
+  } as unknown as Blob);
+  Form.append('_method', 'PATCH');
+
+  const { data } = await Api.post<{ data: Me }>('/me', Form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 
   return data.data;
 }

@@ -446,18 +446,24 @@
   gerekiyor. DM sohbetine de aynı ihtiyaç genişletilebilir (kullanıcı
   sadece takım sohbetini belirtti, kapsam netleşirken DM de değerlendirilir).
 
-### 27. Profil fotoğrafı yükleme + profil düzenleme eksik (doğum tarihi vb.)
+### 27. Profil fotoğrafı yükleme + profil düzenleme eksik (doğum tarihi vb.) ✅
+- **Tamamlandı:** 2026-07-11 — `player_profiles.birth_date` (nullable date,
+  `before:today` validasyonu) eklendi; `PATCH /me` artık `avatar` dosyası
+  kabul ediyor (`ImageUploader::store(..., 'avatars')`, aynı güvenlik
+  deseni: gerçek görsel doğrulama + JPEG re-encode + EXIF/GPS temizleme).
+  Groundwork olarak `avatar_path` alanının API genelinde **hiçbir zaman**
+  tam URL'e çözülmediği fark edildi (8 farklı Resource dosyası) — hepsi
+  `ImageUploader::url()` ile düzeltildi (`CommentResource`,
+  `ListingApplicationResource`, `VenueReviewResource`, `MessageResource`
+  [`avatar_path` + kullanılmayan `image_path`], `TeamMemberResource`,
+  `UserResource`, `PlayerPublicResource`, `PostResource`). Mobilde yeni
+  `profile-edit.tsx` ekranı: avatar (kamera/galeri + `ensureJpeg`), isim,
+  mevki(ler), seviye, şehir (arama modalı), ilçe, hakkında, doğum tarihi
+  (GG/AA/YYYY üç ayrı alan — native date picker bağımlılığı eklemeden).
+  `(tabs)/profile.tsx`'e avatar gösterimi ve düzenle butonu eklendi.
+  4 yeni Pest testi (237 toplam), Pint/Larastan temiz.
 - **Bağlı modül:** Modül 1 — [01-auth-profile.md](features/01-auth-profile.md)
 - **Talep tarihi:** 2026-07-10
-- `avatar_path` alanı API'de var ama hiçbir yerden yazılmıyor (oturum
-  boyunca defalarca not edildi) — kullanıcı profil fotoğrafı hiç
-  yükleyemiyor. Ayrıca profilini hiçbir şekilde düzenleyemiyor (sadece
-  onboarding'de bir kere girilen bilgiler sabit kalıyor). Kullanıcı
-  "profil kısmı çok zayıf" diyor ve veri toplamak istiyor — en azından
-  doğum tarihi eklenmeli (yeni `birth_date` alanı, `player_profiles`
-  tablosuna). Bir "profili düzenle" ekranı: isim, mevki(ler), seviye,
-  şehir, bio, doğum tarihi, profil fotoğrafı (BACKLOG #7'deki güvenlik
-  desenine uygun upload).
 
 ### 28. Profilde takip ettiklerim/takipçilerim listesi görünmüyor (sadece sayı) ✅
 - **Tamamlandı:** 2026-07-11 — `GET /players/{id}/followers` ve

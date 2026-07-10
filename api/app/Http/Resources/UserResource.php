@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\User;
+use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,7 +24,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'phone' => $this->phone,
-            'avatar_path' => $this->avatar_path,
+            'avatar_path' => ImageUploader::url($this->avatar_path),
             'profile' => $this->whenLoaded('profile', fn (): array => [
                 'positions' => $this->profile?->positions,
                 'foot' => $this->profile?->foot,
@@ -33,6 +34,7 @@ class UserResource extends JsonResource
                 'district' => $this->profile?->district,
                 'availability' => $this->profile?->availability,
                 'bio' => $this->profile?->bio,
+                'birth_date' => $this->profile?->birth_date?->toDateString(),
             ]),
             'followers_count' => $this->followers_count ?? $this->followers()->count(),
             'following_count' => $this->following_count ?? $this->following()->count(),

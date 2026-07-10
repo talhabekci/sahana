@@ -3,6 +3,42 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (3) — Backlog #27: profil fotoğrafı yükleme + profil düzenleme
+
+- **Backend:** `player_profiles.birth_date` (nullable date, `before:today`)
+  eklendi. `PATCH /me` artık `avatar` dosyası kabul ediyor —
+  `ImageUploader::store(..., 'avatars')` ile aynı güvenlik deseni
+  (gerçek görsel doğrulama, JPEG re-encode, EXIF/GPS temizleme).
+  `ImageUploader::url()` statik yardımcı eklendi.
+- **Önemli düzeltme (groundwork):** `avatar_path` API genelinde hiçbir
+  zaman tam URL'e çözülmüyormuş — 8 Resource dosyasında (`CommentResource`,
+  `ListingApplicationResource`, `VenueReviewResource`, `MessageResource`
+  [`avatar_path` + kullanılmayan `image_path` alanı da], `TeamMemberResource`,
+  `UserResource`, `PlayerPublicResource`, `PostResource`) düzeltildi.
+  Bu, upload çalışsa bile avatarların hiçbir yerde görünmeyeceği anlamına
+  geliyordu; #27 kapsamında gerekli zemin çalışması olarak yapıldı.
+- **Mobil:** yeni `profile-edit.tsx` — tek scroll form: avatar (kamera/
+  galeri + `ensureJpeg`), isim, mevki(ler) (`PitchPositionPicker`),
+  seviye, şehir (arama modalı, `match/create.tsx`'teki bottom-sheet
+  deseniyle aynı), ilçe, hakkında, doğum tarihi. Doğum tarihi için
+  native date picker bağımlılığı eklemek yerine (zaten `expo-image-
+  manipulator` rebuild'i bekliyorken ikinci bir native modül eklememek
+  için) GG/AA/YYYY üç ayrı sayısal alan kullanıldı. `(tabs)/profile.tsx`'e
+  avatar gösterimi (initials fallback) ve düzenle butonu eklendi.
+- `features/auth/api.ts`: `Profile.birth_date`, `UpdateMePayload.birth_date`
+  + `avatar`, `updateMe()` artık `avatar` varsa multipart'a geçiyor
+  (`createTeam`/`updateTeam` ile aynı desen; dizi alanlar için `key[]`
+  formatında ayrı ayrı append — Laravel'in `array` validasyonu için gerekli).
+- 4 yeni Pest testi (237 toplam), Pint + Larastan temiz, `npx tsc --noEmit`
+  + lint temiz.
+- `docs/features/01-auth-profile.md` güncellendi: profil alanları tablosuna
+  `birth_date`, ekranlar listesine `profile-edit`, açık sorular bölümünde
+  avatar maddesi ✅ işaretlendi (R2'ye taşıma ayrı, PRODUCTION-READINESS.md'de).
+
+### Sonraki adım
+- Sırada #29 (Ayarlar ekranı), ardından #26 (takım sohbeti fotoğraf+ses),
+  #23 (gol videosu yükleme).
+
 ## 2026-07-11 (2) — Backlog #28: takipçi/takip edilenler listesi
 
 - **Backend:** `GET /players/{id}/followers` ve `/following` — mevcut
