@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -40,7 +41,7 @@ export default function CreatePost() {
     enabled: TeamId != null,
   });
 
-  const pickImage = async () => {
+  const pickFromLibrary = async () => {
     const Result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.8,
@@ -49,6 +50,30 @@ export default function CreatePost() {
     if (!Result.canceled) {
       setImage(Result.assets[0]);
     }
+  };
+
+  const takePhoto = async () => {
+    const Permission = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (!Permission.granted) {
+      Alert.alert('İzin gerekli', 'Fotoğraf çekmek için kamera izni vermen gerekiyor.');
+
+      return;
+    }
+
+    const Result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
+
+    if (!Result.canceled) {
+      setImage(Result.assets[0]);
+    }
+  };
+
+  const promptPickImage = () => {
+    Alert.alert('Fotoğraf ekle', undefined, [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Kamerayla çek', onPress: () => void takePhoto() },
+      { text: 'Galeriden seç', onPress: () => void pickFromLibrary() },
+    ]);
   };
 
   const Create = useMutation({
@@ -145,9 +170,9 @@ export default function CreatePost() {
               </Pressable>
             </View>
           ) : (
-            <Pressable accessibilityRole="button" onPress={() => void pickImage()} style={styles.photoPicker}>
+            <Pressable accessibilityRole="button" onPress={promptPickImage} style={styles.photoPicker}>
               <Ionicons name="image-outline" size={20} color={Palette.moss} />
-              <Text style={styles.photoPickerText}>Galeriden fotoğraf seç</Text>
+              <Text style={styles.photoPickerText}>Fotoğraf ekle</Text>
             </Pressable>
           )}
 

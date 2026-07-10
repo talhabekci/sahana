@@ -407,13 +407,14 @@
   kontrolü, güvenli depolama) ile ele alınmalı. Yükleme sırasında UI'ı
   kilitlememesi için arka planda ilerleme göstergesiyle yüklenmeli.
 
-### 24. Gönderi fotoğrafı — kameradan çekme seçeneği eksik
+### 24. Gönderi fotoğrafı — kameradan çekme seçeneği eksik ✅
+- **Tamamlandı:** 2026-07-10 — "Fotoğraf ekle" butonu artık galeri/kamera
+  seçimi sunan bir aksiyon açıyor (`ImagePicker.launchCameraAsync` +
+  kamera izni kontrolü, izin yoksa net bir uyarı). Kamera izin metni
+  zaten BACKLOG #7'de `app.json`'a eklenmişti.
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
   (BACKLOG #7'nin devamı)
 - **Talep tarihi:** 2026-07-10
-- `post/create.tsx`'teki fotoğraf ekleme şu an sadece galeriden seçim
-  (`launchImageLibraryAsync`) sunuyor; kamera ile çekim seçeneği yok.
-  Galeri + kamera arasında seçim sunan bir aksiyon eklenmeli.
 
 ### 25. Kadro silme yok ✅
 - **Tamamlandı:** 2026-07-10 — `DELETE /lineups/{id}` eklendi (mevcut

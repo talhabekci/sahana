@@ -48,6 +48,8 @@ Feed'i kullanıcı üretimi beklemeden dolduran sistem olayları:
 - **Kapsam:** post/create ekranında opsiyonel **tek fotoğraf** ve/veya
   opsiyonel **kendi takımının kayıtlı kadrolarından biri** eklenebilir.
   Zengin bir editöre gerek yok — sadece metin + tek fotoğraf + tek kadro.
+  Fotoğraf hem galeriden seçilebilir hem kamerayla çekilebilir (kullanıcı
+  kararı 2026-07-10, BACKLOG.md #24 — ilk uygulamada sadece galeri vardı).
 - **Fotoğraf güvenliği (kullanıcı: "güvenlik çok önemli"):**
   - İzin verilen tür/limit api-conventions.md ile aynı: jpg/png/webp/heic,
     max 10 MB.

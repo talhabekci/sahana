@@ -3,6 +3,15 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (8) — Backlog #24: gönderi fotoğrafında kamera seçeneği
+
+- "Fotoğraf ekle" artık galeri/kamera arasında seçim sunuyor
+  (`launchCameraAsync` + izin kontrolü). Küçük, tek dosyalık değişiklik.
+- Doğrulama: `npx tsc --noEmit` + lint temiz.
+
+### Sonraki adım
+- Sırada #22 (animasyonlu splash).
+
 ## 2026-07-10 (7) — Backlog #25 + #31: kadro silme, takım silme
 
 - Kullanıcı 9 yeni istek verdi (#22-#31, ayrıca sohbette 2 tane daha #32-#33)
