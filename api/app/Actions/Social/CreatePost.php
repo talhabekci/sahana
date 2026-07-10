@@ -7,9 +7,8 @@ use App\Models\Lineup;
 use App\Models\Post;
 use App\Models\Team;
 use App\Models\User;
+use App\Support\ImageUploader;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class CreatePost
 {
@@ -45,7 +44,7 @@ class CreatePost
         $ImagePath = null;
 
         if (! empty($Data['image'])) {
-            $ImagePath = $this->storeImage($Data['image']);
+            $ImagePath = ImageUploader::store($Data['image'], 'posts');
         }
 
         return Post::create([
@@ -56,31 +55,5 @@ class CreatePost
             'image_path' => $ImagePath,
             'lineup_id' => $LineupId,
         ]);
-    }
-
-    /**
-     * Görseli gerçekten decode ederek doğrular (sahte uzantı/bozuk dosya
-     * reddedilir), sonra JPEG'e yeniden encode eder — bu hem EXIF metadata'sını
-     * (ör. GPS konumu) siler hem de orijinal bayt dizisinin diske hiç
-     * yazılmamasını sağlar. Dosya adı rastgele üretilir (path traversal /
-     * üzerine yazma riski yok). Bkz. docs/features/04-social-feed.md.
-     */
-    private function storeImage(UploadedFile $Image): string
-    {
-        $Resource = @imagecreatefromstring(file_get_contents($Image->getRealPath()));
-
-        if ($Resource === false) {
-            throw new ApiError('Desteklenmeyen ya da bozuk görsel dosyası.', 'invalid_image', 422);
-        }
-
-        ob_start();
-        imagejpeg($Resource, quality: 85);
-        $JpegContents = ob_get_clean();
-        imagedestroy($Resource);
-
-        $Path = 'posts/'.Str::uuid().'.jpg';
-        Storage::disk('public')->put($Path, $JpegContents);
-
-        return $Path;
     }
 }

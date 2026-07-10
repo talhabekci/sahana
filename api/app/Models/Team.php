@@ -19,6 +19,7 @@ class Team extends Model
     protected $fillable = [
         'name',
         'badge_icon',
+        'logo_path',
         'color_home',
         'created_by',
     ];

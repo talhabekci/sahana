@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listTeams, Team } from '@/features/team/api';
 import { badgeIonicon } from '@/features/team/constants';
@@ -14,9 +14,13 @@ import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 function TeamRow({ team, onPress }: { team: Team; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
-      <View style={[styles.badge, { backgroundColor: team.color_home }]}>
-        <Ionicons name={badgeIonicon(team.badge_icon)} size={22} color={Palette.limeInk} />
-      </View>
+      {team.logo_url != null ? (
+        <Image source={{ uri: team.logo_url }} style={styles.badge} />
+      ) : (
+        <View style={[styles.badge, { backgroundColor: team.color_home }]}>
+          <Ionicons name={badgeIonicon(team.badge_icon)} size={22} color={Palette.limeInk} />
+        </View>
+      )}
 
       <View style={styles.rowBody}>
         <Text style={styles.rowName}>{team.name}</Text>

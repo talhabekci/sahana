@@ -14,7 +14,8 @@ export type TeamMember = {
 export type Team = {
   id: string;
   name: string;
-  badge_icon: string;
+  badge_icon: string | null;
+  logo_url: string | null;
   color_home: string;
   my_role: TeamRole | null;
   members_count: number;
@@ -50,8 +51,9 @@ export type Lineup = {
 
 export type CreateTeamPayload = {
   name: string;
-  badge_icon: string;
+  badge_icon?: string | null;
   color_home: string;
+  logo?: { uri: string; name: string; type: string } | null;
 };
 
 export type LineupPayload = {
@@ -73,8 +75,42 @@ export async function listTeams(): Promise<Team[]> {
   return data.data;
 }
 
+function toTeamFormData(payload: Partial<CreateTeamPayload>): FormData {
+  const Form = new FormData();
+
+  if (payload.name != null) {
+    Form.append('name', payload.name);
+  }
+
+  if (payload.badge_icon != null) {
+    Form.append('badge_icon', payload.badge_icon);
+  }
+
+  if (payload.color_home != null) {
+    Form.append('color_home', payload.color_home);
+  }
+
+  if (payload.logo != null) {
+    Form.append('logo', {
+      uri: payload.logo.uri,
+      name: payload.logo.name,
+      type: payload.logo.type,
+    } as unknown as Blob);
+  }
+
+  return Form;
+}
+
 export async function createTeam(payload: CreateTeamPayload): Promise<Team> {
-  const { data } = await Api.post<{ data: Team }>('/teams', payload);
+  if (payload.logo == null) {
+    const { data } = await Api.post<{ data: Team }>('/teams', payload);
+
+    return data.data;
+  }
+
+  const { data } = await Api.post<{ data: Team }>('/teams', toTeamFormData(payload), {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 
   return data.data;
 }
@@ -86,7 +122,18 @@ export async function getTeam(teamId: string): Promise<Team> {
 }
 
 export async function updateTeam(teamId: string, payload: Partial<CreateTeamPayload>): Promise<Team> {
-  const { data } = await Api.patch<{ data: Team }>(`/teams/${teamId}`, payload);
+  if (payload.logo == null) {
+    const { data } = await Api.patch<{ data: Team }>(`/teams/${teamId}`, payload);
+
+    return data.data;
+  }
+
+  const Form = toTeamFormData(payload);
+  Form.append('_method', 'PATCH');
+
+  const { data } = await Api.post<{ data: Team }>(`/teams/${teamId}`, Form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 
   return data.data;
 }

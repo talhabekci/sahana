@@ -8,6 +8,7 @@ use App\Http\Requests\StoreTeamRequest;
 use App\Http\Requests\UpdateTeamRequest;
 use App\Http\Resources\TeamResource;
 use App\Models\Team;
+use App\Support\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -39,7 +40,14 @@ class TeamController extends Controller
     {
         $this->authorize('update', $Team);
 
-        $Team->update($Request->validated());
+        $Data = $Request->validated();
+        unset($Data['logo']);
+
+        if ($Request->hasFile('logo')) {
+            $Data['logo_path'] = ImageUploader::store($Request->file('logo'), 'teams');
+        }
+
+        $Team->update($Data);
 
         return new TeamResource($Team->fresh('members')->loadCount('members'));
     }

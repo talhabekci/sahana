@@ -12,7 +12,7 @@ export const BADGE_ICONS = [
 
 export type BadgeIconKey = (typeof BADGE_ICONS)[number]['key'];
 
-export function badgeIonicon(key: string): (typeof BADGE_ICONS)[number]['ionicon'] {
+export function badgeIonicon(key: string | null): (typeof BADGE_ICONS)[number]['ionicon'] {
   return BADGE_ICONS.find((Icon) => Icon.key === key)?.ionicon ?? 'shield-checkmark';
 }
 
@@ -20,6 +20,25 @@ export function badgeIonicon(key: string): (typeof BADGE_ICONS)[number]['ionicon
 export const TEAM_COLORS = [
   '#C9F24E', '#4EE2C9', '#4E9DF2', '#B14EF2', '#F24EA0', '#F2764E', '#F2D24E', '#EAF2EA',
 ] as const;
+
+function hslToHex(Hue: number, Saturation: number, Lightness: number): string {
+  const A = Saturation * Math.min(Lightness, 1 - Lightness);
+  const f = (N: number): string => {
+    const K = (N + Hue / 30) % 12;
+    const Color = Lightness - A * Math.max(Math.min(K - 3, 9 - K, 1), -1);
+
+    return Math.round(255 * Color)
+      .toString(16)
+      .padStart(2, '0');
+  };
+
+  return `#${f(0)}${f(8)}${f(4)}`.toUpperCase();
+}
+
+/** Geniş palet — kullanıcı önerilen renklerin dışında bir ton isterse (BACKLOG.md #30). */
+export const EXTENDED_TEAM_COLORS: string[] = Array.from({ length: 24 }, (_, Index) =>
+  hslToHex((Index * 360) / 24, 0.78, 0.62),
+);
 
 type SlotTemplate = Pick<LineupPosition, 'id' | 'x' | 'y' | 'label'>;
 

@@ -8,7 +8,11 @@ maç kadrosunu sürükle-bırak dizip WhatsApp'a paylaş. **Kadro görseli payla
 bu ürünün viral büyüme motorudur** — davetsiz kullanıcı, görseldeki linkten gelir.
 
 ## Kapsam (v1)
-- Takım oluşturma: isim, logo (hazır ikon seti + yükleme), forma rengi
+- Takım oluşturma: isim, logo (hazır ikon seti + kullanıcı arma fotoğrafı
+  yükleme — kullanıcı kararı 2026-07-10, BACKLOG.md #30, ilk uygulamada
+  sadece hazır ikon vardı), forma rengi (8 önerilen renk + 24 renklik
+  geniş palet, herhangi bir hex zaten API'de destekleniyordu — eksik olan
+  mobil UI'daki seçenek genişliğiydi)
 - Davet: paylaşılabilir link + QR (linke tıklayan → uygulama/store → takıma katılır)
 - Roller: kaptan (kurucu; devredilebilir) / üye
 - Kadro tahtası: 5/6/7/8 kişilik saha dizilimi, sürükle-bırak
@@ -49,9 +53,9 @@ join/[inviteCode]       → davet karşılama (deep link)
 
 | Method | Endpoint | Açıklama |
 |---|---|---|
-| POST | /teams | Takım oluştur (oluşturan = kaptan) |
+| POST | /teams | Takım oluştur (oluşturan = kaptan; multipart: `name`, `badge_icon?`, `logo?`, `color_home`) |
 | GET | /teams/{id} | Detay (üyelerle) |
-| PATCH | /teams/{id} | Kaptan: isim/logo/renk |
+| PATCH | /teams/{id} | Kaptan: isim/logo/renk (multipart, `_method=PATCH`) |
 | POST | /teams/{id}/invites | Davet linki üret `{code, expires_at}` |
 | POST | /invites/{code}/accept | Katıl (auth zorunlu; yoksa önce kayıt akışı) |
 | DELETE | /teams/{id}/members/{userId} | Kaptan çıkarır / üye kendisi ayrılır |

@@ -1,18 +1,21 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
 import { createTeam } from '@/features/team/api';
-import { BADGE_ICONS, TEAM_COLORS } from '@/features/team/constants';
+import { BADGE_ICONS, EXTENDED_TEAM_COLORS, TEAM_COLORS } from '@/features/team/constants';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
@@ -27,14 +30,38 @@ export default function CreateTeam() {
 
   const [StepIndex, setStepIndex] = useState(0);
   const [Name, setName] = useState('');
-  const [BadgeIcon, setBadgeIcon] = useState<string>(BADGE_ICONS[0].key);
+  const [BadgeIcon, setBadgeIcon] = useState<string | null>(BADGE_ICONS[0].key);
+  const [Logo, setLogo] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [ColorHome, setColorHome] = useState<string>(TEAM_COLORS[0]);
   const [Error_, setError] = useState<string | null>(null);
 
   const Step = STEPS[StepIndex];
 
+  const pickLogo = async () => {
+    const Result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
+
+    if (!Result.canceled) {
+      setLogo(Result.assets[0]);
+      setBadgeIcon(null);
+    }
+  };
+
+  const selectBadgeIcon = (Key: string) => {
+    setBadgeIcon(Key);
+    setLogo(null);
+  };
+
   const Create = useMutation({
-    mutationFn: () => createTeam({ name: Name.trim(), badge_icon: BadgeIcon, color_home: ColorHome }),
+    mutationFn: () =>
+      createTeam({
+        name: Name.trim(),
+        badge_icon: BadgeIcon,
+        color_home: ColorHome,
+        logo:
+          Logo != null
+            ? { uri: Logo.uri, name: Logo.fileName ?? 'logo.jpg', type: Logo.mimeType ?? 'image/jpeg' }
+            : null,
+      }),
     onSuccess: async (Team) => {
       await QueryClient.invalidateQueries({ queryKey: ['teams'] });
       Router.replace(`/team/${Team.id}`);
@@ -42,7 +69,8 @@ export default function CreateTeam() {
     onError: (E) => setError(toApiFailure(E).message),
   });
 
-  const CanContinue = Step === 'name' ? Name.trim().length >= 2 : true;
+  const CanContinue =
+    Step === 'name' ? Name.trim().length >= 2 : Step === 'badge' ? BadgeIcon != null || Logo != null : true;
 
   const advance = () => {
     setError(null);
@@ -94,19 +122,19 @@ export default function CreateTeam() {
         )}
 
         {Step === 'badge' && (
-          <>
+          <ScrollView showsVerticalScrollIndicator={false}>
             <Text style={styles.headline}>ARMA SEÇ</Text>
             <Text style={styles.sub}>Sonra değiştirebilirsin.</Text>
             <View style={styles.badgeGrid}>
               {BADGE_ICONS.map((Icon) => {
-                const Active = Icon.key === BadgeIcon;
+                const Active = Icon.key === BadgeIcon && Logo == null;
 
                 return (
                   <Pressable
                     key={Icon.key}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: Active }}
-                    onPress={() => setBadgeIcon(Icon.key)}
+                    onPress={() => selectBadgeIcon(Icon.key)}
                     style={[styles.badgeCell, Active && styles.badgeCellActive]}>
                     <Ionicons
                       name={Icon.ionicon}
@@ -117,13 +145,33 @@ export default function CreateTeam() {
                 );
               })}
             </View>
-          </>
+
+            <Text style={styles.sectionLabel}>YA DA KENDİ GÖRSELİNİ YÜKLE</Text>
+            {Logo != null ? (
+              <View style={styles.logoPreviewWrap}>
+                <Image source={{ uri: Logo.uri }} style={styles.logoPreview} />
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setLogo(null)}
+                  style={styles.logoRemove}
+                  hitSlop={8}>
+                  <Ionicons name="close" size={16} color={Palette.chalk} />
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable accessibilityRole="button" onPress={() => void pickLogo()} style={styles.logoPicker}>
+                <Ionicons name="image-outline" size={20} color={Palette.moss} />
+                <Text style={styles.logoPickerText}>Galeriden arma fotoğrafı seç</Text>
+              </Pressable>
+            )}
+          </ScrollView>
         )}
 
         {Step === 'color' && (
-          <>
+          <ScrollView showsVerticalScrollIndicator={false}>
             <Text style={styles.headline}>FORMA RENGİ</Text>
-            <Text style={styles.sub}>Takımının rengini seç.</Text>
+            <Text style={styles.sub}>Önerilen renklerden seç, ya da paletten kendi rengini bul.</Text>
+            <Text style={styles.sectionLabel}>ÖNERİLEN</Text>
             <View style={styles.colorGrid}>
               {TEAM_COLORS.map((Color) => {
                 const Active = Color === ColorHome;
@@ -144,13 +192,42 @@ export default function CreateTeam() {
               })}
             </View>
 
+            <Text style={styles.sectionLabel}>PALETTEN SEÇ</Text>
+            <View style={styles.colorGrid}>
+              {EXTENDED_TEAM_COLORS.map((Color) => {
+                const Active = Color === ColorHome;
+
+                return (
+                  <Pressable
+                    key={Color}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: Active }}
+                    onPress={() => setColorHome(Color)}
+                    style={[
+                      styles.colorSwatch,
+                      { backgroundColor: Color },
+                      Active && styles.colorSwatchActive,
+                    ]}
+                  />
+                );
+              })}
+            </View>
+
             <View style={styles.preview}>
-              <View style={[styles.previewBadge, { backgroundColor: ColorHome }]}>
-                <Ionicons name={BADGE_ICONS.find((I) => I.key === BadgeIcon)?.ionicon ?? 'shield-checkmark'} size={30} color={Palette.limeInk} />
-              </View>
+              {Logo != null ? (
+                <Image source={{ uri: Logo.uri }} style={styles.previewLogo} />
+              ) : (
+                <View style={[styles.previewBadge, { backgroundColor: ColorHome }]}>
+                  <Ionicons
+                    name={BADGE_ICONS.find((I) => I.key === BadgeIcon)?.ionicon ?? 'shield-checkmark'}
+                    size={30}
+                    color={Palette.limeInk}
+                  />
+                </View>
+              )}
               <Text style={styles.previewName}>{Name || 'Takımın'}</Text>
             </View>
-          </>
+          </ScrollView>
         )}
 
         {Error_ != null && <Text style={styles.error}>{Error_}</Text>}
@@ -227,6 +304,57 @@ const styles = StyleSheet.create({
   badgeCellActive: {
     backgroundColor: Palette.lime,
     borderColor: Palette.lime,
+  },
+  sectionLabel: {
+    fontFamily: Type.mono,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: Palette.moss,
+    marginTop: space(7),
+    marginBottom: space(2),
+  },
+  logoPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: Palette.lineFaint,
+    paddingVertical: space(4),
+    paddingHorizontal: space(4),
+  },
+  logoPickerText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.moss,
+  },
+  logoPreviewWrap: {
+    position: 'relative',
+    alignSelf: 'flex-start',
+  },
+  logoPreview: {
+    width: 96,
+    height: 96,
+    borderRadius: Radius.m,
+    backgroundColor: Palette.turf,
+  },
+  logoRemove: {
+    position: 'absolute',
+    top: -space(2),
+    right: -space(2),
+    width: 26,
+    height: 26,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(11,26,15,0.85)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewLogo: {
+    width: 56,
+    height: 56,
+    borderRadius: Radius.m,
+    backgroundColor: Palette.turf,
   },
   colorGrid: {
     flexDirection: 'row',

@@ -21,6 +21,7 @@ class UpdateTeamRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:60'],
             'badge_icon' => ['sometimes', 'required', 'string', Rule::in(Team::BADGE_ICONS)],
+            'logo' => ['sometimes', 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic', 'max:10240'],
             'color_home' => ['sometimes', 'required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ];
     }

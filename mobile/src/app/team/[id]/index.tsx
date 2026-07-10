@@ -5,6 +5,7 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -239,9 +240,13 @@ export default function TeamDetail() {
         </Pressable>
 
         <View style={styles.header}>
-          <View style={[styles.badge, { backgroundColor: Data.color_home }]}>
-            <Ionicons name={badgeIonicon(Data.badge_icon)} size={30} color={Palette.limeInk} />
-          </View>
+          {Data.logo_url != null ? (
+            <Image source={{ uri: Data.logo_url }} style={styles.badge} />
+          ) : (
+            <View style={[styles.badge, { backgroundColor: Data.color_home }]}>
+              <Ionicons name={badgeIonicon(Data.badge_icon)} size={30} color={Palette.limeInk} />
+            </View>
+          )}
           <View style={styles.flexShrink}>
             <Text style={styles.name}>{Data.name}</Text>
             <Text style={styles.meta}>{Data.members_count} üye</Text>

@@ -2,6 +2,8 @@
 
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 it('creates a team and makes the creator captain', function () {
     $User = User::factory()->create();
@@ -24,6 +26,55 @@ it('validates team creation fields', function () {
         'badge_icon' => 'not-a-real-icon',
         'color_home' => 'red',
     ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
+it('lets a team be created with a custom logo instead of a badge icon', function () {
+    Storage::fake('public');
+    $User = User::factory()->create();
+
+    $Response = $this->actingAs($User)->postJson('/api/v1/teams', [
+        'name' => 'Kartallar FK',
+        'color_home' => '#123ABC',
+        'logo' => UploadedFile::fake()->image('logo.jpg', 200, 200),
+    ])->assertCreated();
+
+    expect($Response->json('data.logo_url'))->not->toBeNull();
+
+    $Team = Team::first();
+    Storage::disk('public')->assertExists($Team->logo_path);
+});
+
+it('requires either a badge icon or a logo when creating a team', function () {
+    $User = User::factory()->create();
+
+    $this->actingAs($User)->postJson('/api/v1/teams', [
+        'name' => 'Kartallar FK',
+        'color_home' => '#123ABC',
+    ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
+it('accepts any valid hex color for a team, not just presets', function () {
+    $User = User::factory()->create();
+
+    $this->actingAs($User)->postJson('/api/v1/teams', [
+        'name' => 'Özel Renkli FK',
+        'badge_icon' => 'shield',
+        'color_home' => '#7A2CF0',
+    ])->assertCreated()->assertJsonPath('data.color_home', '#7A2CF0');
+});
+
+it('lets the captain update the team logo', function () {
+    Storage::fake('public');
+    $Captain = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+
+    $this->actingAs($Captain)->post('/api/v1/teams/'.$Team->public_id, [
+        '_method' => 'PATCH',
+        'logo' => UploadedFile::fake()->image('logo.jpg', 200, 200),
+    ])->assertOk();
+
+    expect(Team::find($Team->id)->logo_path)->not->toBeNull();
 });
 
 it('lists only the teams the user belongs to', function () {

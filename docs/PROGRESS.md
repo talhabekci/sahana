@@ -3,6 +3,25 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (10) — Backlog #30: takım arma fotoğrafı + özel renk seçimi
+
+- **Backend:** `teams.logo_path` (nullable), `badge_icon` nullable oldu
+  (en az biri zorunlu, `withValidator`). Görsel güvenlik mantığı
+  (GD decode/reencode/rastgele-ad — BACKLOG #7'de yazılmıştı)
+  `App\Support\ImageUploader`'a çıkarıldı; `CreatePost` de buna refactor
+  edildi (kod tekrarı önlendi, ileride avatar/sohbet fotoğrafı bunu
+  kullanacak). `color_home` zaten herhangi bir hex kabul ediyordu.
+  5 yeni Pest testi (230 toplam), Pint + Larastan temiz.
+- **Mobil:** `team/create.tsx` arma adımına galeri yükleme seçeneği
+  (ikonla karşılıklı dışlayıcı), renk adımına "Önerilen" + "Paletten seç"
+  (24 renk, HSL formülüyle üretildi) bölümleri eklendi. Takım listesi +
+  takım detay sayfası `logo_url` varsa gerçek görseli gösteriyor (diğer
+  küçük yüzeyler kapsam dışı bırakıldı, not düşüldü).
+- Doğrulama: `npx tsc --noEmit` + lint temiz.
+- **Kullanıcı talimatı:** "Bu featuru yapıktan sonra dur" — bu maddeden
+  sonra duruluyor, kalan backlog maddeleri (#28, #27, #29, #26, #23)
+  kullanıcının bir sonraki talimatını bekliyor.
+
 ## 2026-07-10 (9) — Backlog #22: animasyonlu splash ekranı
 
 - Yeni `shared/ui/AnimatedSplash.tsx`: native statik splash kapanınca aynı

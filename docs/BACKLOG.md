@@ -477,14 +477,25 @@
   hesap silme (şu an profile.tsx'te doğrudan duruyor, buraya taşınmalı),
   çıkış yap. Şu an bu aksiyonlar dağınık şekilde profil ekranının içinde.
 
-### 30. Takım kurarken özel renk seçimi + arma fotoğrafı yükleme
+### 30. Takım kurarken özel renk seçimi + arma fotoğrafı yükleme ✅
+- **Tamamlandı:** 2026-07-10 — **Backend:** `teams.logo_path` (nullable);
+  `badge_icon` artık nullable/opsiyonel (logo varsa gerekmiyor,
+  `withValidator` ile en az birinin zorunlu olduğu doğrulanıyor). Görsel
+  güvenliği BACKLOG #7'deki aynı hat — bu vesileyle GD decode/reencode/
+  rastgele-dosya-adı mantığı `App\Support\ImageUploader`'a çıkarıldı
+  (`CreatePost` de buna refactor edildi, kod tekrarı yok — ilerideki
+  avatar/sohbet fotoğrafı işleri de bunu kullanacak). `color_home` zaten
+  herhangi bir hex kabul ediyordu (regex validasyonu), eksik olan mobil
+  UI'daki seçenek genişliğiydi. 5 yeni Pest testi (230 toplam).
+  **Mobil:** `team/create.tsx`'in arma adımına "Galeriden arma fotoğrafı
+  seç" seçeneği (ikonla karşılıklı dışlayıcı); renk adımına "Önerilen" (8)
+  + "Paletten seç" (HSL formülüyle üretilen 24 renk) bölümleri eklendi.
+  Takım listesi + takım detay sayfası artık `logo_url` varsa gerçek görseli
+  gösteriyor (diğer küçük/ikincil yüzeyler — arama, sohbet listesi,
+  PostCard'daki küçük takım etiketi — kapsam dışı bırakıldı, hâlâ ikon
+  gösteriyor, ayrı bir iş olarak ele alınabilir).
 - **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
 - **Talep tarihi:** 2026-07-10
-- Şu an takım oluşturma sadece sabit bir ikon (`badge_icon`) + sabit renk
-  seçeneklerinden (`color_home`) oluşuyor. Kullanıcı: bizim verdiğimiz
-  renkler dursun ama kullanıcı paletten istediği özel rengi de seçebilsin;
-  ikon yerine/yanında kullanıcı kendi arma fotoğrafını (belirli
-  formatlarda, BACKLOG #7'deki güvenlik deseniyle) yükleyebilsin.
 
 ### 31. Takım silme yok ✅
 - **Tamamlandı:** 2026-07-10 — `DELETE /teams/{id}` eklendi (yeni
