@@ -3,6 +3,36 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 — Marka ikonu + splash ekranı, yeni backlog maddeleri (#19-21)
+
+- **Uygulama ikonu/splash:** `mobile/assets/images/{icon,splash-icon,
+  android-icon-foreground,android-icon-background,android-icon-monochrome,
+  favicon}.png` şimdiye kadar hiç değiştirilmemiş Expo şablon varsayılanlarıydı
+  (React/Expo logosu) — tema token'larından (`Palette.pitchNight`/`turfRaised`/
+  `lime`/`limeInk`, "Gece Maçı" tasarım dili) üretilen yeni bir marka görseli
+  ile değiştirildi: gece çimi zemininde iki soluk halka (floodlight/orta
+  yuvarlak hissi) + `BarlowCondensed_700Bold` fontundan bold "S" monogramı,
+  lime glow + limeInk gölge ile. Python/Pillow ile üretildi (`video-default-
+  cover.png`'de kullanılan yöntemle aynı).
+- `app.json`: iOS artık deneysel Icon Composer (`.icon`) formatı yerine
+  standart `icon.png`'yi kullanıyor (bu projede daha önce bir Swift build
+  hatasına yol açan deneysel paket kategorisiyle aynı risk sınıfı — kaldırıldı,
+  `assets/expo.icon/` silindi). Splash `backgroundColor` → `#0B1F14`
+  (`Palette.pitchNight`, önceki `#208AEF` alakasız mavi bir varsayılandı),
+  `imageWidth` 76 → 200. Android adaptive icon `backgroundColor` → `#0B1F14`.
+- **BACKLOG.md #19-21 (yeni):** kullanıcının "henüz hiç bakılmamış ama
+  production'da fark yaratan şeyler" talebiyle detaylı yazıldı — boş durumlar
+  (empty states), hata/yeniden deneme durumları, yükleme durumu (spinner/
+  skeleton) tutarlılığı. Üçü de cross-cutting, henüz kodlanmadı.
+- Doğrulama: `npx tsc --noEmit` temiz, `npx expo config` ile app.json
+  şeması doğrulandı.
+
+### Sonraki adım
+- Kullanıcı talebi: sırada BACKLOG.md'deki açık maddeler (#7, #8, #10/#18,
+  #16, #19, #20, #21) var — production-ready fazının uygulama-içi ayağı.
+  Altyapı/deploy tarafı (Virtuozzo — bkz. docs/PRODUCTION-READINESS.md)
+  kullanıcı isteğiyle şimdilik arka planda bekletiliyor.
+
 ## 2026-07-09 — EAS dev build, push doğrulama, backlog temizliği (#17, #6, #9, #5, #4), 2 bug fix
 
 - **EAS development build:** `expo-dev-client` kuruldu, `mobile/eas.json`

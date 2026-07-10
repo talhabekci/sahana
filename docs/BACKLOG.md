@@ -272,6 +272,60 @@
   (mümkünse `details.error === 'DeviceNotRegistered'` durumunda ilgili
   `devices` kaydını da silmeyi değerlendir — token artık geçersiz demektir).
 
+### 19. Boş durumlar (empty states) — uygulama genelinde tutarlı bir tasarım yok
+- **Bağlı modül:** cross-cutting (Modül 3 keşfet/ilanlar, Modül 4 akış,
+  Modül 6 maç geçmişi, Modül 7 sohbet/bildirimler, Modül 8 saha rehberi)
+- **Talep tarihi:** 2026-07-10
+- Şu ana kadar hiçbir test/backlog turunda gündeme gelmedi — yani bilinçli
+  bir tasarım kararı değil, henüz hiç bakılmamış bir alan. Feed, maçlar,
+  bildirimler, sohbet listesi (`(tabs)` sohbet sekmesi + `dm/[id].tsx` +
+  `team/[id]/chat.tsx`), saha rehberi (`venues/index.tsx`), keşfet/ilanlar
+  (`listings/index.tsx`) gibi liste ekranlarında veri boş geldiğinde ne
+  gösterildiği tek tek denetlenmedi. Muhtemel risk: bazı ekranlarda sadece
+  boş bir `FlatList` alanı kalıyor (kırık/eksik hissi veren bir boşluk),
+  kullanıcıya "neden boş, ne yapmalıyım" mesajı verilmiyor.
+- **Yapılacaklar:**
+  1. Denetim: yukarıdaki ekranların her biri boş veriyle (yeni kayıt olmuş
+     kullanıcı, hiç maçı/takımı/yorumu olmayan biri) tek tek test edilip
+     bugün ne gösterdiği not edilmeli.
+  2. Ortak bir `EmptyState` bileşeni tasarlanmalı (`shared/ui/`) — ikon/
+     basit illüstrasyon + kısa başlık + 1 cümlelik açıklama + (varsa)
+     bir CTA butonu (ör. "İlk gönderini paylaş", "Bir takıma katıl").
+  3. Her ekrana bağlamına uygun metin/CTA ile uygulanmalı — jenerik
+     "Kayıt yok" yazısı yerine ekrana özel, teşvik edici bir ton.
+
+### 20. Hata / yeniden deneme durumları — network hatası kullanıcıya nasıl göründüğü denetlenmedi
+- **Bağlı modül:** cross-cutting
+- **Talep tarihi:** 2026-07-10
+- TanStack Query zaten `isError`/`refetch` state'i sağlıyor, ama ekranların
+  bunu görsel olarak kullanıp kullanmadığı (ya da sessizce boş/yüklenmiyor
+  görünümünde kalıp kalmadığı) hiç sistematik denetlenmedi. Prod'da gerçek
+  kullanıcılar zayıf/kopuk bağlantıyla karşılaşacak (halı saha genelde
+  kapalı alan, sinyal zayıf olabilir) — bu senaryo şu ana kadar test
+  edilmedi.
+- **Yapılacaklar:**
+  1. Denetim: uçak modu/network kesintisiyle feed, maç detayı, sohbet,
+     profil gibi ana ekranlar tek tek test edilmeli — hata anında ne
+     görünüyor (boş ekran mı, sonsuz spinner mı, sessiz başarısızlık mı).
+  2. Ortak bir `ErrorState`/retry bileşeni (`shared/ui/`) — kısa mesaj +
+     "Tekrar dene" butonu (`refetch()`'i tetikler).
+  3. Mutasyonlarda (gönderi paylaşma, yorum, RSVP vb.) başarısızlık zaten
+     çoğu yerde `toApiFailure`/inline hata metniyle gösteriliyor gibi
+     görünüyor (bkz. onboarding.tsx `Error_` deseni) — bu desenin tüm
+     mutasyonlarda tutarlı uygulandığı da denetlenmeli.
+
+### 21. Yükleme durumları — spinner/skeleton tutarlılığı
+- **Bağlı modül:** cross-cutting
+- **Talep tarihi:** 2026-07-10
+- Ekranlar arası yükleme göstergesi için tek bir standart hiç belirlenmedi
+  (bazı ekranlar tam-sayfa spinner, bazıları liste + `isPending` gösterge
+  kombinasyonu kullanıyor olabilir — sistematik değil, ekran yazılırken
+  ad-hoc seçilmiş).
+- **Yapılacaklar:** Karar verilmeli — liste ekranlarında iskelet (skeleton)
+  kart mı yoksa merkezi spinner mı; aksiyon butonlarında zaten kullanılan
+  inline `loading` prop deseni (`Button`) korunur. Karar sonrası tüm ana
+  liste ekranlarına (feed, maçlar, saha rehberi, keşfet) tutarlı uygulanır.
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün
