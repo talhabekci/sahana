@@ -77,6 +77,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/teams', [TeamController::class, 'store']);
         Route::get('/teams/{Team}', [TeamController::class, 'show']);
         Route::patch('/teams/{Team}', [TeamController::class, 'update']);
+        Route::delete('/teams/{Team}', [TeamController::class, 'destroy']);
 
         Route::post('/teams/{Team}/invites', [TeamInviteController::class, 'store']);
         Route::post('/invites/{Code}/accept', [TeamInviteController::class, 'accept']);
@@ -88,6 +89,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/teams/{Team}/lineups', [LineupController::class, 'store']);
         Route::get('/lineups/{Lineup}', [LineupController::class, 'show']);
         Route::patch('/lineups/{Lineup}', [LineupController::class, 'update']);
+        Route::delete('/lineups/{Lineup}', [LineupController::class, 'destroy']);
 
         Route::get('/teams/{Team}/messages', [TeamMessageController::class, 'index']);
         Route::post('/teams/{Team}/messages', [TeamMessageController::class, 'store']);

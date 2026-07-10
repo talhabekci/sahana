@@ -16,7 +16,10 @@ import {
 import { getMe } from '@/features/auth/api';
 import {
   createLineup,
+  deleteLineup,
+  deleteTeam,
   getTeam,
+  Lineup,
   LineupPosition,
   listLineups,
   removeMember,
@@ -80,6 +83,21 @@ export default function TeamDetail() {
   const TransferCaptaincy_ = useMutation({
     mutationFn: (UserId: string) => transferCaptaincy(id, UserId),
     onSuccess: invalidate,
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
+
+  const DeleteLineup = useMutation({
+    mutationFn: (LineupId: string) => deleteLineup(LineupId),
+    onSuccess: () => void QueryClient.invalidateQueries({ queryKey: ['teams', id, 'lineups'] }),
+    onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
+  });
+
+  const DeleteTeam = useMutation({
+    mutationFn: () => deleteTeam(id),
+    onSuccess: () => {
+      void QueryClient.invalidateQueries({ queryKey: ['teams'] });
+      Router.replace('/(tabs)/teams');
+    },
     onError: (E) => Alert.alert('Olmadı', toApiFailure(E).message),
   });
 
@@ -150,6 +168,28 @@ export default function TeamDetail() {
         onPress: () => RemoveMember.mutate(Member.id),
       },
     ]);
+  };
+
+  const promptLineupActions = (Lineup_: Lineup) => {
+    Alert.alert(Lineup_.name, undefined, [
+      { text: 'Vazgeç', style: 'cancel' },
+      {
+        text: 'Kadroyu sil',
+        style: 'destructive',
+        onPress: () => DeleteLineup.mutate(Lineup_.id),
+      },
+    ]);
+  };
+
+  const promptDeleteTeam = () => {
+    Alert.alert(
+      'Takımı sil',
+      `${Data.name} kalıcı olarak silinecek — tüm maçlar, kadrolar ve sohbet geçmişi de silinir. Bu işlem geri alınamaz.`,
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        { text: 'Takımı sil', style: 'destructive', onPress: () => DeleteTeam.mutate() },
+      ],
+    );
   };
 
   const promptNewLineup = () => {
@@ -249,6 +289,7 @@ export default function TeamDetail() {
               <Pressable
                 key={Lineup.id}
                 onPress={() => Router.push(`/team/${id}/lineup/${Lineup.id}`)}
+                onLongPress={() => promptLineupActions(Lineup)}
                 style={[styles.memberRow, Index === 0 && styles.memberRowFirst]}>
                 <Text style={styles.memberName}>{Lineup.name}</Text>
                 <Ionicons name="chevron-forward" size={18} color={Palette.moss} />
@@ -258,7 +299,16 @@ export default function TeamDetail() {
         )}
 
         <View style={styles.footer}>
-          <Button label="Takımdan ayrıl" variant="ghost" onPress={leaveTeam} />
+          {IAmCaptain ? (
+            <Button
+              label="Takımı sil"
+              variant="ghost"
+              onPress={promptDeleteTeam}
+              loading={DeleteTeam.isPending}
+            />
+          ) : (
+            <Button label="Takımdan ayrıl" variant="ghost" onPress={leaveTeam} />
+          )}
         </View>
       </ScrollView>
 

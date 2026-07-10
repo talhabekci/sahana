@@ -3,6 +3,22 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-10 (7) — Backlog #25 + #31: kadro silme, takım silme
+
+- Kullanıcı 9 yeni istek verdi (#22-#31, ayrıca sohbette 2 tane daha #32-#33)
+  — BACKLOG.md'ye yazıldı, sırayla uygulanıyor.
+- **#25 (kadro silme):** `DELETE /lineups/{id}`, mevcut `manageLineups`
+  policy'siyle (herhangi bir takım üyesi). Mobilde kadro satırına uzun
+  basınca silme aksiyonu.
+- **#31 (takım silme):** `DELETE /teams/{id}`, yeni `TeamPolicy::delete`
+  (sadece kaptan). Tüm ilişkiler zaten `cascadeOnDelete` idi, ek migration
+  gerekmedi. Mobilde kaptan için "Takımdan ayrıl" yerine net onay
+  metniyle "Takımı sil".
+- 4 yeni Pest testi, Pint + Larastan temiz. `npx tsc --noEmit` + lint temiz.
+
+### Sonraki adım
+- Sırada #24 (post fotoğrafına kamera seçeneği) — küçük, hızlı.
+
 ## 2026-07-10 (6) — Bug fix: kadro önizlemesi feed'de fazla, post/[id].tsx kopya render
 
 - **Kullanıcı geri bildirimi (cihaz testi):** feed'de kadro için eklenen

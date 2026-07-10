@@ -59,6 +59,8 @@ join/[inviteCode]       → davet karşılama (deep link)
 | POST | /teams/{id}/lineups | Kadro oluştur |
 | PATCH | /lineups/{id} | Pozisyon güncelle (otomatik kayıt) |
 | GET | /lineups/{id} | Görüntüle |
+| DELETE | /lineups/{id} | Herhangi bir takım üyesi silebilir (kullanıcı kararı 2026-07-10, BACKLOG.md #25) |
+| DELETE | /teams/{id} | Sadece kaptan; cascade ile üyeler/kadrolar/maçlar da silinir (kullanıcı kararı 2026-07-10, BACKLOG.md #31) |
 
 ## Veri Modeli
 `teams` (id, public_id, name, logo_path, color_home, created_by) ·

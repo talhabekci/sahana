@@ -59,4 +59,13 @@ class LineupController extends Controller
 
         return new LineupResource($Updated);
     }
+
+    public function destroy(Lineup $Lineup): JsonResponse
+    {
+        $this->authorize('manageLineups', $Lineup->team);
+
+        $Lineup->delete();
+
+        return response()->json(['data' => ['status' => 'deleted']]);
+    }
 }

@@ -138,3 +138,11 @@ export async function updateLineup(lineupId: string, payload: Partial<LineupPayl
 
   return data.data;
 }
+
+export async function deleteLineup(lineupId: string): Promise<void> {
+  await Api.delete(`/lineups/${lineupId}`);
+}
+
+export async function deleteTeam(teamId: string): Promise<void> {
+  await Api.delete(`/teams/${teamId}`);
+}

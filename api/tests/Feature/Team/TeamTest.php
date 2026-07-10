@@ -83,3 +83,26 @@ it('forbids a regular member from updating team info', function () {
         'name' => 'Değiştirmeye Çalışıyorum',
     ])->assertStatus(403);
 });
+
+it('lets the captain delete the team', function () {
+    $Captain = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+
+    $this->actingAs($Captain)->deleteJson('/api/v1/teams/'.$Team->public_id)->assertOk();
+
+    $this->assertDatabaseMissing('teams', ['id' => $Team->id]);
+    $this->assertDatabaseMissing('team_members', ['team_id' => $Team->id]);
+});
+
+it('forbids a regular member from deleting the team', function () {
+    $Captain = User::factory()->create();
+    $Member = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Captain->id, ['role' => 'captain', 'joined_at' => now()]);
+    $Team->members()->attach($Member->id, ['role' => 'member', 'joined_at' => now()]);
+
+    $this->actingAs($Member)->deleteJson('/api/v1/teams/'.$Team->public_id)->assertStatus(403);
+
+    $this->assertDatabaseHas('teams', ['id' => $Team->id]);
+});

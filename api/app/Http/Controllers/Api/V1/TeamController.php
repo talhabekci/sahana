@@ -43,4 +43,13 @@ class TeamController extends Controller
 
         return new TeamResource($Team->fresh('members')->loadCount('members'));
     }
+
+    public function destroy(Team $Team): JsonResponse
+    {
+        $this->authorize('delete', $Team);
+
+        $Team->delete();
+
+        return response()->json(['data' => ['status' => 'deleted']]);
+    }
 }

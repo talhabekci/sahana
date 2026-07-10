@@ -17,6 +17,11 @@ class TeamPolicy
         return $Team->isCaptain($User);
     }
 
+    public function delete(User $User, Team $Team): bool
+    {
+        return $Team->isCaptain($User);
+    }
+
     public function manageInvites(User $User, Team $Team): bool
     {
         return $Team->isCaptain($User);

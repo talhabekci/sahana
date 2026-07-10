@@ -43,6 +43,33 @@ it('rejects a lineup position referencing a non-member', function () {
     ])->assertStatus(422)->assertJsonPath('code', 'position_invalid_user');
 });
 
+it('lets a team member delete a lineup', function () {
+    [$Team, $Captain] = createTeamWithCaptain();
+    $Member = User::factory()->create();
+    $Team->members()->attach($Member->id, ['role' => 'member', 'joined_at' => now()]);
+
+    $LineupId = $this->actingAs($Captain)->postJson("/api/v1/teams/{$Team->public_id}/lineups", [
+        'name' => 'Silinecek Kadro',
+        'positions' => [['id' => 'gk', 'x' => 0.5, 'y' => 0.95]],
+    ])->json('data.id');
+
+    $this->actingAs($Member)->deleteJson("/api/v1/lineups/{$LineupId}")->assertOk();
+
+    $this->assertDatabaseMissing('lineups', ['public_id' => $LineupId]);
+});
+
+it('forbids a non-member from deleting a lineup', function () {
+    [$Team, $Captain] = createTeamWithCaptain();
+    $Outsider = User::factory()->create();
+
+    $LineupId = $this->actingAs($Captain)->postJson("/api/v1/teams/{$Team->public_id}/lineups", [
+        'name' => 'Kadro',
+        'positions' => [['id' => 'gk', 'x' => 0.5, 'y' => 0.95]],
+    ])->json('data.id');
+
+    $this->actingAs($Outsider)->deleteJson("/api/v1/lineups/{$LineupId}")->assertStatus(403);
+});
+
 it('rejects a position with both a user and a guest name', function () {
     [$Team, $Captain] = createTeamWithCaptain();
 

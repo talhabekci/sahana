@@ -384,6 +384,129 @@
   inline `loading` prop deseni (`Button`) korunur. Karar sonrası tüm ana
   liste ekranlarına (feed, maçlar, saha rehberi, keşfet) tutarlı uygulanır.
 
+### 22. Splash ekranı — animasyonlu olmalı
+- **Bağlı modül:** cross-cutting (app shell)
+- **Talep tarihi:** 2026-07-10
+- Şu an splash statik bir görsel (`splash-icon.png` + düz arka plan).
+  Kullanıcı animasyonlu bir splash istiyor, tasarım/yaratıcılık serbest
+  bırakıldı ("yaratıcılık sana kalmış").
+- **Not:** Expo'nun native splash mekanizması (`expo-splash-screen`) tek bir
+  statik görseli gösterip JS hazır olunca kapatır — gerçek animasyon için
+  native splash minimal tutulup `SplashScreen.preventAutoHideAsync()` ile
+  JS tarafında özel bir animasyonlu bileşen (Reanimated) gösterilip
+  ardından `hideAsync()` çağrılması gerekiyor.
+
+### 23. Gol videosu yükleme — kullanıcı kendi videosunu yükleyebilmeli
+- **Bağlı modül:** Modül 5 — [05-videos.md](features/05-videos.md) (v1
+  spec'i bunu açıkça v2'ye ertelemişti: "R2 + HLS")
+- **Talep tarihi:** 2026-07-10
+- Kullanıcı: "çok uzun olmayacak şekilde, sistemimizi de yormamalı, UI/UX
+  bozulmamalı." Tam HLS transcoding pipeline'ı olmadan, süre/boyut limitli
+  (ör. 60-90 sn, düşük çözünürlük sınırı) doğrudan dosya yükleme + mevcut
+  fotoğraf güvenliği desenine benzer doğrulama (gerçek video içeriği
+  kontrolü, güvenli depolama) ile ele alınmalı. Yükleme sırasında UI'ı
+  kilitlememesi için arka planda ilerleme göstergesiyle yüklenmeli.
+
+### 24. Gönderi fotoğrafı — kameradan çekme seçeneği eksik
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+  (BACKLOG #7'nin devamı)
+- **Talep tarihi:** 2026-07-10
+- `post/create.tsx`'teki fotoğraf ekleme şu an sadece galeriden seçim
+  (`launchImageLibraryAsync`) sunuyor; kamera ile çekim seçeneği yok.
+  Galeri + kamera arasında seçim sunan bir aksiyon eklenmeli.
+
+### 25. Kadro silme yok ✅
+- **Tamamlandı:** 2026-07-10 — `DELETE /lineups/{id}` eklendi (mevcut
+  `manageLineups` policy'siyle aynı yetki: herhangi bir takım üyesi
+  silebilir, kadro oluşturma/düzenlemeyle tutarlı). Mobilde kadro satırına
+  uzun basınca ("Kadroyu sil") aksiyonu eklendi. 2 yeni Pest testi.
+- **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
+- **Talep tarihi:** 2026-07-10
+
+### 26. Takım sohbeti — fotoğraf (galeri+kamera) ve ses kaydı eklenebilmeli
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-10
+- Şu an takım sohbeti (`team/[id]/chat.tsx`) sadece metin destekliyor.
+  Kullanıcı en azından fotoğraf ekleme (galeri + kamera) ve ses kaydı
+  eklenmesini istiyor. Fotoğraf güvenliği BACKLOG #7'deki desenle aynı
+  olmalı (gerçek içerik doğrulama, EXIF temizliği). Ses kaydı için
+  kayıt (expo-av/expo-audio) + yükleme + sohbet balonunda oynatma
+  gerekiyor. DM sohbetine de aynı ihtiyaç genişletilebilir (kullanıcı
+  sadece takım sohbetini belirtti, kapsam netleşirken DM de değerlendirilir).
+
+### 27. Profil fotoğrafı yükleme + profil düzenleme eksik (doğum tarihi vb.)
+- **Bağlı modül:** Modül 1 — [01-auth-profile.md](features/01-auth-profile.md)
+- **Talep tarihi:** 2026-07-10
+- `avatar_path` alanı API'de var ama hiçbir yerden yazılmıyor (oturum
+  boyunca defalarca not edildi) — kullanıcı profil fotoğrafı hiç
+  yükleyemiyor. Ayrıca profilini hiçbir şekilde düzenleyemiyor (sadece
+  onboarding'de bir kere girilen bilgiler sabit kalıyor). Kullanıcı
+  "profil kısmı çok zayıf" diyor ve veri toplamak istiyor — en azından
+  doğum tarihi eklenmeli (yeni `birth_date` alanı, `player_profiles`
+  tablosuna). Bir "profili düzenle" ekranı: isim, mevki(ler), seviye,
+  şehir, bio, doğum tarihi, profil fotoğrafı (BACKLOG #7'deki güvenlik
+  desenine uygun upload).
+
+### 28. Profilde takip ettiklerim/takipçilerim listesi görünmüyor (sadece sayı)
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-10
+- `GET /me`'ye eklenen `followers_count`/`following_count` (BACKLOG #5)
+  sadece sayıyı gösteriyor; kullanıcı kimlerin takip ettiğini/takip
+  edildiğini göremiyor. `GET /players/{id}/followers` ve `/following`
+  liste endpoint'leri + mobilde bu listeleri gösteren bir ekran
+  eklenmeli (profil ve herkese açık profilden erişilebilir).
+
+### 29. Ayarlar ekranı yok
+- **Bağlı modül:** cross-cutting (Modül 1 profil + genel)
+- **Talep tarihi:** 2026-07-10
+- Profil sayfasının sağ üstüne bir ayarlar ikonu konup ayrı bir Ayarlar
+  ekranı açılmalı: yasal metinler (PRODUCTION-READINESS.md madde G'ye
+  bağlı), bildirim tercihleri (mevcut `/notifications/preferences`'a link),
+  hesap silme (şu an profile.tsx'te doğrudan duruyor, buraya taşınmalı),
+  çıkış yap. Şu an bu aksiyonlar dağınık şekilde profil ekranının içinde.
+
+### 30. Takım kurarken özel renk seçimi + arma fotoğrafı yükleme
+- **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
+- **Talep tarihi:** 2026-07-10
+- Şu an takım oluşturma sadece sabit bir ikon (`badge_icon`) + sabit renk
+  seçeneklerinden (`color_home`) oluşuyor. Kullanıcı: bizim verdiğimiz
+  renkler dursun ama kullanıcı paletten istediği özel rengi de seçebilsin;
+  ikon yerine/yanında kullanıcı kendi arma fotoğrafını (belirli
+  formatlarda, BACKLOG #7'deki güvenlik deseniyle) yükleyebilsin.
+
+### 31. Takım silme yok ✅
+- **Tamamlandı:** 2026-07-10 — `DELETE /teams/{id}` eklendi (yeni
+  `TeamPolicy::delete`, sadece kaptan). Tüm ilişkiler (üyeler, kadrolar,
+  davetler, maçlar, rakip ilanları) zaten `cascadeOnDelete` ile
+  tanımlıydı, ek migration gerekmedi; postlardaki `team_id` sadece
+  null'lanıyor (gönderiler silinmiyor). Mobilde kaptan için "Takımdan
+  ayrıl" butonunun yerini net bir onay metniyle "Takımı sil" alıyor.
+  2 yeni Pest testi.
+- **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
+- **Talep tarihi:** 2026-07-10
+
+### 32. Kadroyu takım sohbetinde paylaşma
+- **Bağlı modül:** Modül 2 + Modül 7 — [02-team-lineup.md](features/02-team-lineup.md),
+  [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-10
+- Kullanıcı bir kadroyu doğrudan takım sohbetine paylaşabilmek istiyor
+  (şu an sadece WhatsApp'a PNG export ve feed'e otomatik/manuel post var —
+  bkz. BACKLOG #7). Muhtemelen sohbet mesajlarına da (feed post'larındaki
+  gibi) bir `lineup_id` referansı eklenip mesaj balonunda `PitchPreview`
+  ile gösterilmesi gerekecek — kapsam netleşmeden kodlanmayacak.
+
+### 33. Adam eksik / rakip arıyor ilanları için paylaşılabilir link
+- **Bağlı modül:** Modül 3 — [03-match-organization.md](features/03-match-organization.md)
+- **Talep tarihi:** 2026-07-10
+- Kullanıcı, takım davet linkine benzer şekilde, bir ilan (player/opponent
+  listing) için kopyalanabilir bir link istiyor — takım sohbetinden,
+  WhatsApp'tan ya da başka bir mecradan paylaşılabilsin. Muhtemelen
+  mevcut `team_invites`teki `code`+deep-link (`Linking.createURL`) deseni
+  ilana da uygulanır (`listings/{id}` ya da `opponent-listings/{id}` için
+  bir deep-link + kopyala butonu) — kapsam/hedef ekran (linke tıklayınca
+  nereye düşecek, giriş yapmamış kullanıcı ne görecek) netleşmeden
+  kodlanmayacak.
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün
