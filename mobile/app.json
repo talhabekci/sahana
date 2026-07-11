@@ -52,7 +52,8 @@
         {
           "microphonePermission": "Takım sohbetine sesli mesaj gönderebilmek için mikrofona erişim gerekiyor."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
