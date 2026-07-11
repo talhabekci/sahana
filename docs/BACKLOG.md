@@ -550,7 +550,16 @@
   gibi) bir `lineup_id` referansı eklenip mesaj balonunda `PitchPreview`
   ile gösterilmesi gerekecek — kapsam netleşmeden kodlanmayacak.
 
-### 33. Adam eksik / rakip arıyor ilanları için paylaşılabilir link
+### 33. Adam eksik / rakip arıyor ilanları için paylaşılabilir link ✅
+- **Tamamlandı:** 2026-07-11 — Her iki ilan kartına paylaş ikonu eklendi
+  (`shareListing` helper: `Linking.createURL` ile deep-link üretir,
+  "Linki kopyala" / "Paylaş…" seçenekleri sunar — takım daveti deseniyle
+  aynı; Keşfet + feed kartlarında otomatik geçerli). Yeni hedef ekranlar:
+  `listing/[id].tsx` (adam eksik) ve `opponent-listing/[id].tsx` (rakip) —
+  ilan kartını başvur/eşleş aksiyonlarıyla gösterir, girişsiz kullanıcıyı
+  welcome'a yönlendirir (davetteki "bekleyen kod" deseni v1'de yok).
+  Backend'e eksik olan `GET /opponent-listings/{id}` eklendi (+1 Pest
+  testi, 251 toplam). Spec 03-match-organization.md güncellendi.
 - **Bağlı modül:** Modül 3 — [03-match-organization.md](features/03-match-organization.md)
 - **Talep tarihi:** 2026-07-10
 - Kullanıcı, takım davet linkine benzer şekilde, bir ilan (player/opponent

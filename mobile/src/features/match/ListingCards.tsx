@@ -1,7 +1,9 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { OpponentListing, PlayerListing } from './api';
 import { formatDayLabel, formatTimeLabel } from './constants';
+import { shareListing } from './shareListing';
 import { POSITIONS } from '@/features/auth/PitchPositionPicker';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -33,7 +35,17 @@ export function PlayerListingCard({ listing, onApply }: PlayerListingCardProps) 
               : ''}
           </Text>
         </View>
-        {listing.distance_km != null && <Text style={styles.distance}>{listing.distance_km} km</Text>}
+        <View style={styles.cardTopRight}>
+          {listing.distance_km != null && (
+            <Text style={styles.distance}>{listing.distance_km} km</Text>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => shareListing('player', listing.id)}
+            hitSlop={8}>
+            <Ionicons name="share-outline" size={18} color={Palette.moss} />
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.chipRow}>
@@ -74,7 +86,15 @@ type OpponentListingCardProps = {
 export function OpponentListingCard({ listing, onMatch }: OpponentListingCardProps) {
   return (
     <View style={styles.card}>
-      <Text style={styles.cardTitle}>{listing.team?.name ?? 'Takım'}</Text>
+      <View style={styles.cardTop}>
+        <Text style={[styles.cardTitle, styles.flexShrink]}>{listing.team?.name ?? 'Takım'}</Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => shareListing('opponent', listing.id)}
+          hitSlop={8}>
+          <Ionicons name="share-outline" size={18} color={Palette.moss} />
+        </Pressable>
+      </View>
       {listing.match != null && (
         <Text style={styles.cardMeta}>
           {formatDayLabel(listing.match.starts_at)} · {formatTimeLabel(listing.match.starts_at)} ·{' '}
@@ -108,6 +128,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: space(3),
+  },
+  cardTopRight: {
+    alignItems: 'flex-end',
+    gap: space(2),
   },
   flexShrink: {
     flexShrink: 1,

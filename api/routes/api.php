@@ -133,6 +133,7 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/opponent-listings', [OpponentListingController::class, 'store']);
         Route::get('/opponent-listings', [OpponentListingController::class, 'index']);
+        Route::get('/opponent-listings/{Listing}', [OpponentListingController::class, 'show']);
         Route::post('/opponent-listings/{Listing}/match', [OpponentListingController::class, 'matchListing']);
 
         Route::get('/feed', [FeedController::class, 'index']);

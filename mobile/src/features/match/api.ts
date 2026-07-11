@@ -226,6 +226,12 @@ export async function discoverOpponentListings(params: {
   return data.data;
 }
 
+export async function getOpponentListing(listingId: string): Promise<OpponentListing> {
+  const { data } = await Api.get<{ data: OpponentListing }>(`/opponent-listings/${listingId}`);
+
+  return data.data;
+}
+
 export async function matchOpponentListing(listingId: string, teamId: string): Promise<OpponentListing> {
   const { data } = await Api.post<{ data: OpponentListing }>(
     `/opponent-listings/${listingId}/match`,

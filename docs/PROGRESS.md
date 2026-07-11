@@ -3,6 +3,26 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (11) — Backlog #33: ilanlar için paylaşılabilir link
+
+- **Mobil:** yeni `features/match/shareListing.ts` — takım davet linkiyle
+  aynı desen (`Linking.createURL`), "Linki kopyala" / "Paylaş…" seçenekleri.
+  `PlayerListingCard` ve `OpponentListingCard`'a paylaş ikonu eklendi
+  (kartlar Keşfet'te ve feed'de kullanıldığından tek değişiklikle her
+  yerde geçerli). Yeni deep-link hedef ekranları: `listing/[id].tsx` ve
+  `opponent-listing/[id].tsx` — ilan kartı + başvur/eşleş aksiyonları;
+  girişsiz kullanıcı welcome'a yönlenir (davetteki "bekleyen kod" v1'de
+  ilanlara uygulanmadı, giriş sonrası linke tekrar tıklamak yeterli —
+  spec'e not düşüldü).
+- **Backend:** eksik olan `GET /opponent-listings/{id}` (show) eklendi
+  (`GET /listings/{id}` zaten vardı). 1 yeni Pest testi (251 toplam),
+  Pint + Larastan temiz.
+- Spec 03-match-organization.md güncellendi; tsc + lint temiz.
+
+### Sonraki adım
+- #37 (akışta video, expo-video) + #43 (liquid glass, expo-blur) — yeni
+  native modüller, tek rebuild'de birleştirilecek.
+
 ## 2026-07-11 (10) — Backlog #44: sezon kartı detay ekranı
 
 - **Backend:** yeni `GET /players/{id}/stats/matches?season=` —

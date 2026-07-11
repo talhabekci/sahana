@@ -77,7 +77,15 @@ listings/              → keşif: yakınımdaki adam-eksik + rakip ilanları (h
 | GET | /listings/{id} | İlan detayı (kaptan görünümünde başvurularla) |
 | POST | /opponent-listings | Rakip arama ilanı |
 | GET | /opponent-listings?near=&radius= | Rakip ilanları keşfi |
+| GET | /opponent-listings/{id} | Tekil ilan (paylaşılan linkin hedefi — BACKLOG #33) |
 | POST | /opponent-listings/{id}/match | Rakip kaptan eşleşmeyi kabul eder `{team_id}` |
+
+> **Paylaşılabilir ilan linki (BACKLOG #33, 2026-07-11):** her iki ilan kartında
+> paylaş ikonu — takım davet linkiyle aynı desen (`Linking.createURL`), link
+> kopyalanabilir ya da sistem paylaşım menüsüyle gönderilebilir. Linke tıklayan
+> kullanıcı `listing/{id}` ya da `opponent-listing/{id}` ekranına düşer
+> (girişsizse önce welcome'a yönlenir; davet akışındaki "bekleyen kod" deseni
+> ilanlar için v1'de yok — giriş sonrası linke tekrar tıklamak yeterli).
 
 ## Veri Modeli
 `matches` (id, public_id, team_id, opponent_team_id?, venue_text, venue_lat/lng

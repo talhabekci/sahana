@@ -80,6 +80,14 @@ class OpponentListingController extends Controller
         return OpponentListingResource::collection($Query->limit(50)->get());
     }
 
+    /** Paylaşılabilir ilan linkinin (BACKLOG #33) açtığı tekil ilan görünümü. */
+    public function show(OpponentListing $Listing): OpponentListingResource
+    {
+        $Listing->load(['team', 'match']);
+
+        return new OpponentListingResource($Listing);
+    }
+
     public function matchListing(
         MatchOpponentRequest $Request,
         OpponentListing $Listing,

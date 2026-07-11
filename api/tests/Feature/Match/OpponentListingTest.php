@@ -62,6 +62,18 @@ it('lists open opponent listings', function () {
         ->assertJsonCount(1, 'data');
 });
 
+it('shows a single opponent listing by its public id', function () {
+    [$Team, $Captain] = opponentTeamSetup();
+    $Listing = OpponentListing::create(['team_id' => $Team->id, 'created_by' => $Captain->id]);
+
+    $Viewer = User::factory()->create();
+
+    $this->actingAs($Viewer)->getJson("/api/v1/opponent-listings/{$Listing->public_id}")
+        ->assertOk()
+        ->assertJsonPath('data.id', $Listing->public_id)
+        ->assertJsonPath('data.team.name', $Team->name);
+});
+
 it('keeps listings without coordinates visible when a near filter is applied', function () {
     [$Team, $Captain] = opponentTeamSetup();
     // Konumsuz ilan (koordinatsız sahada kurulan maçtan açılan ilan senaryosu)
