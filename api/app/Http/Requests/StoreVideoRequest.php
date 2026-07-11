@@ -24,7 +24,7 @@ class StoreVideoRequest extends FormRequest
                 'file',
                 'mimes:mp4,mov,m4v',
                 'mimetypes:video/mp4,video/quicktime,video/x-m4v',
-                'max:61440',
+                'max:102400',
             ],
             'duration_seconds' => ['nullable', 'integer', 'min:1', 'max:90'],
         ];

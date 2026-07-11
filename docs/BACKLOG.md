@@ -561,6 +561,12 @@
   bir deep-link + kopyala butonu) — kapsam/hedef ekran (linke tıklayınca
   nereye düşecek, giriş yapmamış kullanıcı ne görecek) netleşmeden
   kodlanmayacak.
+- **Güncelleme (2026-07-11):** Kullanıcı ilan ekranlarında linki arayıp
+  bulamadığını bildirdi ("linki kopyalıcak bi yer yok") — madde artık
+  beklemede değil, uygulanacak. Hedef davranış takım daveti akışıyla aynı:
+  ilana özel bir deep-link üret, ilan detayında/karta "linki kopyala"
+  aksiyonu koy; linke tıklayan kullanıcı uygulamada ilgili ilana düşer
+  (girişsiz kullanıcı önce auth'a yönlenir, davet linkindeki desenle aynı).
 
 ### 34. Bug: kameradan çekilen fotoğraf feed gönderisine eklenirken "Doğrulama hatası" ✅
 - **Tamamlandı:** 2026-07-11 — kök neden #35 ile aynı çıktı: iOS kamera/
@@ -594,6 +600,124 @@
 - **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
   (BACKLOG #30'un düzeltmesi)
 - **Talep tarihi:** 2026-07-10
+
+### 37. Akış gönderisine video da eklenebilmeli (fotoğrafın yanına)
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md) +
+  Modül 5 — [05-videos.md](features/05-videos.md)
+- **Talep tarihi:** 2026-07-11
+- Kullanıcı: "Video eklemeyi nereye koydun bulamadım, akışta yok akışta da
+  olması lazım video ya da fotoğraf ekleyebilir kullanıcı." BACKLOG #23'te
+  video yükleme sadece maç detayına kondu; gönderi oluşturmada (post/create)
+  da fotoğrafın yanında video seçilebilmeli. #23'teki limitler geçerli
+  (max 60MB / 90 sn). Muhtemelen `posts.video_path` (maça bağlı `videos`
+  tablosundan bağımsız — o tablo match_id zorunlu) + PostCard'da oynatma.
+
+### 38. Bug: akışa eklenen fotoğraf gönderide görünmüyor ✅
+- **Tamamlandı:** 2026-07-11 — `api/.env`'de `APP_URL` mobil API URL'iyle
+  aynı LAN IP+port'a çekildi (kullanıcı düzenledi); prod için not
+  PRODUCTION-READINESS.md madde A'ya düşüldü. API server yeniden
+  başlatılınca tüm medya URL'leri cihazdan erişilebilir olur.
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-11
+- **Kök neden (teşhis edildi):** `api/.env`'de `APP_URL=http://localhost` —
+  `Storage::disk('public')->url()` tüm görsel/ses URL'lerini
+  `http://localhost/storage/...` üretiyor; telefon "localhost" deyince
+  kendisine bakıyor (Mac'e değil), ayrıca 8000 portu da eksik. Yüklenen
+  HİÇBİR medya (post fotoğrafı, avatar, arma, sohbet fotoğrafı/sesi)
+  cihazda görüntülenemiyor. Düzeltme: APP_URL, mobil API URL'iyle aynı
+  LAN IP+port olmalı (`http://192.168.1.113:8000`); production'da gerçek
+  alan adı (PRODUCTION-READINESS.md madde A ile bağlanır).
+
+### 39. Bug + eksik: takım sohbeti medya sorunları; DM'de medya yok; sohbet ortak component olmalı
+- **Kısmi ilerleme (2026-07-11):** (a) fotoğrafın "kaybolması" düzeltildi —
+  sohbet `Send` mutation'ına `onError` eklendi (hata artık kullanıcıya
+  gösteriliyor) + görsel boyutu #40'taki resize ile limitin altına indi;
+  (b) sesin çalınamaması #38'deki APP_URL düzeltmesiyle çözüldü. Kalan:
+  (c) sohbetin ortak component'e çıkarılması + DM'e fotoğraf/ses.
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-11
+- Kullanıcı: fotoğraf seçince/çekince "kayboluyor, sohbeti gönderemiyorum";
+  ses kaydı gönderiliyor ama "dinlenmiyor, üstüne tıklanmıyor". Ayrıca
+  "DM'e koymamışsın bu özellikleri, belki de chat'i component yapman
+  lazımdı ayrı ayrı olmasın diye."
+- **Kök neden (teşhis):** (a) Fotoğraf: dosya PHP'nin 2MB upload limitine
+  takılıp sessizce düşüyor (bkz. #40) VE sohbetteki `Send` mutation'ında
+  `onError` yok — hata kullanıcıya hiç gösterilmiyor, fotoğraf "kayboluyor"
+  gibi görünüyor. (b) Ses: yükleme çalışıyor ama `audio_path` URL'i #38'deki
+  APP_URL hatası yüzünden çalınamıyor. (c) DM: #26 bilinçli olarak sadece
+  takım sohbetine eklenmişti; kullanıcı şimdi DM'i de istiyor — sohbet
+  UI'ı (`team/[id]/chat.tsx` + `dm/[id].tsx`) ortak bir component'e
+  çıkarılıp medya özellikleri iki tarafta da sunulmalı (DM backend'ine
+  `image`/`audio` multipart desteği de eklenmeli).
+
+### 40. Bug: takım arması yüklerken yine "Doğrulama hatası" ✅
+- **Tamamlandı:** 2026-07-11 — (a) `ensureJpeg` artık uzun kenarı 1600px'e
+  küçültüyor (tüm görsel yükleme noktaları — gönderi, arma, avatar, sohbet —
+  asset boyutlarını geçiriyor); dosyalar ~200-600KB'a düştü. (b) Yeni
+  `composer serve` script'i lokal API'yi `upload_max_filesize=120M`/
+  `post_max_size=125M` ile başlatıyor (video yüklemeleri için şart).
+  (c) Maç videosu seçimi artık iOS'ta 720p H.264'e yeniden encode ediliyor
+  (`VideoExportPreset.H264_1280x720`) + `allowsEditing`/`videoMaxDuration:90`
+  ile seçimde kırpma; sunucu video limiti 100MB'a çıkarıldı (kırpılmış
+  720p/90sn için pay). Prod notu PRODUCTION-READINESS.md madde A'da.
+  **API artık `composer serve` ile başlatılmalı.**
+- **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
+- **Talep tarihi:** 2026-07-11
+- **Kök neden (teşhis edildi):** PHP `upload_max_filesize=2M` (artisan
+  serve, CLI php.ini) + `ensureJpeg` formatı düzeltiyor ama **boyutlandırma
+  yapmıyor** — modern telefon fotoğrafı JPEG'e çevrilince de 2MB'ı aşıyor,
+  PHP dosyayı sessizce düşürüyor, Laravel validasyonu "Doğrulama hatası"
+  veriyor. Düzeltme iki katmanlı: (a) `ensureJpeg`'e boyut sınırı ekle
+  (uzun kenar ~1600px'e küçült — avatar/arma/sohbet için fazlasıyla
+  yeterli, dosyalar ~200-600KB'a düşer), (b) lokal API'nin yüksek limitle
+  çalıştırılması için composer script (`php -d upload_max_filesize=...`);
+  production'da php.ini (PRODUCTION-READINESS.md'ye not) — #23'teki 60MB
+  video yüklemesi de bu limit yükseltilmeden ÇALIŞMAZ.
+
+### 41. Bug: profil fotoğrafı yüklerken "Doğrulama hatası" ✅
+- **Tamamlandı:** 2026-07-11 — #40'taki ortak çözümle birlikte (ensureJpeg
+  resize tüm çağrı noktalarında etkin, avatar dahil).
+- **Bağlı modül:** Modül 1 — [01-auth-profile.md](features/01-auth-profile.md)
+- **Talep tarihi:** 2026-07-11
+- #40 ile aynı kök neden (PHP 2MB limiti + resize yok). Kullanıcının
+  talimatı: "bu fotoğraf ve video yükleme işini temiz çözmen gerekli" —
+  tek seferde, tüm yükleme noktaları için ortak çözülecek.
+
+### 42. Ayarlar ikonu status bar'ın altında kalıyor ✅
+- **Tamamlandı:** 2026-07-11 — kullanıcı kendisi düzeltti (`(tabs)/
+  profile.tsx`'te ikon absolute yerine başlık satırının içine alındı).
+- **Bağlı modül:** cross-cutting (Modül 1 profil)
+- **Talep tarihi:** 2026-07-11
+- "Ayarlar simgesi çok yukarıda olmuş, telefonun şarj ikonunun altında
+  görünüyor." Kök neden: ikon `position: absolute; top` ile konumlanıyor
+  ama RN'de absolute konumlama SafeAreaView'ın padding'ini (çentik/status
+  bar boşluğu) yok sayar. Düzeltme: `useSafeAreaInsets()` ile
+  `top: insets.top + ...`.
+
+### 43. Uygulama geneli "liquid glass" tasarım dili
+- **Bağlı modül:** cross-cutting (tasarım)
+- **Talep tarihi:** 2026-07-11
+- "Uygulamada genel olarak bir liquid glass havası olsun istiyorum,
+  tablar da falan ya da diğer yerlerde." Gerçek buzlu cam efekti için
+  `expo-blur` (YENİ native modül — rebuild gerektirir; #37'nin video
+  oynatıcısı `expo-video` ile aynı rebuild'de birleştirilebilir).
+  Kapsam: tab bar, modallar/bottom sheet'ler, kart yüzeyleri —
+  mevcut koyu "çim/saha" paletinin üstüne yarı saydam blur katmanları.
+
+### 44. Profildeki Sezon kartına tıklayınca sezon detayı açılmalı
+- **Bağlı modül:** Modül 6 — istatistikler
+- **Talep tarihi:** 2026-07-11
+- "Profil sayfasında Sezon kısmında da sezonun detaylarını görebilmeli
+  üstüne tıklayınca." StatsCard şu an salt gösterim; tıklanınca sezonun
+  maç listesi/gol/asist dökümü gibi bir detay ekranı açılmalı (mevcut
+  stats API'sinin neyi destekleyip desteklemediğine göre kapsam netleşir).
+
+### 45. Keşfette rakip ilanları görünmüyor (kontrol + düzeltme)
+- **Bağlı modül:** Modül 3/4 — keşfet/arama yüzeyi
+- **Talep tarihi:** 2026-07-11
+- "Sanırım keşfette rakip ilanları görünmüyor onu da bi kontrol et."
+  Keşfet/arama ekranındaki ilan sorgusu incelenecek; rakip ilanlarının
+  (opponent listings) listelenmediği doğrulanırsa düzeltilecek.
 
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).

@@ -82,13 +82,6 @@ export default function Profile() {
 
   return (
     <Screen bare pitch pitchY={-220}>
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => Router.push('/settings')}
-        style={styles.settingsButton}
-        hitSlop={8}>
-        <Ionicons name="settings-outline" size={20} color={Palette.chalk} />
-      </Pressable>
 
       <FlatList
         data={Posts.data ?? []}
@@ -96,7 +89,18 @@ export default function Profile() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View>
-            <Text style={styles.kicker}>PROFİL</Text>
+          
+            <View style={styles.header}>
+                <Text style={styles.kicker}>PROFİL</Text>
+
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => Router.push('/settings')}
+                    style={styles.settingsButton}
+                    hitSlop={8}>
+                    <Ionicons name="settings-outline" size={20} color={Palette.chalk} />
+                </Pressable>
+            </View>
 
             <View style={styles.card}>
               <Pressable
@@ -190,6 +194,14 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: space(4),
+    paddingHorizontal: space(0),
+    marginBottom: space(3),
+  },
   center: {
     flex: 1,
     alignItems: 'center',
@@ -197,8 +209,7 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     position: 'absolute',
-    top: space(4),
-    right: space(6),
+    right: space(0),
     width: 36,
     height: 36,
     borderRadius: Radius.pill,

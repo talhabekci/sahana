@@ -21,6 +21,15 @@
 - **Yapılacaklar:** `Dockerfile` (php-fpm), `docker-compose.yml`,
   nginx config + TLS (Let's Encrypt/Certbot), `.env.production` şablonu,
   GitHub Actions deploy workflow (mevcut `api-ci.yml`/`mobile-ci.yml`'e ek).
+- **PHP upload limitleri (BACKLOG #40'tan öğrenildi, 2026-07-11):** PHP'nin
+  varsayılan `upload_max_filesize=2M` / `post_max_size=8M` değerleri video
+  yüklemeyi (100MB'a kadar) ve büyük görselleri kırar. Lokalde `composer serve`
+  script'i bunları `-d` bayraklarıyla yükseltiyor; production php.ini/fpm
+  havuzunda `upload_max_filesize=120M`, `post_max_size=125M` (+ nginx
+  `client_max_body_size 125m`) ayarlanmalı.
+- **APP_URL (BACKLOG #38'den öğrenildi):** `Storage::url()` medya linklerini
+  APP_URL'den üretir — prod `.env`'de gerçek alan adı olmalı, yoksa hiçbir
+  yüklenen medya istemcide görüntülenmez.
 
 ### B. Queue — `sync`'ten çıkış
 - **Durum:** `.env.example`'da `QUEUE_CONNECTION=sync` — bildirim/video

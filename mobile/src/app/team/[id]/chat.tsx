@@ -20,6 +20,7 @@ import {
 import { ChatMessage, listTeamMessages, sendTeamMessage, SendTeamMessagePayload } from '@/features/chat/api';
 import { formatDuration, VoiceMessageBubble } from '@/features/chat/VoiceMessageBubble';
 import { MAX_VOICE_MESSAGE_SECONDS, useVoiceRecorder } from '@/features/chat/useVoiceRecorder';
+import { toApiFailure } from '@/shared/api/client';
 import { disconnectEcho, getEcho } from '@/shared/api/echo';
 import { ensureJpeg } from '@/shared/media/ensureJpeg';
 import { EmptyState } from '@/shared/ui/EmptyState';
@@ -68,6 +69,7 @@ export default function TeamChat() {
         };
       });
     },
+    onError: (E) => Alert.alert('Mesaj gönderilemedi', toApiFailure(E).message),
   });
 
   useEffect(() => {
@@ -115,11 +117,11 @@ export default function TeamChat() {
     Send.mutate({ type: 'text', body: Trimmed });
   }
 
-  async function attachAndSendImage(Uri: string) {
+  async function attachAndSendImage(Asset: ImagePicker.ImagePickerAsset) {
     setConverting(true);
 
     try {
-      const File = await ensureJpeg(Uri);
+      const File = await ensureJpeg(Asset.uri, { width: Asset.width, height: Asset.height });
       Send.mutate({ type: 'image', image: File });
     } catch {
       Alert.alert('Olmadı', 'Görsel işlenemedi, başka bir fotoğraf dene.');
@@ -132,7 +134,7 @@ export default function TeamChat() {
     const Result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
 
     if (!Result.canceled) {
-      await attachAndSendImage(Result.assets[0].uri);
+      await attachAndSendImage(Result.assets[0]);
     }
   };
 
@@ -148,7 +150,7 @@ export default function TeamChat() {
     const Result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
 
     if (!Result.canceled) {
-      await attachAndSendImage(Result.assets[0].uri);
+      await attachAndSendImage(Result.assets[0]);
     }
   };
 

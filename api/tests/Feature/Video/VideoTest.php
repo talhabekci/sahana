@@ -107,7 +107,7 @@ it('rejects an oversized video upload', function () {
     [$Match, $Player] = videoMatchWithParticipant();
 
     $this->actingAs($Player)->post("/api/v1/matches/{$Match->public_id}/videos", [
-        'video' => UploadedFile::fake()->create('gol.mp4', 70000, 'video/mp4'),
+        'video' => UploadedFile::fake()->create('gol.mp4', 110000, 'video/mp4'),
     ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
 });
 

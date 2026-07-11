@@ -98,11 +98,11 @@ export default function ProfileEdit() {
       : All.filter((City) => City.name.toLocaleLowerCase('tr').includes(Query));
   }, [Cities.data, CitySearch]);
 
-  const convertAndSetAvatar = async (Uri: string) => {
+  const convertAndSetAvatar = async (Asset: ImagePicker.ImagePickerAsset) => {
     setConvertingAvatar(true);
 
     try {
-      setAvatar(await ensureJpeg(Uri));
+      setAvatar(await ensureJpeg(Asset.uri, { width: Asset.width, height: Asset.height }));
     } catch {
       Alert.alert('Olmadı', 'Görsel işlenemedi, başka bir fotoğraf dene.');
     } finally {
@@ -114,7 +114,7 @@ export default function ProfileEdit() {
     const Result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
 
     if (!Result.canceled) {
-      await convertAndSetAvatar(Result.assets[0].uri);
+      await convertAndSetAvatar(Result.assets[0]);
     }
   };
 
@@ -130,7 +130,7 @@ export default function ProfileEdit() {
     const Result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
 
     if (!Result.canceled) {
-      await convertAndSetAvatar(Result.assets[0].uri);
+      await convertAndSetAvatar(Result.assets[0]);
     }
   };
 

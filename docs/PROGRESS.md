@@ -3,6 +3,38 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (7) — Cihaz testi 2. tur: 10 yeni madde (#37-#45) + medya yükleme kök çözümü
+
+- Kullanıcı cihazda ikinci test turunu yaptı, 10 madde bildirdi — hepsi
+  BACKLOG #37-#45 olarak kaydedildi (+ #33'e "uygulanacak" güncellemesi).
+  Kullanıcı notu: "artık MVP kafasında değiliz."
+- **Bu kayıtta tamamlananlar (bug kümesi):**
+- **#38 ✅ (medya görünmüyor):** Kök neden `api/.env`'de
+  `APP_URL=http://localhost` — `Storage::url()` tüm medya linklerini
+  telefondan erişilemeyen localhost'tan üretiyordu. Kullanıcı APP_URL'i
+  LAN IP+port'a çekti; prod notu PRODUCTION-READINESS madde A'ya eklendi.
+- **#40/#41 ✅ (arma/avatar/video "Doğrulama hatası"):** Kök neden PHP
+  `upload_max_filesize=2M` (artisan serve, CLI php.ini) — dosya kapıda
+  düşünce Laravel jenerik validasyon hatası veriyordu. Üç katmanlı çözüm:
+  (1) `ensureJpeg` artık uzun kenarı 1600px'e küçültüyor, tüm çağrı
+  noktaları (gönderi/arma/avatar/sohbet) asset boyutlarını geçiriyor;
+  (2) yeni `composer serve` script'i (`-d upload_max_filesize=120M
+  -d post_max_size=125M` + `--host=0.0.0.0`) — **lokal API artık bununla
+  başlatılmalı**; (3) maç videosu seçimi iOS'ta 720p H.264'e re-encode +
+  `videoMaxDuration:90`/`allowsEditing` ile kırpma, sunucu video limiti
+  60→100MB (kırpılmış 720p için pay), test güncellendi.
+- **#39a ✅ (fotoğrafın "kaybolması"):** sohbet `Send` mutation'ında
+  `onError` yoktu — yükleme hatası kullanıcıya hiç gösterilmiyordu.
+  Alert eklendi. (#39'un ses çalma sorunu APP_URL ile çözüldü; kalan
+  kapsam: sohbet ortak component + DM'e medya.)
+- **#42 ✅ (ayarlar ikonu):** kullanıcı kendisi düzeltti.
+- Doğrulama: api Pint + VideoTest (13 test) yeşil; mobil tsc + lint temiz.
+
+### Sonraki adım
+- #39c (sohbet ortak component + DM medya), #37 (akışta video, expo-video),
+  #43 (liquid glass, expo-blur — #37 ile aynı rebuild'de), #33 (ilan linki),
+  #44 (sezon detayı), #45 (keşfet rakip ilanları).
+
 ## 2026-07-11 (6) — Backlog #23: gol videosu yükleme (Modül 5 v2-lite)
 
 - Kullanıcının açık talimatı ("çok uzun olmayacak şekilde, sistemimizi de

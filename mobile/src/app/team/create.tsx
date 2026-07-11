@@ -51,7 +51,8 @@ export default function CreateTeam() {
     setConvertingLogo(true);
 
     try {
-      setLogo(await ensureJpeg(Result.assets[0].uri));
+      const Asset = Result.assets[0];
+      setLogo(await ensureJpeg(Asset.uri, { width: Asset.width, height: Asset.height }));
       setBadgeIcon(null);
     } catch {
       setError('Görsel işlenemedi, başka bir fotoğraf dene.');

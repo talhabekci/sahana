@@ -101,7 +101,15 @@ export default function MatchDetail() {
   });
 
   const pickVideoFile = async () => {
-    const Result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'], quality: 0.7 });
+    // 720p H.264'e yeniden encode (iOS): tam çözünürlüklü telefon videosu yüzlerce MB
+    // olabiliyor; sunucu upload limitine takılmaması için boyut kaynağında düşürülür.
+    // allowsEditing + videoMaxDuration: iOS'ta 90 sn üstü videolar seçimde kırptırılır.
+    const Result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsEditing: true,
+      videoMaxDuration: 90,
+      videoExportPreset: ImagePicker.VideoExportPreset.H264_1280x720,
+    });
 
     if (Result.canceled) {
       return;

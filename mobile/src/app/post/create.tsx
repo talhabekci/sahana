@@ -44,11 +44,11 @@ export default function CreatePost() {
     enabled: TeamId != null,
   });
 
-  const convertAndSetImage = async (Uri: string) => {
+  const convertAndSetImage = async (Asset: ImagePicker.ImagePickerAsset) => {
     setConverting(true);
 
     try {
-      setImage(await ensureJpeg(Uri));
+      setImage(await ensureJpeg(Asset.uri, { width: Asset.width, height: Asset.height }));
     } catch {
       Alert.alert('Olmadı', 'Görsel işlenemedi, başka bir fotoğraf dene.');
     } finally {
@@ -63,7 +63,7 @@ export default function CreatePost() {
     });
 
     if (!Result.canceled) {
-      await convertAndSetImage(Result.assets[0].uri);
+      await convertAndSetImage(Result.assets[0]);
     }
   };
 
@@ -79,7 +79,7 @@ export default function CreatePost() {
     const Result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
 
     if (!Result.canceled) {
-      await convertAndSetImage(Result.assets[0].uri);
+      await convertAndSetImage(Result.assets[0]);
     }
   };
 
