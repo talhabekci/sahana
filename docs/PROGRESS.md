@@ -3,6 +3,27 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (16) — Backlog #50: video/ses oynatılamıyor (HTTP Range)
+
+- **Kök neden:** PHP yerleşik dev sunucusu `/storage/...` statiklerinde
+  HTTP Range desteklemiyor; AVPlayer/ExoPlayer Range olmadan medya
+  akıtamadığından yüklenen video ve sesli mesajlar cihazda hiç
+  oynatılamıyordu (kullanıcının "uygulama içi oynatıcıda sorun mu var"
+  şüphesi — oynatıcı sağlamdı, sunucu 206 dönmüyordu).
+- **Düzeltme (platform bağımsız — kullanıcı özellikle sordu, iOS'a özel
+  değil):** yeni `GET /media/{path}` route'u + `MediaController`,
+  `BinaryFileResponse` ile Range'i Symfony'ye işletiyor; yol kaçışı
+  koruması var. `ImageUploader::url()` artık `/media/...` üretiyor;
+  `TeamResource.logo_url` ve `PostResource.image_url` da aynı merkeze
+  bağlandı. Mobilde değişiklik gerekmedi (URL'ler API'den geliyor,
+  eski mesajlar dahil her şey otomatik düzeldi).
+- Doğrulama: 4 yeni Pest testi (259 toplam, 206 + Content-Range
+  assert'leri), Pint + Larastan temiz; gerçek .mov dosyasıyla canlı
+  sunucuda `Range: bytes=0-99` → 206, content-type video/quicktime,
+  100 bayt — uçtan uca kanıtlandı.
+- Prod notu: nginx `location /media/` alias'ı ile PHP atlanabilir
+  (opsiyonel) — PRODUCTION-READINESS.md madde A'ya eklendi.
+
 ## 2026-07-11 (15) — 4. tur: feed'de kendi postlar (#49) + serve script düzeltmesi
 
 - **#49:** takımsız postlar yazarın kendi akışında hiç görünmüyordu —

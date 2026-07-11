@@ -27,6 +27,11 @@
   script'i bunları `-d` bayraklarıyla yükseltiyor; production php.ini/fpm
   havuzunda `upload_max_filesize=120M`, `post_max_size=125M` (+ nginx
   `client_max_body_size 125m`) ayarlanmalı.
+- **Medya servisi (BACKLOG #50'den öğrenildi):** tüm yüklenen medya artık
+  `/media/{path}` route'undan (PHP üzerinden, Range destekli) servis
+  ediliyor. Prod'da nginx ile `location /media/` doğrudan
+  `storage/app/public`'e alias'lanarak PHP atlanabilir (nginx statikte
+  Range'i doğal destekler) — opsiyonel performans işi, davranış aynı.
 - **APP_URL (BACKLOG #38'den öğrenildi):** `Storage::url()` medya linklerini
   APP_URL'den üretir — prod `.env`'de gerçek alan adı olmalı, yoksa hiçbir
   yüklenen medya istemcide görüntülenmez.

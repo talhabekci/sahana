@@ -821,6 +821,22 @@
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-11 (cihaz testi 4. tur)
 
+### 50. Bug: yüklenen video/ses cihazda oynatılamıyor (HTTP Range) ✅
+- **Tamamlandı:** 2026-07-11 — **Kök neden:** medya `/storage/...` symlink'i
+  üzerinden PHP'nin yerleşik dev sunucusunca statik servis ediliyordu; bu
+  sunucu **HTTP Range** desteklemez. Video/ses oynatıcıları (iOS AVPlayer,
+  Android ExoPlayer — düzeltme platform bağımsız) medyayı Range ile akıtır;
+  Range yanıtı gelmeyince oynatma hiç başlamıyordu. **Düzeltme:** yeni
+  `GET /media/{path}` route'u (`MediaController`) dosyayı Laravel'in
+  `BinaryFileResponse`'uyla döndürüyor — Symfony Range'i kendisi işliyor
+  (206 Partial Content); yol kaçışı koruması var. `ImageUploader::url()`
+  artık `/media/...` üretiyor (tüm avatar/arma/foto/video/ses URL'leri tek
+  merkezden; `TeamResource.logo_url` ve `PostResource.image_url`'deki
+  doğrudan `Storage::url` kullanımları da buna bağlandı). 4 yeni Pest testi
+  (259 toplam) + gerçek .mov ile uçtan uca 206 doğrulaması.
+- **Bağlı modül:** cross-cutting (medya altyapısı)
+- **Talep tarihi:** 2026-07-11 (cihaz testi 5. tur)
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

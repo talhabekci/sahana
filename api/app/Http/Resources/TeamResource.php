@@ -3,9 +3,9 @@
 namespace App\Http\Resources;
 
 use App\Models\Team;
+use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * @mixin Team
@@ -23,7 +23,7 @@ class TeamResource extends JsonResource
             'id' => $this->public_id,
             'name' => $this->name,
             'badge_icon' => $this->badge_icon,
-            'logo_url' => $this->logo_path !== null ? Storage::disk('public')->url($this->logo_path) : null,
+            'logo_url' => ImageUploader::url($this->logo_path),
             'color_home' => $this->color_home,
             // Liste bağlamında (User->teams()) pivot doğrudan modelde; detay
             // bağlamında (Team::with('members')) members koleksiyonundan okunur.

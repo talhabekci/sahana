@@ -35,9 +35,15 @@ class ImageUploader
         return $Path;
     }
 
-    /** Resource'larda depolanan yolu (ör. `avatar_path`) tam bir genel URL'e çevirir. */
+    /**
+     * Resource'larda depolanan yolu (ör. `avatar_path`) tam bir genel URL'e çevirir.
+     *
+     * /storage/... (statik symlink) yerine Range destekli /media/... route'u
+     * kullanılır (BACKLOG #50): PHP'nin dev sunucusu statikte Range desteklemez,
+     * video/ses oynatıcıları (AVPlayer/ExoPlayer) Range olmadan akıtamaz.
+     */
     public static function url(?string $Path): ?string
     {
-        return $Path !== null ? Storage::disk('public')->url($Path) : null;
+        return $Path !== null ? url('media/'.ltrim($Path, '/')) : null;
     }
 }

@@ -6,7 +6,6 @@ use App\Models\Post;
 use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * @mixin Post
@@ -24,7 +23,7 @@ class PostResource extends JsonResource
             'id' => $this->public_id,
             'type' => $this->type,
             'body' => $this->body,
-            'image_url' => $this->image_path !== null ? Storage::disk('public')->url($this->image_path) : null,
+            'image_url' => ImageUploader::url($this->image_path),
             'video_url' => ImageUploader::url($this->video_path),
             'author' => $this->whenLoaded('user', fn (): array => [
                 'id' => $this->user->public_id,
