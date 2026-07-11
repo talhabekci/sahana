@@ -164,7 +164,9 @@ export default function Profile() {
               </View>
             </View>
 
-            {Stats.data != null && <StatsCard stats={Stats.data} />}
+            {Stats.data != null && (
+              <StatsCard stats={Stats.data} onPress={() => Router.push(`/stats/${Data?.id}`)} />
+            )}
 
             <View style={styles.contactBlock}>
               <Text style={styles.contactLabel}>HESAP</Text>

@@ -205,7 +205,9 @@ export default function PlayerProfile() {
               </View>
             )}
 
-            {!Blocked && Stats.data != null && <StatsCard stats={Stats.data} />}
+            {!Blocked && Stats.data != null && (
+              <StatsCard stats={Stats.data} onPress={() => Router.push(`/stats/${id}`)} />
+            )}
 
             {Blocked ? (
               <Text style={styles.blockedText}>Bu kullanıcıyı engelledin, gönderileri gizli.</Text>

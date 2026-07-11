@@ -3,6 +3,21 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (10) — Backlog #44: sezon kartı detay ekranı
+
+- **Backend:** yeni `GET /players/{id}/stats/matches?season=` —
+  `BuildPlayerSeasonMatches` action'ı sezonun maç bazında dökümünü döner
+  (tarih/saha, takım + rakip adı, skor, onaylı gol/asist, maç başına
+  ortalama puan; yeniden eskiye; toplu sorgularla N+1 yok). Spec
+  06-stats-rating.md §API güncellendi. 1 yeni Pest testi (250 toplam),
+  Pint + Larastan temiz.
+- **Mobil:** yeni `stats/[id].tsx` ekranı — üstte sezon özeti şeridi
+  (maç/gol/asist/reyting), altında maç listesi; satıra dokununca maç
+  detayına gidiyor. `StatsCard` opsiyonel `onPress` prop'u aldı (verilince
+  sağ üstte ok işareti) — hem `(tabs)/profile.tsx` hem `player/[id].tsx`
+  sezon kartından `/stats/{playerId}`'ye yönlendiriyor.
+- Doğrulama: tsc + lint temiz.
+
 ## 2026-07-11 (9) — Backlog #45: keşfette rakip ilanları görünmüyor
 
 - **Kök neden:** rakip ilanlarının tamamı NULL `lat/lng` ile açılıyor

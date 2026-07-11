@@ -1,16 +1,26 @@
-import { StyleSheet, Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { PlayerStats } from './api';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
 type Props = {
   stats: PlayerStats;
+  /** Verilirse kart dokunulabilir olur ve sağ üstte detay oku görünür (BACKLOG #44). */
+  onPress?: () => void;
 };
 
-export function StatsCard({ stats }: Props) {
+export function StatsCard({ stats, onPress }: Props) {
   return (
-    <View style={styles.card}>
-      <Text style={styles.kicker}>{stats.season} SEZONU</Text>
+    <Pressable
+      accessibilityRole={onPress != null ? 'button' : undefined}
+      onPress={onPress}
+      disabled={onPress == null}
+      style={styles.card}>
+      <View style={styles.kickerRow}>
+        <Text style={styles.kicker}>{stats.season} SEZONU</Text>
+        {onPress != null && <Ionicons name="chevron-forward" size={16} color={Palette.moss} />}
+      </View>
 
       <View style={styles.statsRow}>
         <View style={styles.statBlock}>
@@ -59,11 +69,16 @@ export function StatsCard({ stats }: Props) {
           </View>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  kickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   card: {
     backgroundColor: Palette.turf,
     borderRadius: Radius.l,

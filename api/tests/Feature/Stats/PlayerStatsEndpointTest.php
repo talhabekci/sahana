@@ -44,6 +44,50 @@ it('returns season totals for matches/goals/assists', function () {
         ->assertJsonPath('data.assists', 1);
 });
 
+it('lists the season match breakdown, newest first', function () {
+    $Viewer = User::factory()->create();
+    $Player = User::factory()->create();
+    $Team = Team::factory()->create();
+    $Team->members()->attach($Player->id, ['role' => 'member', 'joined_at' => now()]);
+
+    $Older = FootballMatch::factory()->for($Team)->create(['starts_at' => now()->subDays(10)]);
+    $Older->participants()->create(['user_id' => $Player->id, 'source' => 'team', 'rsvp' => 'yes']);
+
+    $Newer = FootballMatch::factory()->for($Team)->create(['starts_at' => now()->subDays(2)]);
+    $Newer->participants()->create(['user_id' => $Player->id, 'source' => 'team', 'rsvp' => 'yes']);
+    PlayerMatchStat::create([
+        'match_id' => $Newer->id,
+        'user_id' => $Player->id,
+        'goals' => 3,
+        'assists' => 1,
+        'approved' => true,
+        'entered_by' => $Player->id,
+    ]);
+    PlayerRating::create([
+        'match_id' => $Newer->id,
+        'rater_id' => User::factory()->create()->id,
+        'ratee_id' => $Player->id,
+        'score' => 8,
+    ]);
+
+    // Geçen sezonun maçı listeye girmemeli.
+    $LastSeason = FootballMatch::factory()->for($Team)->create(['starts_at' => now()->subYear()]);
+    $LastSeason->participants()->create(['user_id' => $Player->id, 'source' => 'team', 'rsvp' => 'yes']);
+
+    $Response = $this->actingAs($Viewer)
+        ->getJson("/api/v1/players/{$Player->public_id}/stats/matches?season=".now()->year)
+        ->assertOk();
+
+    $Response->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.match_id', $Newer->public_id)
+        ->assertJsonPath('data.0.goals', 3)
+        ->assertJsonPath('data.0.assists', 1)
+        ->assertJsonPath('data.0.average_score', 8)
+        ->assertJsonPath('data.1.match_id', $Older->public_id)
+        ->assertJsonPath('data.1.goals', 0)
+        ->assertJsonPath('data.1.average_score', null);
+});
+
 it('hides the rating average until at least 3 ratings are received', function () {
     $Viewer = User::factory()->create();
     $Player = User::factory()->create();

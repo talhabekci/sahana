@@ -711,13 +711,17 @@
   Kapsam: tab bar, modallar/bottom sheet'ler, kart yüzeyleri —
   mevcut koyu "çim/saha" paletinin üstüne yarı saydam blur katmanları.
 
-### 44. Profildeki Sezon kartına tıklayınca sezon detayı açılmalı
+### 44. Profildeki Sezon kartına tıklayınca sezon detayı açılmalı ✅
+- **Tamamlandı:** 2026-07-11 — Yeni `GET /players/{id}/stats/matches?season=`
+  ucu (`BuildPlayerSeasonMatches` action): sezonun maç bazında dökümü —
+  tarih/saha, takım + rakip, skor (varsa), oyuncunun onaylı gol/asist'i,
+  maç başına ortalama puan; yeniden eskiye. Spec 06-stats-rating.md §API'ye
+  eklendi, 1 yeni Pest testi (250 toplam). Mobilde yeni `stats/[id].tsx`
+  ekranı (özet şerit + maç listesi, satıra dokununca maç detayı);
+  `StatsCard` opsiyonel `onPress` aldı — hem kendi profil hem oyuncu
+  profili sezon kartından açılıyor.
 - **Bağlı modül:** Modül 6 — istatistikler
 - **Talep tarihi:** 2026-07-11
-- "Profil sayfasında Sezon kısmında da sezonun detaylarını görebilmeli
-  üstüne tıklayınca." StatsCard şu an salt gösterim; tıklanınca sezonun
-  maç listesi/gol/asist dökümü gibi bir detay ekranı açılmalı (mevcut
-  stats API'sinin neyi destekleyip desteklemediğine göre kapsam netleşir).
 
 ### 45. Keşfette rakip ilanları görünmüyor (kontrol + düzeltme) ✅
 - **Tamamlandı:** 2026-07-11 — **Kök neden:** maç detayından açılan rakip

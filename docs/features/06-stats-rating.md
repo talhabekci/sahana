@@ -67,6 +67,12 @@ paydaya girmez.
   zaman ağırlıklı ortalama reyting (`ratings_count < 3` ise `null` +
   `ratings_count` alanı döner, UI "yeterli veri yok" gösterir), güvenilirlik
   yüzdesi, son 5 maçın reyting listesi (form grafiği).
+- `GET /players/{id}/stats/matches?season=2026` — sezonun maç bazında dökümü
+  (BACKLOG #44, 2026-07-11): oyuncunun o sezon katıldığı maçlar, yeniden
+  eskiye — her satırda maç id/tarih/saha, takım + rakip adı, skor (varsa),
+  oyuncunun onaylı gol/asist'i ve o maçtaki ortalama puanı. Mobilde profil
+  ve oyuncu ekranındaki sezon kartına dokununca açılan `stats/[id]` detay
+  ekranı bu endpoint'i kullanır.
 
 ## Veri Modeli
 
