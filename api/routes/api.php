@@ -44,6 +44,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/verify', [AuthController::class, 'verify']);
 
     Route::get('/cities', [CityController::class, 'index']);
+    Route::get('/cities/{City}/districts', [CityController::class, 'districts']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);

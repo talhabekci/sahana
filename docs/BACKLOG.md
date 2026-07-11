@@ -837,6 +837,25 @@
 - **Bağlı modül:** cross-cutting (medya altyapısı)
 - **Talep tarihi:** 2026-07-11 (cihaz testi 5. tur)
 
+### 51. Profil düzenlemede ilçe yazarak değil seçilerek girilsin ✅
+- **Tamamlandı:** 2026-07-11 — yeni `districts` tablosu + `DistrictSeeder`
+  (970 ilçe, il plaka koduna bağlı; kaynak: berkaycatak/turkiye_il_ilce_json,
+  Türkçe başlık düzeltmesi + TR alfabetik sırayla üretildi) +
+  `GET /cities/{id}/districts`. Profil düzenlemede ilçe alanı şehre bağlı
+  GlassView seçicisine dönüştü (şehir değişince ilçe sıfırlanır; şehir
+  seçilmeden pasif). `player_profiles.district` metin kalır — geriye uyumlu.
+  1 yeni Pest testi. Spec 01-auth-profile.md güncellendi ("v1.1'de seçime
+  dönüşecek" planı gerçekleşti).
+- **Talep tarihi:** 2026-07-11
+
+### 52. Doğum tarihi de yazarak değil seçilerek girilsin ✅
+- **Tamamlandı:** 2026-07-11 — GG/AA/YYYY metin kutuları kaldırıldı;
+  yerine GlassView sheet içinde gün/ay/yıl kolonlu seçici (ay adları
+  Türkçe; yıl aralığı 1940–bugün-6; ay/yıl değişince gün o ayın gün
+  sayısına kırpılır — 31 Şubat oluşamaz; Temizle ile boşaltılabilir).
+  Yeni native bağımlılık YOK (datetimepicker eklenmedi, rebuild gerekmez).
+- **Talep tarihi:** 2026-07-11
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

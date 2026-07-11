@@ -36,10 +36,10 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 | foot | enum L/R/B | – | |
 | level | 1-5 | ✅ | Kendi beyanı; Modül 6'da reytingle dengelenir |
 | city | seçim (81 il, seed) | ✅ | İlan eşleşmesinin temeli |
-| district | serbest metin | – | İlçe seed listesi v1.1'de seçime dönüşecek |
+| district | seçim (ilçe seed, 970 kayıt) | – | BACKLOG #51 (2026-07-11): `districts` tablosu (city_id=plaka) + `GET /cities/{id}/districts`; profil düzenlemede şehre bağlı seçici. Profil şemasında hâlâ metin olarak saklanır (geriye uyumlu) |
 | availability | JSON | – | Haftanın günleri + saat aralıkları |
 | bio | string(160) | – | |
-| birth_date | date | – | Geçmiş tarih zorunlu (`before:today`); yaş bazlı öneri/istatistik için veri toplama amaçlı (Backlog #27) |
+| birth_date | date | – | Geçmiş tarih zorunlu (`before:today`); yaş bazlı öneri/istatistik için veri toplama amaçlı (Backlog #27). Girişi seçmeli: gün/ay/yıl kolonlu sheet (BACKLOG #52 — native date picker bağımlılığı yok) |
 
 ## Ekranlar (expo-router)
 ```
@@ -67,6 +67,7 @@ player/[id]         → başka oyuncunun profili
 | DELETE | /me | Hesap silme (soft delete + 30 gün sonra purge job) |
 | GET | /players/{publicId} | Herkese açık profil |
 | GET | /cities | 81 il listesi (onboarding şehir seçimi) |
+| GET | /cities/{id}/districts | İlin ilçeleri (statik seed, TR alfabetik — BACKLOG #51) |
 
 OTP kodu: 6 hane, 120 sn geçerli, cache store'da hash'lenmiş (lokal: database
 driver, prod: Redis), 5 yanlış denemede kilit (429 `otp_locked`).

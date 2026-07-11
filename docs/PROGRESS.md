@@ -3,6 +3,22 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (17) — Backlog #51/#52: ilçe ve doğum tarihi seçmeli oldu
+
+- **#51 (ilçe):** yeni `districts` tablosu (city_id = plaka) +
+  `DistrictSeeder` — 970 ilçe, harici veri setinden Türkçe başlık
+  düzeltmesi ve TR alfabetik sırayla üretildi; `GET /cities/{id}/districts`
+  ucu + test. Mobilde profil düzenlemedeki ilçe alanı şehre bağlı seçici
+  oldu (şehir değişince sıfırlanır). `player_profiles.district` metin
+  olarak kalıyor (geriye uyumlu, şema değişikliği yok).
+- **#52 (doğum tarihi):** GG/AA/YYYY metin girişleri yerine gün/ay/yıl
+  kolonlu GlassView sheet seçicisi — native datetimepicker bağımlılığı
+  eklenmedi (rebuild yok); geçersiz tarih oluşamaz (gün, ayın gün sayısına
+  kırpılır), Temizle ile boşaltılabilir.
+- Doğrulama: api 260 test + Pint + Larastan; mobil tsc + lint temiz.
+- Not: lokal DB'ye migrate + seed uygulandı; testler `$seed = true`
+  ile ilçeleri otomatik yüklüyor.
+
 ## 2026-07-11 (16) — Backlog #50: video/ses oynatılamıyor (HTTP Range)
 
 - **Kök neden:** PHP yerleşik dev sunucusu `/storage/...` statiklerinde

@@ -27,6 +27,8 @@ export type Me = {
 
 export type City = { id: number; name: string };
 
+export type District = { id: number; name: string };
+
 export type UpdateMePayload = Partial<{
   name: string;
   positions: string[];
@@ -95,6 +97,12 @@ export async function updateMe(Payload: UpdateMePayload): Promise<Me> {
 
 export async function getCities(): Promise<City[]> {
   const { data } = await Api.get<{ data: City[] }>('/cities');
+
+  return data.data;
+}
+
+export async function getDistricts(CityId: number): Promise<District[]> {
+  const { data } = await Api.get<{ data: District[] }>(`/cities/${CityId}/districts`);
 
   return data.data;
 }

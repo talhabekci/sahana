@@ -19,7 +19,7 @@ import {
   View,
 } from 'react-native';
 
-import { getCities, getMe, updateMe } from '@/features/auth/api';
+import { getCities, getDistricts, getMe, updateMe } from '@/features/auth/api';
 import { PitchPositionPicker } from '@/features/auth/PitchPositionPicker';
 import { toApiFailure } from '@/shared/api/client';
 import { ensureJpeg } from '@/shared/media/ensureJpeg';
@@ -28,6 +28,21 @@ import { GlassView } from '@/shared/ui/GlassView';
 import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+
+const MONTH_NAMES = [
+  'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+  'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık',
+];
+
+// 6 yaşından 1940 doğumluya kadar makul aralık (yeniden eskiye).
+const BIRTH_YEARS = Array.from(
+  { length: new Date().getFullYear() - 6 - 1940 + 1 },
+  (_, Index) => String(new Date().getFullYear() - 6 - Index),
+);
+
+function daysInMonth(month: number, year: number): number {
+  return new Date(year, month, 0).getDate();
+}
 
 function initials(name: string | null | undefined): string {
   if (name == null || name.trim() === '') {
@@ -63,7 +78,15 @@ export default function ProfileEdit() {
   const [ConvertingAvatar, setConvertingAvatar] = useState(false);
   const [CityPickerVisible, setCityPickerVisible] = useState(false);
   const [CitySearch, setCitySearch] = useState('');
+  const [DistrictPickerVisible, setDistrictPickerVisible] = useState(false);
+  const [BirthPickerVisible, setBirthPickerVisible] = useState(false);
   const [Error_, setError] = useState<string | null>(null);
+
+  const Districts = useQuery({
+    queryKey: ['cities', CityId, 'districts'],
+    queryFn: () => getDistricts(CityId ?? 0),
+    enabled: CityId != null,
+  });
 
   useEffect(() => {
     if (Hydrated || Me.data == null) {
@@ -261,48 +284,30 @@ export default function ProfileEdit() {
             <Ionicons name="chevron-forward" size={18} color={Palette.moss} />
           </Pressable>
 
-          <View style={styles.field}>
-            <TextField
-              label="İlçe (opsiyonel)"
-              value={District}
-              onChangeText={setDistrict}
-              placeholder="Kadıköy"
-            />
-          </View>
+          <Text style={styles.sectionLabel}>İLÇE (opsiyonel)</Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={CityId == null}
+            onPress={() => setDistrictPickerVisible(true)}
+            style={[styles.citySelect, CityId == null && styles.selectDisabled]}>
+            <Text style={styles.citySelectText}>
+              {District !== '' ? District : CityId == null ? 'Önce şehir seç' : 'İlçe seç'}
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color={Palette.moss} />
+          </Pressable>
 
           <Text style={styles.sectionLabel}>DOĞUM TARİHİ (opsiyonel)</Text>
-          <View style={styles.birthRow}>
-            <TextInput
-              value={BirthDay}
-              onChangeText={(Value) => setBirthDay(Value.replace(/[^0-9]/g, '').slice(0, 2))}
-              placeholder="GG"
-              placeholderTextColor={Palette.moss}
-              selectionColor={Palette.lime}
-              keyboardType="number-pad"
-              maxLength={2}
-              style={[styles.birthInput, styles.birthInputSmall]}
-            />
-            <TextInput
-              value={BirthMonth}
-              onChangeText={(Value) => setBirthMonth(Value.replace(/[^0-9]/g, '').slice(0, 2))}
-              placeholder="AA"
-              placeholderTextColor={Palette.moss}
-              selectionColor={Palette.lime}
-              keyboardType="number-pad"
-              maxLength={2}
-              style={[styles.birthInput, styles.birthInputSmall]}
-            />
-            <TextInput
-              value={BirthYear}
-              onChangeText={(Value) => setBirthYear(Value.replace(/[^0-9]/g, '').slice(0, 4))}
-              placeholder="YYYY"
-              placeholderTextColor={Palette.moss}
-              selectionColor={Palette.lime}
-              keyboardType="number-pad"
-              maxLength={4}
-              style={[styles.birthInput, styles.birthInputLarge]}
-            />
-          </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setBirthPickerVisible(true)}
+            style={styles.citySelect}>
+            <Text style={styles.citySelectText}>
+              {BirthFieldsComplete
+                ? `${BirthDay.padStart(2, '0')} ${MONTH_NAMES[Number(BirthMonth) - 1]} ${BirthYear}`
+                : 'Doğum tarihi seç'}
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color={Palette.moss} />
+          </Pressable>
 
           <Text style={styles.sectionLabel}>HAKKINDA (opsiyonel)</Text>
           <TextInput
@@ -348,6 +353,10 @@ export default function ProfileEdit() {
                   accessibilityRole="radio"
                   accessibilityState={{ selected: CityId === item.id }}
                   onPress={() => {
+                    if (item.id !== CityId) {
+                      setDistrict('');
+                    }
+
                     setCityId(item.id);
                     setCityName(item.name);
                     setCityPickerVisible(false);
@@ -359,6 +368,142 @@ export default function ProfileEdit() {
                 </Pressable>
               )}
             />
+          </GlassView>
+        </Modal>
+
+        <Modal visible={DistrictPickerVisible} transparent animationType="slide">
+          <Pressable style={styles.cityBackdrop} onPress={() => setDistrictPickerVisible(false)} />
+          <GlassView style={styles.citySheet}>
+            <View style={styles.cityHandle} />
+            <Text style={styles.citySheetTitle}>İLÇE SEÇ</Text>
+            <FlatList
+              data={Districts.data ?? []}
+              keyExtractor={(Item) => String(Item.id)}
+              style={styles.cityList}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item }) => (
+                <Pressable
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: District === item.name }}
+                  onPress={() => {
+                    setDistrict(item.name);
+                    setDistrictPickerVisible(false);
+                  }}
+                  style={styles.cityRow}>
+                  <Text style={[styles.cityRowText, District === item.name && styles.cityRowTextActive]}>
+                    {item.name}
+                  </Text>
+                </Pressable>
+              )}
+              ListEmptyComponent={
+                Districts.isPending ? (
+                  <ActivityIndicator color={Palette.lime} style={styles.districtLoading} />
+                ) : null
+              }
+            />
+          </GlassView>
+        </Modal>
+
+        <Modal visible={BirthPickerVisible} transparent animationType="slide">
+          <Pressable style={styles.cityBackdrop} onPress={() => setBirthPickerVisible(false)} />
+          <GlassView style={styles.citySheet}>
+            <View style={styles.cityHandle} />
+            <Text style={styles.citySheetTitle}>DOĞUM TARİHİ</Text>
+            <View style={styles.birthColumns}>
+              <FlatList
+                data={Array.from(
+                  {
+                    length: daysInMonth(
+                      Number(BirthMonth || '1'),
+                      Number(BirthYear || String(new Date().getFullYear())),
+                    ),
+                  },
+                  (_, Index) => String(Index + 1),
+                )}
+                keyExtractor={(Item) => Item}
+                style={styles.birthColumn}
+                renderItem={({ item }) => (
+                  <Pressable
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: BirthDay === item }}
+                    onPress={() => setBirthDay(item)}
+                    style={styles.birthOption}>
+                    <Text style={[styles.cityRowText, BirthDay === item && styles.cityRowTextActive]}>
+                      {item}
+                    </Text>
+                  </Pressable>
+                )}
+              />
+              <FlatList
+                data={MONTH_NAMES}
+                keyExtractor={(Item) => Item}
+                style={styles.birthColumn}
+                renderItem={({ item, index }) => (
+                  <Pressable
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: Number(BirthMonth) === index + 1 }}
+                    onPress={() => {
+                      setBirthMonth(String(index + 1));
+
+                      const Max = daysInMonth(
+                        index + 1,
+                        Number(BirthYear || String(new Date().getFullYear())),
+                      );
+
+                      if (BirthDay !== '' && Number(BirthDay) > Max) {
+                        setBirthDay(String(Max));
+                      }
+                    }}
+                    style={styles.birthOption}>
+                    <Text
+                      style={[
+                        styles.cityRowText,
+                        Number(BirthMonth) === index + 1 && styles.cityRowTextActive,
+                      ]}>
+                      {item}
+                    </Text>
+                  </Pressable>
+                )}
+              />
+              <FlatList
+                data={BIRTH_YEARS}
+                keyExtractor={(Item) => Item}
+                style={styles.birthColumn}
+                renderItem={({ item }) => (
+                  <Pressable
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: BirthYear === item }}
+                    onPress={() => {
+                      setBirthYear(item);
+
+                      const Max = daysInMonth(Number(BirthMonth || '1'), Number(item));
+
+                      if (BirthDay !== '' && Number(BirthDay) > Max) {
+                        setBirthDay(String(Max));
+                      }
+                    }}
+                    style={styles.birthOption}>
+                    <Text style={[styles.cityRowText, BirthYear === item && styles.cityRowTextActive]}>
+                      {item}
+                    </Text>
+                  </Pressable>
+                )}
+              />
+            </View>
+            <View style={styles.birthActions}>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  setBirthDay('');
+                  setBirthMonth('');
+                  setBirthYear('');
+                  setBirthPickerVisible(false);
+                }}
+                hitSlop={8}>
+                <Text style={styles.birthClear}>Temizle</Text>
+              </Pressable>
+              <Button label="Tamam" onPress={() => setBirthPickerVisible(false)} />
+            </View>
           </GlassView>
         </Modal>
       </KeyboardAvoidingView>
@@ -475,27 +620,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Palette.chalk,
   },
-  birthRow: {
+  selectDisabled: {
+    opacity: 0.5,
+  },
+  districtLoading: {
+    marginTop: space(6),
+  },
+  birthColumns: {
     flexDirection: 'row',
     gap: space(2),
-    marginBottom: space(2),
+    height: 280,
+    marginTop: space(3),
   },
-  birthInput: {
-    fontFamily: Type.mono,
-    fontSize: 18,
-    color: Palette.chalk,
-    borderRadius: Radius.m,
-    borderWidth: 1,
-    borderColor: Palette.lineFaint,
-    backgroundColor: Palette.turf,
-    paddingVertical: space(3),
-    textAlign: 'center',
+  birthColumn: {
+    flex: 1,
   },
-  birthInputSmall: {
-    width: 64,
+  birthOption: {
+    paddingVertical: space(2.5),
+    alignItems: 'center',
   },
-  birthInputLarge: {
-    width: 90,
+  birthActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space(4),
+    marginTop: space(4),
+  },
+  birthClear: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 15,
+    color: Palette.clay,
   },
   textArea: {
     minHeight: 90,
