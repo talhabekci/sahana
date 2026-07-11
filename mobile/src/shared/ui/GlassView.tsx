@@ -17,7 +17,14 @@ type Props = {
 export function GlassView({ children, style, intensity = 50 }: Props) {
   return (
     <View style={[styles.wrap, style]}>
-      <BlurView tint="dark" intensity={intensity} style={StyleSheet.absoluteFill} />
+      {/* experimentalBlurMethod: Android'de gerçek blur için şart — verilmezse
+          yalnızca yarı saydam düz katman çizilir (iOS'ta etkisiz). */}
+      <BlurView
+        tint="dark"
+        intensity={intensity}
+        experimentalBlurMethod="dimezisBlurView"
+        style={StyleSheet.absoluteFill}
+      />
       <View style={[StyleSheet.absoluteFill, styles.tintOverlay]} />
       {children}
     </View>
