@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
@@ -33,10 +33,23 @@ export function VoiceMessageBubble({ uri, durationSeconds }: Props) {
       ? Math.max(0, Status.duration - Status.currentTime)
       : (durationSeconds ?? 0);
 
+  const togglePlayback = async () => {
+    if (Status.playing) {
+      Player.pause();
+
+      return;
+    }
+
+    // iOS'ta sessiz anahtar açıkken ses varsayılan olarak KISILIR — kullanıcı
+    // "oynatılmıyor" sanıyor (BACKLOG #47). Çalmadan önce moda izin verilir.
+    await setAudioModeAsync({ playsInSilentMode: true });
+    Player.play();
+  };
+
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={() => (Status.playing ? Player.pause() : Player.play())}
+      onPress={() => void togglePlayback()}
       style={styles.row}>
       <Ionicons name={Status.playing ? 'pause-circle' : 'play-circle'} size={32} color={Palette.lime} />
       <Text style={styles.duration}>{formatDuration(Remaining)}</Text>

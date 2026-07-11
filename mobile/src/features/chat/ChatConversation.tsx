@@ -67,25 +67,46 @@ export function ChatConversation({
   const Router = useRouter();
   const [Body, setBody] = useState('');
   const [Converting, setConverting] = useState(false);
+  // Seçilen medya hemen GİTMEZ (BACKLOG #48) — önce bekleyen ek olarak
+  // gösterilir, kullanıcı gönder butonuna basınca yollanır.
+  const [PendingImage, setPendingImage] = useState<{ uri: string; name: string; type: string } | null>(null);
+  const [PendingAudio, setPendingAudio] = useState<{ uri: string; durationSeconds: number } | null>(null);
   const Voice = useVoiceRecorder();
 
-  function submit() {
-    const Trimmed = Body.trim();
+  const HasContent = Body.trim().length > 0 || PendingImage != null || PendingAudio != null;
 
-    if (Trimmed.length < 1 || sending) {
+  function submit() {
+    if (sending || !HasContent) {
       return;
     }
 
-    setBody('');
-    onSend({ type: 'text', body: Trimmed });
+    if (PendingImage != null) {
+      onSend({ type: 'image', image: PendingImage });
+      setPendingImage(null);
+    }
+
+    if (PendingAudio != null) {
+      onSend({
+        type: 'audio',
+        audio: { uri: PendingAudio.uri, name: 'voice.m4a', type: 'audio/m4a' },
+        audio_duration: PendingAudio.durationSeconds,
+      });
+      setPendingAudio(null);
+    }
+
+    const Trimmed = Body.trim();
+
+    if (Trimmed.length > 0) {
+      setBody('');
+      onSend({ type: 'text', body: Trimmed });
+    }
   }
 
-  async function attachAndSendImage(Asset: ImagePicker.ImagePickerAsset) {
+  async function attachImage(Asset: ImagePicker.ImagePickerAsset) {
     setConverting(true);
 
     try {
-      const File = await ensureJpeg(Asset.uri, { width: Asset.width, height: Asset.height });
-      onSend({ type: 'image', image: File });
+      setPendingImage(await ensureJpeg(Asset.uri, { width: Asset.width, height: Asset.height }));
     } catch {
       Alert.alert('Olmadı', 'Görsel işlenemedi, başka bir fotoğraf dene.');
     } finally {
@@ -97,7 +118,7 @@ export function ChatConversation({
     const Result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8 });
 
     if (!Result.canceled) {
-      await attachAndSendImage(Result.assets[0]);
+      await attachImage(Result.assets[0]);
     }
   };
 
@@ -113,7 +134,7 @@ export function ChatConversation({
     const Result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
 
     if (!Result.canceled) {
-      await attachAndSendImage(Result.assets[0]);
+      await attachImage(Result.assets[0]);
     }
   };
 
@@ -133,15 +154,11 @@ export function ChatConversation({
     }
   };
 
-  const stopAndSend = async () => {
+  const stopAndKeep = async () => {
     const Result = await Voice.stop();
 
     if (Result != null) {
-      onSend({
-        type: 'audio',
-        audio: { uri: Result.uri, name: 'voice.m4a', type: 'audio/m4a' },
-        audio_duration: Result.durationSeconds,
-      });
+      setPendingAudio(Result);
     }
   };
 
@@ -151,7 +168,7 @@ export function ChatConversation({
 
   useEffect(() => {
     if (Voice.isRecording && Voice.durationSeconds >= MAX_VOICE_MESSAGE_SECONDS) {
-      void stopAndSend();
+      void stopAndKeep();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Voice.isRecording, Voice.durationSeconds]);
@@ -257,6 +274,32 @@ export function ChatConversation({
           />
         )}
 
+        {(PendingImage != null || PendingAudio != null) && (
+          <View style={styles.pendingRow}>
+            {PendingImage != null && (
+              <Image source={{ uri: PendingImage.uri }} style={styles.pendingImage} />
+            )}
+            {PendingAudio != null && (
+              <View style={styles.pendingAudioChip}>
+                <Ionicons name="mic" size={16} color={Palette.lime} />
+                <Text style={styles.pendingAudioText}>
+                  Sesli mesaj · {formatDuration(PendingAudio.durationSeconds)}
+                </Text>
+              </View>
+            )}
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setPendingImage(null);
+                setPendingAudio(null);
+              }}
+              style={styles.pendingRemove}
+              hitSlop={8}>
+              <Ionicons name="close" size={16} color={Palette.chalk} />
+            </Pressable>
+          </View>
+        )}
+
         <View style={styles.composer}>
           {Voice.isRecording ? (
             <>
@@ -273,7 +316,7 @@ export function ChatConversation({
               </View>
               <Pressable
                 accessibilityRole="button"
-                onPress={() => void stopAndSend()}
+                onPress={() => void stopAndKeep()}
                 style={styles.sendButton}
                 hitSlop={8}>
                 <Ionicons name="checkmark" size={20} color={Palette.limeInk} />
@@ -302,7 +345,7 @@ export function ChatConversation({
                 style={styles.input}
                 multiline
               />
-              {Body.trim().length > 0 ? (
+              {HasContent ? (
                 <Pressable
                   accessibilityRole="button"
                   disabled={sending}
@@ -422,6 +465,43 @@ const styles = StyleSheet.create({
   },
   emptyFlip: {
     transform: [{ scaleY: -1 }],
+  },
+  pendingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(3),
+    paddingHorizontal: space(6),
+    paddingTop: space(2),
+  },
+  pendingImage: {
+    width: 56,
+    height: 56,
+    borderRadius: Radius.m,
+    backgroundColor: Palette.turfRaised,
+  },
+  pendingAudioChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    backgroundColor: Palette.turf,
+    paddingVertical: space(2),
+    paddingHorizontal: space(3),
+  },
+  pendingAudioText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 13,
+    color: Palette.chalk,
+  },
+  pendingRemove: {
+    width: 26,
+    height: 26,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.turfRaised,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   composer: {
     flexDirection: 'row',

@@ -129,28 +129,37 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
       )}
 
       {post.type === 'video_shared' && post.video != null && (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => {
-            if (post.video?.url != null) {
-              void WebBrowser.openBrowserAsync(post.video.url);
-            }
-          }}
-          style={styles.videoCard}>
-          <Image
-            source={post.video.thumbnail_url != null ? { uri: post.video.thumbnail_url } : VideoDefaultCover}
-            style={styles.videoThumbnail}
-          />
-          <View style={styles.videoPlayBadge}>
-            <Ionicons name="play" size={14} color={Palette.limeInk} />
+        post.video.video_url != null ? (
+          // Yüklenen maç videosu (BACKLOG #46): tarayıcıya gitmeden akış
+          // içinde oynatılır — harici linklerde (YouTube vb.) tarayıcı kalır.
+          <View>
+            <Text style={[styles.autoKicker, styles.videoUploadedKicker]}>🎬 VİDEO PAYLAŞILDI</Text>
+            <PostVideoPlayer uri={post.video.video_url} />
           </View>
-          <View style={styles.videoInfo}>
-            <Text style={styles.autoKicker}>🎬 VİDEO PAYLAŞILDI</Text>
-            <Text style={styles.autoText} numberOfLines={1}>
-              {post.video.title ?? 'Maç videosunu izle'}
-            </Text>
-          </View>
-        </Pressable>
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              if (post.video?.url != null) {
+                void WebBrowser.openBrowserAsync(post.video.url);
+              }
+            }}
+            style={styles.videoCard}>
+            <Image
+              source={post.video.thumbnail_url != null ? { uri: post.video.thumbnail_url } : VideoDefaultCover}
+              style={styles.videoThumbnail}
+            />
+            <View style={styles.videoPlayBadge}>
+              <Ionicons name="play" size={14} color={Palette.limeInk} />
+            </View>
+            <View style={styles.videoInfo}>
+              <Text style={styles.autoKicker}>🎬 VİDEO PAYLAŞILDI</Text>
+              <Text style={styles.autoText} numberOfLines={1}>
+                {post.video.title ?? 'Maç videosunu izle'}
+              </Text>
+            </View>
+          </Pressable>
+        )
       )}
 
       <View style={styles.footer}>
@@ -281,6 +290,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Palette.chalk,
     marginTop: 2,
+  },
+  videoUploadedKicker: {
+    marginTop: space(3),
   },
   videoCard: {
     marginTop: space(3),

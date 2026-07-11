@@ -3,6 +3,25 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (14) — Backlog #46/#47/#48: 3. tur bug düzeltmeleri
+
+- **#46:** `PostResource`'un `video` bloğu `video_url` dönmüyordu —
+  yüklenen maç videosunun feed kartı `url`'e (NULL) bakıp hiçbir şey
+  yapmıyordu. Alan eklendi; `video_shared` kartı yüklenen videoyu satır
+  içi `PostVideoPlayer` ile oynatıyor, maç detayındaki satır uygulama
+  içi oynatıcı modalı açıyor (harici linkler tarayıcıda kalıyor).
+- **#47:** iOS sessiz anahtarı açıkken ses kısılıyordu — "oynatılmıyor"
+  şikayetinin nedeni. `VoiceMessageBubble` çalmadan önce
+  `setAudioModeAsync({ playsInSilentMode: true })` çağırıyor.
+- **#48:** sohbette fotoğraf/ses artık seçilir seçilmez gitmiyor —
+  composer üstünde bekleyen ek önizlemesi (X ile kaldırılabilir),
+  gönderim yalnızca gönder butonuyla; metin+medya birlikteyse iki ayrı
+  mesaj (önce medya).
+- Doğrulama: api 254 test + Pint + Larastan temiz; mobil tsc + lint temiz.
+- Hatırlatma: 4 yeni native modül (`expo-image-manipulator`, `expo-audio`,
+  `expo-video`, `expo-blur`) tek `eas build --profile development`
+  bekliyor; lokal API `composer serve` ile başlatılmalı.
+
 ## 2026-07-11 (13) — Backlog #43: liquid glass (ilk dalga) + 3. tur cihaz geri bildirimi
 
 - **#43:** yeni `shared/ui/GlassView.tsx` (`expo-blur`) — tab bar saydam +

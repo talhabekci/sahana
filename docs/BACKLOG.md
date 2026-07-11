@@ -762,7 +762,12 @@
 - **Talep tarihi:** 2026-07-11
 - "Sanırım keşfette rakip ilanları görünmüyor onu da bi kontrol et."
 
-### 46. Bug: yüklenen maç videosu feed kartında oynatılmıyor + videolar uygulama içinde oynasın
+### 46. Bug: yüklenen maç videosu feed kartında oynatılmıyor + videolar uygulama içinde oynasın ✅
+- **Tamamlandı:** 2026-07-11 — `PostResource`'un `video` bloğuna `video_url`
+  eklendi; feed'deki `video_shared` kartı yüklenen videoyu satır içinde
+  `PostVideoPlayer` ile oynatıyor (harici linkler tarayıcıda kalıyor).
+  Maç detayındaki video satırı da yüklenen videolar için uygulama içi
+  tam ekran oynatıcı modalı açıyor.
 - **Bağlı modül:** Modül 4/5
 - **Talep tarihi:** 2026-07-11 (cihaz testi 3. tur)
 - Kullanıcı: "maç videosu yükledim akışa geldi ama video oynatılmıyor"
@@ -776,7 +781,9 @@
   da yüklenen videolar için uygulama içi oynatıcı (modal) açsın — harici
   linkler (YouTube vb.) tarayıcıda kalır.
 
-### 47. Bug: sohbetteki ses kayıtları oynatılmıyor (sessiz mod)
+### 47. Bug: sohbetteki ses kayıtları oynatılmıyor (sessiz mod) ✅
+- **Tamamlandı:** 2026-07-11 — `VoiceMessageBubble` çalmadan önce
+  `setAudioModeAsync({ playsInSilentMode: true })` çağırıyor.
 - **Bağlı modül:** Modül 7
 - **Talep tarihi:** 2026-07-11 (cihaz testi 3. tur)
 - **Kök neden (teşhis):** iOS'ta `playsInSilentMode` ayarlanmadan çalınan
@@ -784,7 +791,11 @@
   görünür. Düzeltme: `VoiceMessageBubble` çalmaya başlamadan önce
   `setAudioModeAsync({ playsInSilentMode: true })` çağırır.
 
-### 48. Sohbette medya seçilince hemen gönderilmesin — önizleme + gönder butonu
+### 48. Sohbette medya seçilince hemen gönderilmesin — önizleme + gönder butonu ✅
+- **Tamamlandı:** 2026-07-11 — `ChatConversation`'da seçilen fotoğraf /
+  biten ses kaydı artık composer üstünde bekleyen ek (önizleme + X);
+  gönderim yalnızca gönder butonuyla. Metin + medya birlikteyse iki ayrı
+  mesaj olarak gider (önce medya, sonra metin).
 - **Bağlı modül:** Modül 7
 - **Talep tarihi:** 2026-07-11 (cihaz testi 3. tur)
 - "Ses kayıtları ve fotoğraf seçildikten sonra hemen gönderiliyor...

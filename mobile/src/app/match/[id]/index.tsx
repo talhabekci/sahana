@@ -43,6 +43,7 @@ import {
   RSVP_LABELS,
 } from '@/features/match/constants';
 import VideoDefaultCover from '@/assets/images/video-default-cover.png';
+import { PostVideoPlayer } from '@/features/social/PostVideoPlayer';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { GlassView } from '@/shared/ui/GlassView';
@@ -60,6 +61,8 @@ export default function MatchDetail() {
 
   const [VideoModalVisible, setVideoModalVisible] = useState(false);
   const [VideoUrl, setVideoUrl] = useState('');
+  // Yüklenen videolar uygulama içinde oynar (BACKLOG #46); harici linkler tarayıcıda.
+  const [PlayingVideoUrl, setPlayingVideoUrl] = useState<string | null>(null);
 
   const Videos = useQuery({
     queryKey: ['matches', id, 'videos'],
@@ -463,10 +466,10 @@ export default function MatchDetail() {
                     key={Video_.id}
                     accessibilityRole="button"
                     onPress={() => {
-                      const PlayableUrl = Video_.video_url ?? Video_.url;
-
-                      if (PlayableUrl != null) {
-                        void WebBrowser.openBrowserAsync(PlayableUrl);
+                      if (Video_.video_url != null) {
+                        setPlayingVideoUrl(Video_.video_url);
+                      } else if (Video_.url != null) {
+                        void WebBrowser.openBrowserAsync(Video_.url);
                       }
                     }}
                     style={styles.videoRow}>
@@ -694,6 +697,20 @@ export default function MatchDetail() {
           <Button label="Kaydet" onPress={() => SubmitStat.mutate()} loading={SubmitStat.isPending} />
         </GlassView>
       </Modal>
+
+      <Modal visible={PlayingVideoUrl != null} transparent animationType="fade">
+        <Pressable style={styles.playerBackdrop} onPress={() => setPlayingVideoUrl(null)} />
+        <View style={styles.playerWrap} pointerEvents="box-none">
+          {PlayingVideoUrl != null && <PostVideoPlayer uri={PlayingVideoUrl} />}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setPlayingVideoUrl(null)}
+            style={styles.playerClose}
+            hitSlop={8}>
+            <Ionicons name="close" size={22} color={Palette.chalk} />
+          </Pressable>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -883,6 +900,26 @@ const styles = StyleSheet.create({
     fontFamily: Type.bodyMedium,
     fontSize: 14,
     color: Palette.lime,
+  },
+  playerBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+  },
+  playerWrap: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: space(4),
+  },
+  playerClose: {
+    position: 'absolute',
+    top: space(14),
+    right: space(6),
+    width: 40,
+    height: 40,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(18,48,31,0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   uploadProgressRow: {
     flexDirection: 'row',

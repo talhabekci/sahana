@@ -55,6 +55,7 @@ class PostResource extends JsonResource
             'video' => $this->whenLoaded('video', fn (): ?array => $this->video !== null ? [
                 'id' => $this->video->public_id,
                 'url' => $this->video->url,
+                'video_url' => ImageUploader::url($this->video->storage_path),
                 'provider' => $this->video->provider,
                 'title' => $this->video->title,
                 'thumbnail_url' => $this->video->thumbnail_url,

@@ -43,6 +43,7 @@ export type Post = {
   video?: {
     id: string;
     url: string | null;
+    video_url: string | null;
     provider: 'youtube' | 'sosyalhalisaha' | 'other';
     title: string | null;
     thumbnail_url: string | null;
