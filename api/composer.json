@@ -54,7 +54,7 @@
         ],
         "serve": [
             "Composer\\Config::disableProcessTimeout",
-            "@php -d upload_max_filesize=120M -d post_max_size=125M artisan serve --host=0.0.0.0"
+            "cd public && php -d upload_max_filesize=120M -d post_max_size=125M -S 0.0.0.0:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"
         ],
         "test": [
             "@php artisan config:clear --ansi",

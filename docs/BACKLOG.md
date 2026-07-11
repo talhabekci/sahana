@@ -685,6 +685,13 @@
   ile seçimde kırpma; sunucu video limiti 100MB'a çıkarıldı (kırpılmış
   720p/90sn için pay). Prod notu PRODUCTION-READINESS.md madde A'da.
   **API artık `composer serve` ile başlatılmalı.**
+- **Düzeltme (2026-07-11, 4. tur):** ilk `serve` script'i KUSURLUYDU —
+  `php -d ... artisan serve` biçimindeki `-d` bayrakları, artisan'ın
+  başlattığı ALT sunucu sürecine geçmiyor (limitler 2M/8M kalıyordu,
+  kullanıcı video yüklerken hâlâ "Doğrulama hatası" alıyordu). Script,
+  PHP yerleşik sunucusunu aracısız başlatacak şekilde değiştirildi
+  (`cd public && php -d ... -S 0.0.0.0:8000 ../vendor/.../server.php`);
+  12MB'lık test POST'uyla limitlerin gerçekten uygulandığı doğrulandı.
 - **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
 - **Talep tarihi:** 2026-07-11
 - **Kök neden (teşhis edildi):** PHP `upload_max_filesize=2M` (artisan
@@ -803,6 +810,16 @@
   bişey olmuş olabilir." `ChatConversation` composer'ında seçilen fotoğraf /
   biten ses kaydı önce bekleyen ek (önizleme çipi + kaldırma X'i) olarak
   gösterilir; gönderim yalnızca gönder butonuyla olur.
+
+### 49. Bug: takıma bağlanmayan postlar akışta görünmüyor ✅
+- **Tamamlandı:** 2026-07-11 — Feed sorgusu yalnızca "takımlarımın
+  postları VEYA takip ettiklerimin postları" diyordu; görüntüleyenin
+  KENDİ postları hiçbir koşula girmiyordu (kullanıcı kendini takip
+  etmiyor) — takımsız post, yazarın kendi akışında hiç çıkmıyordu.
+  `BuildFeed`'e `orWhere('user_id', $Viewer->id)` eklendi; 1 yeni Pest
+  testi (255 toplam).
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-11 (cihaz testi 4. tur)
 
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).

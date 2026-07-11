@@ -32,6 +32,15 @@ it('includes posts from followed users and own teams, chronologically', function
         ->and($Ids->last())->toBe($Older->public_id);
 });
 
+it('includes the viewers own posts even when not tagged to a team', function () {
+    $Viewer = User::factory()->create();
+    $Own = Post::factory()->for($Viewer, 'user')->create(['team_id' => null]);
+
+    $this->actingAs($Viewer)->getJson('/api/v1/feed')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $Own->public_id);
+});
+
 it('excludes posts from a blocked user in either direction', function () {
     $Viewer = User::factory()->create();
     $Blocked = User::factory()->create();

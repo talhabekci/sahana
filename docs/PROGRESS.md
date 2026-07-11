@@ -3,6 +3,23 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (15) — 4. tur: feed'de kendi postlar (#49) + serve script düzeltmesi
+
+- **#49:** takımsız postlar yazarın kendi akışında hiç görünmüyordu —
+  feed sorgusunda "kendi postların" koşulu yoktu (takım postları +
+  takip edilenler vardı, kullanıcı kendini takip etmediği için kendi
+  içeriği dışarıda kalıyordu). `BuildFeed`'e `orWhere(user_id, viewer)`
+  eklendi; 1 yeni Pest testi (255 toplam).
+- **Video "Doğrulama hatası" (tekrar) — kök neden benim önceki
+  düzeltmemdeki kusur:** `composer serve`'deki `-d` limit bayrakları
+  `artisan serve`'ün başlattığı ALT sürece geçmiyormuş; kullanıcı
+  script'i kullansa bile limitler 2M/8M kalıyordu. Script PHP yerleşik
+  sunucusunu doğrudan başlatacak şekilde değiştirildi ve 12MB'lık test
+  POST'uyla doğrulandı (PHP uyarısı yok, istek Laravel'e ulaşıyor).
+  Kullanıcının API'yi durdurup `composer serve` ile yeniden başlatması
+  gerekiyor. Kod regresyonu YOKTU — video yükleme cihazda hiçbir zaman
+  bu limitlerle çalışmamıştı.
+
 ## 2026-07-11 (14) — Backlog #46/#47/#48: 3. tur bug düzeltmeleri
 
 - **#46:** `PostResource`'un `video` bloğu `video_url` dönmüyordu —

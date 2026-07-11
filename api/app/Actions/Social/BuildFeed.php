@@ -23,9 +23,13 @@ class BuildFeed
         $BlockedUserIds = $this->blockedEitherWay($Viewer);
 
         $Paginator = Post::query()
-            ->where(function ($Query) use ($TeamIds, $FollowingIds): void {
+            ->where(function ($Query) use ($Viewer, $TeamIds, $FollowingIds): void {
+                // Kendi postların da akışta görünür (kullanıcı bildirimi,
+                // 2026-07-11): takıma bağlanmamış post, yazar kendini takip
+                // etmediği için kendi feed'inden kayboluyordu.
                 $Query->whereIn('team_id', $TeamIds)
-                    ->orWhereIn('user_id', $FollowingIds);
+                    ->orWhereIn('user_id', $FollowingIds)
+                    ->orWhere('user_id', $Viewer->id);
             })
             ->whereNotIn('user_id', $BlockedUserIds)
             ->with([
