@@ -628,12 +628,19 @@
   LAN IP+port olmalı (`http://192.168.1.113:8000`); production'da gerçek
   alan adı (PRODUCTION-READINESS.md madde A ile bağlanır).
 
-### 39. Bug + eksik: takım sohbeti medya sorunları; DM'de medya yok; sohbet ortak component olmalı
-- **Kısmi ilerleme (2026-07-11):** (a) fotoğrafın "kaybolması" düzeltildi —
-  sohbet `Send` mutation'ına `onError` eklendi (hata artık kullanıcıya
-  gösteriliyor) + görsel boyutu #40'taki resize ile limitin altına indi;
-  (b) sesin çalınamaması #38'deki APP_URL düzeltmesiyle çözüldü. Kalan:
-  (c) sohbetin ortak component'e çıkarılması + DM'e fotoğraf/ses.
+### 39. Bug + eksik: takım sohbeti medya sorunları; DM'de medya yok; sohbet ortak component olmalı ✅
+- **Tamamlandı:** 2026-07-11 — (a) fotoğrafın "kaybolması": sohbet `Send`
+  mutation'ına `onError` eklendi + görsel boyutu #40'taki resize ile
+  limitin altına indi; (b) sesin çalınamaması #38'deki APP_URL
+  düzeltmesiyle çözüldü; (c) sohbet UI'ı yeni
+  `features/chat/ChatConversation.tsx` ortak component'ine çıkarıldı —
+  `team/[id]/chat.tsx` ve `dm/[id].tsx` artık sadece veri katmanı
+  (query/mutation/WS aboneliği) tutuyor; DM backend'i `image`/`audio`
+  multipart kabul ediyor (`StoreDirectMessageRequest`,
+  `DirectMessageController`, `SendDirectMessage` — takım tarafıyla aynı
+  desen, `chat/api.ts`'te ortak `postMessage` helper'ı). DM'de kendi
+  mesajların sağa hizalı; medya balonları okunabilirlik için koyu yüzeyde.
+  3 yeni Pest testi (248 toplam).
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-11
 - Kullanıcı: fotoğraf seçince/çekince "kayboluyor, sohbeti gönderemiyorum";

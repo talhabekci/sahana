@@ -3,6 +3,27 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (8) — Backlog #39: sohbet ortak component + DM'e fotoğraf/ses
+
+- **Backend:** DM (`POST /players/{id}/messages`) artık takım sohbetiyle
+  birebir aynı medya sözleşmesini kullanıyor: `type: text|image|audio`,
+  multipart `image` (ImageUploader güvenlik hattı) + `audio` (m4a vb.,
+  max 5MB). `StoreDirectMessageRequest`'teki hiç kullanılmayan
+  `image_path` string girdisi kaldırıldı. 3 yeni Pest testi (248 toplam),
+  Pint + Larastan temiz.
+- **Mobil:** yeni `features/chat/ChatConversation.tsx` — iki sohbet
+  ekranının ortak gövdesi (mesaj listesi, metin/fotoğraf/ses composer'ı,
+  kayıt çubuğu, medya balonları). `team/[id]/chat.tsx` ve `dm/[id].tsx`
+  ~320'şer satırdan ~90 satıra indi, sadece veri katmanı tutuyorlar.
+  DM'de kendi mesajlar sağa hizalı (lime), medya balonları okunabilirlik
+  için her zaman koyu yüzeyde. `chat/api.ts`: `SendMessagePayload` +
+  ortak `postMessage` helper'ı; `sendDirectMessage` multipart destekli.
+- Doğrulama: tsc + lint temiz, 248 Pest testi yeşil.
+
+### Sonraki adım
+- #37 (akışta video, expo-video) + #43 (liquid glass, expo-blur) — ikisi
+  aynı rebuild'de; sonra #33, #44, #45.
+
 ## 2026-07-11 (7) — Cihaz testi 2. tur: 10 yeni madde (#37-#45) + medya yükleme kök çözümü
 
 - Kullanıcı cihazda ikinci test turunu yaptı, 10 madde bildirdi — hepsi

@@ -27,7 +27,7 @@ export async function listTeamMessages(
   return { data: data.data, nextCursor: data.meta.next_cursor };
 }
 
-export type SendTeamMessagePayload = {
+export type SendMessagePayload = {
   type: MessageType;
   body?: string;
   match_id?: string;
@@ -37,9 +37,10 @@ export type SendTeamMessagePayload = {
   audio_duration?: number;
 };
 
-export async function sendTeamMessage(teamId: string, payload: SendTeamMessagePayload): Promise<ChatMessage> {
+/** Takım sohbeti ve DM aynı medya sözleşmesini kullanır (07-notifications-chat.md). */
+async function postMessage(url: string, payload: SendMessagePayload): Promise<ChatMessage> {
   if (payload.image == null && payload.audio == null) {
-    const { data } = await Api.post<{ data: ChatMessage }>(`/teams/${teamId}/messages`, payload);
+    const { data } = await Api.post<{ data: ChatMessage }>(url, payload);
 
     return data.data;
   }
@@ -67,11 +68,15 @@ export async function sendTeamMessage(teamId: string, payload: SendTeamMessagePa
     }
   }
 
-  const { data } = await Api.post<{ data: ChatMessage }>(`/teams/${teamId}/messages`, Form, {
+  const { data } = await Api.post<{ data: ChatMessage }>(url, Form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 
   return data.data;
+}
+
+export async function sendTeamMessage(teamId: string, payload: SendMessagePayload): Promise<ChatMessage> {
+  return postMessage(`/teams/${teamId}/messages`, payload);
 }
 
 export type Conversation = {
@@ -103,11 +108,6 @@ export async function listDirectMessages(
   return { data: data.data, nextCursor: data.meta.next_cursor };
 }
 
-export async function sendDirectMessage(
-  userId: string,
-  payload: { type: 'text' | 'image'; body?: string; image_path?: string },
-): Promise<ChatMessage> {
-  const { data } = await Api.post<{ data: ChatMessage }>(`/players/${userId}/messages`, payload);
-
-  return data.data;
+export async function sendDirectMessage(userId: string, payload: SendMessagePayload): Promise<ChatMessage> {
+  return postMessage(`/players/${userId}/messages`, payload);
 }

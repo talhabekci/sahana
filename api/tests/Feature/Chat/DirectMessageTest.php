@@ -4,7 +4,9 @@ use App\Events\MessageSent;
 use App\Models\Block;
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 
 afterEach(function () {
     // Mongo test DB'si RefreshDatabase kapsamı dışında (spec: 07-notifications-chat.md, karar #2).
@@ -34,6 +36,48 @@ it('lets a user send a text DM and broadcasts it on the sorted public_id channel
         MessageSent::class,
         fn (MessageSent $Event): bool => $Event->broadcastOn()[0]->name === "private-dm.{$PublicIds[0]}.{$PublicIds[1]}",
     );
+});
+
+it('lets a user send a photo DM', function () {
+    Storage::fake('public');
+    $Me = User::factory()->create();
+    $Other = User::factory()->create();
+
+    $Response = $this->actingAs($Me)->post("/api/v1/players/{$Other->public_id}/messages", [
+        'type' => 'image',
+        'image' => UploadedFile::fake()->image('photo.jpg', 400, 400),
+    ])->assertCreated();
+
+    expect($Response->json('data.image_path'))->not->toBeNull();
+
+    $Message = Message::where('user_id', $Me->id)->first();
+    Storage::disk('public')->assertExists($Message->image_path);
+});
+
+it('lets a user send a voice DM', function () {
+    Storage::fake('public');
+    $Me = User::factory()->create();
+    $Other = User::factory()->create();
+
+    $Response = $this->actingAs($Me)->post("/api/v1/players/{$Other->public_id}/messages", [
+        'type' => 'audio',
+        'audio' => UploadedFile::fake()->create('voice.m4a', 100, 'audio/mp4'),
+        'audio_duration' => 8,
+    ])->assertCreated();
+
+    expect($Response->json('data.audio_path'))->not->toBeNull()
+        ->and($Response->json('data.audio_duration'))->toBe(8);
+});
+
+it('rejects a corrupt photo DM', function () {
+    Storage::fake('public');
+    $Me = User::factory()->create();
+    $Other = User::factory()->create();
+
+    $this->actingAs($Me)->post("/api/v1/players/{$Other->public_id}/messages", [
+        'type' => 'image',
+        'image' => UploadedFile::fake()->create('fake.jpg', 10, 'image/jpeg'),
+    ])->assertStatus(422)->assertJsonPath('code', 'invalid_image');
 });
 
 it('rejects sending a DM to yourself', function () {

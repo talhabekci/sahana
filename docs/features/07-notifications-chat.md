@@ -73,8 +73,10 @@ kaldırır. Mobilde `expo-notifications` ile push token alınır.
   sessiz saat kuralına tabi değil, çünkü zaten anlık/isteğe bağlı bir kanal)
 - Mesaj türleri: metin, görsel (galeri + kamera), sesli mesaj (kayıt, max 2
   dk, `expo-audio`); maç kartı/kadro paylaşımı (uygulama içi referans).
-  Görsel/ses BACKLOG #26 ile eklendi (2026-07-11) — DM'de henüz yok,
-  kapsam netleşirken ayrı ele alınacak (bkz. Sohbet — DM bölümü)
+  Görsel/ses BACKLOG #26 ile eklendi (2026-07-11); aynı gün BACKLOG #39
+  ile DM'e de taşındı ve iki ekranın ortak gövdesi
+  `features/chat/ChatConversation.tsx` component'ine çıkarıldı (ekranlar
+  sadece veri katmanını — query/mutation/WS — tutar)
 - **Broadcasting auth:** `channels:` parametresi varsayılan olarak `/broadcasting/auth`'u
   `web` (session) middleware'iyle kaydediyor — mobil Sanctum bearer token
   kullandığından `withBroadcasting()` ile elle `auth:sanctum` + `/api/v1`
@@ -150,7 +152,9 @@ oturumda uygulanmasını istedi.
   zamanına göre sıralı.
 - `GET /players/{PublicId}/messages?before=<id>&limit=30` — DM geçmişi
   (aynı manuel cursor zarfı).
-- `POST /players/{PublicId}/messages` `{type: text|image, body?, image_path?}`.
+- `POST /players/{PublicId}/messages` — `type: text|image|audio`; medya
+  sözleşmesi takım sohbetiyle birebir aynı (multipart `image`/`audio`,
+  BACKLOG #39 ile eklendi 2026-07-11). `match_ref`/`lineup_ref` DM'de yok.
 - WS kanalı: `private-dm.{PublicIdA}.{PublicIdB}` (alfabetik sıralı,
   yetki: bağlanan taraflardan biri olmak).
 
@@ -165,8 +169,8 @@ oturumda uygulanmasını istedi.
 - `messages` (**MongoDB**, `sahana_chat` veritabanı): `team_id?` (takım
   sohbeti), `participant_ids?` (DM, `[minUserId, maxUserId]`), `user_id`,
   `type: text|image|audio|match_ref|lineup_ref`, `body?`, `image_path?`,
-  `audio_path?`, `audio_duration?` (saniye, sadece takım sohbetinde —
-  DM'de `audio` tipi henüz yok), `match_id?`, `lineup_id?`, `created_at`.
+  `audio_path?`, `audio_duration?` (saniye; takım sohbeti ve DM'de),
+  `match_id?`, `lineup_id?`, `created_at`.
   Her mesaj ya `team_id` ya `participant_ids` doldurur, ikisi birden değil.
   `_id` (ObjectId) doğrudan public ID olarak kullanılır (zaten tahmin
   edilemez).

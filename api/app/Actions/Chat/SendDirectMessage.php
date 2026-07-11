@@ -12,7 +12,7 @@ use App\Notifications\DirectMessageNotification;
 class SendDirectMessage
 {
     /**
-     * @param  array{type: string, body?: string|null, image_path?: string|null}  $Data
+     * @param  array{type: string, body?: string|null, image_path?: string|null, audio_path?: string|null, audio_duration?: int|null}  $Data
      * @return array<string, mixed>
      */
     public function handle(User $Sender, User $Recipient, array $Data): array
@@ -34,6 +34,8 @@ class SendDirectMessage
             'type' => $Data['type'],
             'body' => $Data['body'] ?? null,
             'image_path' => $Data['image_path'] ?? null,
+            'audio_path' => $Data['audio_path'] ?? null,
+            'audio_duration' => $Data['audio_duration'] ?? null,
         ]);
 
         $Payload = MessageResource::shape($Message, $Sender);

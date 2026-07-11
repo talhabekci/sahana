@@ -8,6 +8,7 @@ use App\Exceptions\ApiError;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDirectMessageRequest;
 use App\Models\User;
+use App\Support\ImageUploader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -38,7 +39,18 @@ class DirectMessageController extends Controller
         $Me = $Request->user();
         $Other = $this->resolveRecipient($Me, $PublicId);
 
-        $Payload = $Action->handle($Me, $Other, $Request->validated());
+        $Data = $Request->validated();
+
+        if ($Request->hasFile('image')) {
+            $Data['image_path'] = ImageUploader::store($Request->file('image'), 'chat');
+        }
+
+        if ($Request->hasFile('audio')) {
+            $Data['audio_path'] = $Request->file('audio')->store('chat-audio', 'public');
+            $Data['audio_duration'] = isset($Data['audio_duration']) ? (int) $Data['audio_duration'] : null;
+        }
+
+        $Payload = $Action->handle($Me, $Other, $Data);
 
         return response()->json(['data' => $Payload], 201);
     }
