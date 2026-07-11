@@ -3,6 +3,28 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (12) — Backlog #37: akış gönderisine video ekleme
+
+- **Backend:** `posts.video_path` (nullable, yeni migration — `video_id`
+  maça bağlı Modül 5 videolarına işaret eder, bu ayrı bir kavram).
+  `POST /posts` artık multipart `video` kabul ediyor: mp4/mov/m4v +
+  `mimetypes` doğrulaması, max 100MB, `prohibits:image` (aynı gönderide
+  foto+video birlikte reddedilir). `CreatePost` ham dosyayı
+  `post-videos/` altına kaydediyor; `PostResource`'a `video_url` eklendi.
+  3 yeni Pest testi (254 toplam), Pint + Larastan temiz.
+- **Mobil:** YENİ native modüller `expo-video` + `expo-blur` birlikte
+  kuruldu (tek EAS rebuild'de test edilebilsin diye — #43 liquid glass
+  expo-blur'u kullanacak). post/create'te "Medya ekle" menüsü: kamera /
+  galeriden fotoğraf / galeriden video (max 90 sn, iOS'ta 720p re-encode +
+  seçimde kırpma — maç videosuyla aynı desen). Video yüklemesi yüzde
+  göstergeli. Akışta yeni `PostVideoPlayer` (`expo-video`): native
+  kontrollü, otomatik oynatmayan gömülü oynatıcı — PostCard'a eklendi,
+  feed/profil/post detayında geçerli.
+- Doğrulama: tsc + lint temiz.
+- **Not:** `expo-video` + `expo-blur` + (önceki turdan `expo-image-
+  manipulator` + `expo-audio`) için tek bir yeni development build
+  yeterli — kullanıcının `eas build --profile development` alması gerekiyor.
+
 ## 2026-07-11 (11) — Backlog #33: ilanlar için paylaşılabilir link
 
 - **Mobil:** yeni `features/match/shareListing.ts` — takım davet linkiyle

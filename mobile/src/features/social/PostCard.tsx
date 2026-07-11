@@ -4,6 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Post } from './api';
 import VideoDefaultCover from '@/assets/images/video-default-cover.png';
+import { PostVideoPlayer } from './PostVideoPlayer';
 import { OpponentListingCard, PlayerListingCard } from '@/features/match/ListingCards';
 import { useListingActions } from '@/features/match/useListingActions';
 import { badgeIonicon } from '@/features/team/constants';
@@ -85,6 +86,8 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
       {post.image_url != null && (
         <Image source={{ uri: post.image_url }} style={styles.photo} />
       )}
+
+      {post.video_url != null && <PostVideoPlayer uri={post.video_url} />}
 
       {post.type === 'match_played' && post.match != null && (
         <View style={styles.autoCard}>

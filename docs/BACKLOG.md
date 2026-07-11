@@ -610,7 +610,15 @@
   (BACKLOG #30'un düzeltmesi)
 - **Talep tarihi:** 2026-07-10
 
-### 37. Akış gönderisine video da eklenebilmeli (fotoğrafın yanına)
+### 37. Akış gönderisine video da eklenebilmeli (fotoğrafın yanına) ✅
+- **Tamamlandı:** 2026-07-11 — `posts.video_path` (yeni migration);
+  `POST /posts` multipart `video` kabul ediyor (mp4/mov/m4v, max 100MB,
+  `prohibits:image` — aynı gönderide foto+video birlikte olmaz). Mobilde
+  "Medya ekle" menüsüne "Galeriden video (max 90 sn)" seçeneği (720p
+  re-encode + kırpma, maç videosuyla aynı desen), yüzde göstergeli
+  yükleme; akışta yeni `PostVideoPlayer` (`expo-video` — YENİ native
+  modül, `expo-blur` ile aynı rebuild'de) native kontrollü gömülü
+  oynatıcı. 3 yeni Pest testi (254 toplam).
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md) +
   Modül 5 — [05-videos.md](features/05-videos.md)
 - **Talep tarihi:** 2026-07-11

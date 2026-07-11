@@ -28,6 +28,7 @@ export type Post = {
   type: PostType;
   body: string | null;
   image_url: string | null;
+  video_url: string | null;
   author?: PostAuthor;
   team?: PostTeamSummary | null;
   match?: {
@@ -90,10 +91,14 @@ export type CreatePostPayload = {
   team_id?: string | null;
   lineup_id?: string | null;
   image?: { uri: string; name: string; type: string } | null;
+  video?: { uri: string; name: string; type: string } | null;
 };
 
-export async function createPost(payload: CreatePostPayload): Promise<Post> {
-  if (payload.image == null) {
+export async function createPost(
+  payload: CreatePostPayload,
+  onProgress?: (percent: number) => void,
+): Promise<Post> {
+  if (payload.image == null && payload.video == null) {
     const { data } = await Api.post<{ data: Post }>('/posts', {
       body: payload.body,
       team_id: payload.team_id,
@@ -114,14 +119,30 @@ export async function createPost(payload: CreatePostPayload): Promise<Post> {
     Form.append('lineup_id', payload.lineup_id);
   }
 
-  Form.append('image', {
-    uri: payload.image.uri,
-    name: payload.image.name,
-    type: payload.image.type,
-  } as unknown as Blob);
+  if (payload.image != null) {
+    Form.append('image', {
+      uri: payload.image.uri,
+      name: payload.image.name,
+      type: payload.image.type,
+    } as unknown as Blob);
+  }
+
+  if (payload.video != null) {
+    Form.append('video', {
+      uri: payload.video.uri,
+      name: payload.video.name,
+      type: payload.video.type,
+    } as unknown as Blob);
+  }
 
   const { data } = await Api.post<{ data: Post }>('/posts', Form, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000,
+    onUploadProgress: (Event) => {
+      if (onProgress != null && Event.total != null) {
+        onProgress(Math.round((Event.loaded / Event.total) * 100));
+      }
+    },
   });
 
   return data.data;

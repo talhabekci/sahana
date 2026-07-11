@@ -56,6 +56,13 @@ Feed'i kullanıcı üretimi beklemeden dolduran sistem olayları:
   Zengin bir editöre gerek yok — sadece metin + tek fotoğraf + tek kadro.
   Fotoğraf hem galeriden seçilebilir hem kamerayla çekilebilir (kullanıcı
   kararı 2026-07-10, BACKLOG.md #24 — ilk uygulamada sadece galeri vardı).
+- **Video (BACKLOG #37, 2026-07-11):** fotoğrafa alternatif olarak tek
+  **video** da eklenebilir (aynı gönderide ikisi birden olmaz —
+  `prohibits:image`). Maç videosuyla (Modül 5 v2-lite) aynı sınırlar:
+  galeriden seçim, iOS'ta 720p H.264 re-encode + 90 sn kırpma, sunucuda
+  mp4/mov/m4v + max 100MB, `posts.video_path`'e ham kayıt. Akışta
+  `expo-video` (`PostVideoPlayer`) ile native kontrollü, otomatik
+  oynatmayan gömülü oynatıcı. Yükleme yüzde göstergeli, UI kilitlenmez.
 - **Fotoğraf güvenliği (kullanıcı: "güvenlik çok önemli"):**
   - İzin verilen tür/limit api-conventions.md ile aynı: jpg/png/webp/heic,
     max 10 MB.

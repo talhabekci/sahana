@@ -102,6 +102,42 @@ it('lets a user attach a photo to a post', function () {
     Storage::disk('public')->assertExists($Post->image_path);
 });
 
+it('lets a user attach a video to a post', function () {
+    Storage::fake('public');
+    $User = User::factory()->create();
+
+    $Response = $this->actingAs($User)->post('/api/v1/posts', [
+        'body' => 'Dünkü maçın golü.',
+        'video' => UploadedFile::fake()->create('gol.mp4', 2048, 'video/mp4'),
+    ])->assertCreated();
+
+    expect($Response->json('data.video_url'))->not->toBeNull();
+
+    $Post = Post::first();
+    Storage::disk('public')->assertExists($Post->video_path);
+});
+
+it('rejects a post carrying both an image and a video', function () {
+    Storage::fake('public');
+    $User = User::factory()->create();
+
+    $this->actingAs($User)->post('/api/v1/posts', [
+        'body' => 'İkisi birden olmaz.',
+        'image' => UploadedFile::fake()->image('photo.jpg', 200, 200),
+        'video' => UploadedFile::fake()->create('gol.mp4', 1024, 'video/mp4'),
+    ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
+it('rejects a post video with a disallowed file type', function () {
+    Storage::fake('public');
+    $User = User::factory()->create();
+
+    $this->actingAs($User)->post('/api/v1/posts', [
+        'body' => 'Deneme',
+        'video' => UploadedFile::fake()->create('evil.exe', 100, 'application/x-msdownload'),
+    ])->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+});
+
 it('rejects a corrupt file disguised as an image', function () {
     Storage::fake('public');
     $User = User::factory()->create();

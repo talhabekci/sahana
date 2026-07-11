@@ -25,6 +25,7 @@ class Post extends Model
         'type',
         'body',
         'image_path',
+        'video_path',
         'match_id',
         'lineup_id',
         'video_id',

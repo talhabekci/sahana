@@ -25,6 +25,7 @@ class PostResource extends JsonResource
             'type' => $this->type,
             'body' => $this->body,
             'image_url' => $this->image_path !== null ? Storage::disk('public')->url($this->image_path) : null,
+            'video_url' => ImageUploader::url($this->video_path),
             'author' => $this->whenLoaded('user', fn (): array => [
                 'id' => $this->user->public_id,
                 'name' => $this->user->name,

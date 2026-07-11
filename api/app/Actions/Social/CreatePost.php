@@ -13,7 +13,7 @@ use Illuminate\Http\UploadedFile;
 class CreatePost
 {
     /**
-     * @param  array{body: string, team_id?: string|null, image?: UploadedFile|null, lineup_id?: string|null}  $Data
+     * @param  array{body: string, team_id?: string|null, image?: UploadedFile|null, video?: UploadedFile|null, lineup_id?: string|null}  $Data
      */
     public function handle(User $Author, array $Data): Post
     {
@@ -47,12 +47,19 @@ class CreatePost
             $ImagePath = ImageUploader::store($Data['image'], 'posts');
         }
 
+        $VideoPath = null;
+
+        if (! empty($Data['video'])) {
+            $VideoPath = $Data['video']->store('post-videos', 'public');
+        }
+
         return Post::create([
             'user_id' => $Author->id,
             'team_id' => $TeamId,
             'type' => 'text',
             'body' => $Data['body'],
             'image_path' => $ImagePath,
+            'video_path' => $VideoPath,
             'lineup_id' => $LineupId,
         ]);
     }

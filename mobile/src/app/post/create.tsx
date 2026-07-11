@@ -35,7 +35,9 @@ export default function CreatePost() {
   const [TeamId, setTeamId] = useState<string | null>(null);
   const [LineupId, setLineupId] = useState<string | null>(null);
   const [Image_, setImage] = useState<{ uri: string; name: string; type: string } | null>(null);
+  const [Video_, setVideo] = useState<{ uri: string; name: string; type: string } | null>(null);
   const [Converting, setConverting] = useState(false);
+  const [UploadProgress, setUploadProgress] = useState<number | null>(null);
   const [Error_, setError] = useState<string | null>(null);
 
   const Lineups = useQuery({
@@ -49,11 +51,38 @@ export default function CreatePost() {
 
     try {
       setImage(await ensureJpeg(Asset.uri, { width: Asset.width, height: Asset.height }));
+      setVideo(null);
     } catch {
       Alert.alert('Olmadı', 'Görsel işlenemedi, başka bir fotoğraf dene.');
     } finally {
       setConverting(false);
     }
+  };
+
+  const pickVideo = async () => {
+    // Maç videosuyla aynı sınırlar (BACKLOG #37): 720p re-encode + 90 sn kırpma.
+    const Result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsEditing: true,
+      videoMaxDuration: 90,
+      videoExportPreset: ImagePicker.VideoExportPreset.H264_1280x720,
+    });
+
+    if (Result.canceled) {
+      return;
+    }
+
+    const Asset = Result.assets[0];
+    const DurationSeconds = Asset.duration != null ? Math.round(Asset.duration / 1000) : null;
+
+    if (DurationSeconds != null && DurationSeconds > 90) {
+      Alert.alert('Video çok uzun', 'En fazla 90 saniyelik video yükleyebilirsin.');
+
+      return;
+    }
+
+    setVideo({ uri: Asset.uri, name: 'video.mp4', type: Asset.mimeType ?? 'video/mp4' });
+    setImage(null);
   };
 
   const pickFromLibrary = async () => {
@@ -84,26 +113,35 @@ export default function CreatePost() {
   };
 
   const promptPickImage = () => {
-    Alert.alert('Fotoğraf ekle', undefined, [
+    Alert.alert('Medya ekle', undefined, [
       { text: 'Vazgeç', style: 'cancel' },
       { text: 'Kamerayla çek', onPress: () => void takePhoto() },
-      { text: 'Galeriden seç', onPress: () => void pickFromLibrary() },
+      { text: 'Galeriden fotoğraf', onPress: () => void pickFromLibrary() },
+      { text: 'Galeriden video (max 90 sn)', onPress: () => void pickVideo() },
     ]);
   };
 
   const Create = useMutation({
     mutationFn: () =>
-      createPost({
-        body: Body.trim(),
-        team_id: TeamId,
-        lineup_id: LineupId,
-        image: Image_,
-      }),
+      createPost(
+        {
+          body: Body.trim(),
+          team_id: TeamId,
+          lineup_id: LineupId,
+          image: Image_,
+          video: Video_,
+        },
+        Video_ != null ? setUploadProgress : undefined,
+      ),
     onSuccess: () => {
+      setUploadProgress(null);
       void QueryClient.invalidateQueries({ queryKey: ['feed'] });
       Router.back();
     },
-    onError: (E) => setError(toApiFailure(E).message),
+    onError: (E) => {
+      setUploadProgress(null);
+      setError(toApiFailure(E).message);
+    },
   });
 
   return (
@@ -165,7 +203,7 @@ export default function CreatePost() {
             </>
           )}
 
-          <Text style={styles.sectionLabel}>FOTOĞRAF (opsiyonel)</Text>
+          <Text style={styles.sectionLabel}>FOTOĞRAF / VİDEO (opsiyonel)</Text>
           {Image_ != null ? (
             <View style={styles.photoPreviewWrap}>
               <Image source={{ uri: Image_.uri }} style={styles.photoPreview} />
@@ -174,6 +212,18 @@ export default function CreatePost() {
                 onPress={() => setImage(null)}
                 style={styles.photoRemove}
                 hitSlop={8}>
+                <Ionicons name="close" size={16} color={Palette.chalk} />
+              </Pressable>
+            </View>
+          ) : Video_ != null ? (
+            <View style={styles.videoSelectedRow}>
+              <Ionicons name="videocam" size={20} color={Palette.lime} />
+              <Text style={styles.videoSelectedText}>Video seçildi</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setVideo(null)}
+                hitSlop={8}
+                style={styles.videoRemove}>
                 <Ionicons name="close" size={16} color={Palette.chalk} />
               </Pressable>
             </View>
@@ -189,7 +239,7 @@ export default function CreatePost() {
                 <Ionicons name="image-outline" size={20} color={Palette.moss} />
               )}
               <Text style={styles.photoPickerText}>
-                {Converting ? 'İşleniyor...' : 'Fotoğraf ekle'}
+                {Converting ? 'İşleniyor...' : 'Fotoğraf ya da video ekle'}
               </Text>
             </Pressable>
           )}
@@ -219,6 +269,10 @@ export default function CreatePost() {
           )}
 
           {Error_ != null && <Text style={styles.error}>{Error_}</Text>}
+
+          {UploadProgress != null && Create.isPending && (
+            <Text style={styles.progressText}>Video yükleniyor... %{UploadProgress}</Text>
+          )}
 
           <View style={styles.footer}>
             <Button
@@ -273,6 +327,37 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(11,26,15,0.7)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  videoSelectedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    backgroundColor: Palette.turf,
+    paddingVertical: space(3),
+    paddingHorizontal: space(4),
+  },
+  videoSelectedText: {
+    flex: 1,
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.chalk,
+  },
+  videoRemove: {
+    width: 26,
+    height: 26,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.turfRaised,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.moss,
+    marginTop: space(3),
   },
   back: {
     fontFamily: Type.bodyMedium,
