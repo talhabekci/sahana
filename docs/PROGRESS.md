@@ -3,6 +3,19 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (9) — Backlog #45: keşfette rakip ilanları görünmüyor
+
+- **Kök neden:** rakip ilanlarının tamamı NULL `lat/lng` ile açılıyor
+  (maç detayından açılan ilan, maçın koordinatını kopyalıyor ve koordinatsız
+  maçlarda NULL kalıyor); Keşfet her zaman `near` gönderdiğinden
+  `whereBetween('lat', ...)` NULL konumlu ilanların hepsini eliyordu —
+  "Rakip Arayanlar" sekmesi hep boş görünüyordu (DB'de 8/8 ilan NULL).
+- **Düzeltme:** konumu olmayan ilanlar yarıçap filtresinden muaf tutuldu
+  (`whereNull('lat')` OR bounding box) — hem `OpponentListingController`
+  hem `PlayerListingController::index`. Konumsuz ilan artık her yerde
+  görünür; konumlu ilanlar yarıçap davranışını korur.
+- 1 yeni Pest testi (249 toplam), Pint + Larastan temiz.
+
 ## 2026-07-11 (8) — Backlog #39: sohbet ortak component + DM'e fotoğraf/ses
 
 - **Backend:** DM (`POST /players/{id}/messages`) artık takım sohbetiyle

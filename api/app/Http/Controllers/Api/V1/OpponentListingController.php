@@ -66,8 +66,15 @@ class OpponentListingController extends Controller
             $RadiusKm = min(100.0, max(1.0, (float) $Request->query('radius', '25')));
             $Box = Geo::boundingBox($Lat, $Lng, $RadiusKm);
 
-            $Query->whereBetween('lat', [$Box['minLat'], $Box['maxLat']])
-                ->whereBetween('lng', [$Box['minLng'], $Box['maxLng']]);
+            // Konumu olmayan ilan (lat/lng NULL — ör. koordinatsız sahada kurulan
+            // maçtan açılan ilan) yarıçap filtresine takılıp kaybolmamalı; her
+            // yerde görünür (BACKLOG #45).
+            $Query->where(function ($Sub) use ($Box): void {
+                $Sub->whereNull('lat')->orWhere(function ($Geo) use ($Box): void {
+                    $Geo->whereBetween('lat', [$Box['minLat'], $Box['maxLat']])
+                        ->whereBetween('lng', [$Box['minLng'], $Box['maxLng']]);
+                });
+            });
         }
 
         return OpponentListingResource::collection($Query->limit(50)->get());

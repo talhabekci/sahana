@@ -49,8 +49,14 @@ class PlayerListingController extends Controller
 
         if ($Coordinates !== null) {
             $Box = Geo::boundingBox($Coordinates['lat'], $Coordinates['lng'], $RadiusKm);
-            $Query->whereBetween('lat', [$Box['minLat'], $Box['maxLat']])
-                ->whereBetween('lng', [$Box['minLng'], $Box['maxLng']]);
+
+            // Konumu olmayan ilan yarıçap filtresine takılıp kaybolmamalı (BACKLOG #45).
+            $Query->where(function ($Sub) use ($Box): void {
+                $Sub->whereNull('lat')->orWhere(function ($Geo) use ($Box): void {
+                    $Geo->whereBetween('lat', [$Box['minLat'], $Box['maxLat']])
+                        ->whereBetween('lng', [$Box['minLng'], $Box['maxLng']]);
+                });
+            });
         }
 
         $Date = $Request->query('date');

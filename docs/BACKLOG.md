@@ -719,12 +719,19 @@
   maç listesi/gol/asist dökümü gibi bir detay ekranı açılmalı (mevcut
   stats API'sinin neyi destekleyip desteklemediğine göre kapsam netleşir).
 
-### 45. Keşfette rakip ilanları görünmüyor (kontrol + düzeltme)
+### 45. Keşfette rakip ilanları görünmüyor (kontrol + düzeltme) ✅
+- **Tamamlandı:** 2026-07-11 — **Kök neden:** maç detayından açılan rakip
+  ilanları maçın `venue_lat/venue_lng` değerlerini kopyalıyor, koordinatsız
+  maçlarda bunlar NULL kalıyor; Keşfet ekranı ise her zaman `near`
+  parametresi gönderdiğinden `whereBetween('lat', ...)` NULL konumlu
+  ilanların TAMAMINI eliyordu (üretim verisinde 8/8 ilan NULL'du —
+  "Rakip Arayanlar" sekmesi hep boştu). Düzeltme: konumu olmayan ilanlar
+  yarıçap filtresinden muaf, her yerde görünür (`whereNull('lat')->orWhere(
+  bounding box)`); aynı koruma adam eksik ilanlarına
+  (`PlayerListingController`) da uygulandı. 1 yeni Pest testi (249 toplam).
 - **Bağlı modül:** Modül 3/4 — keşfet/arama yüzeyi
 - **Talep tarihi:** 2026-07-11
 - "Sanırım keşfette rakip ilanları görünmüyor onu da bi kontrol et."
-  Keşfet/arama ekranındaki ilan sorgusu incelenecek; rakip ilanlarının
-  (opponent listings) listelenmediği doğrulanırsa düzeltilecek.
 
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).

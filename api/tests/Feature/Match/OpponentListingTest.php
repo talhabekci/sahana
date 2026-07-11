@@ -62,6 +62,23 @@ it('lists open opponent listings', function () {
         ->assertJsonCount(1, 'data');
 });
 
+it('keeps listings without coordinates visible when a near filter is applied', function () {
+    [$Team, $Captain] = opponentTeamSetup();
+    // Konumsuz ilan (koordinatsız sahada kurulan maçtan açılan ilan senaryosu)
+    OpponentListing::create(['team_id' => $Team->id, 'created_by' => $Captain->id]);
+    // Yarıçapın çok dışında konumlu ilan
+    OpponentListing::create([
+        'team_id' => $Team->id, 'created_by' => $Captain->id,
+        'lat' => 39.92, 'lng' => 32.85,
+    ]);
+
+    $Searcher = User::factory()->create();
+
+    $this->actingAs($Searcher)->getJson('/api/v1/opponent-listings?near=41.0,29.0&radius=10')
+        ->assertOk()
+        ->assertJsonCount(1, 'data');
+});
+
 it('matches an opponent listing and sets the match opponent', function () {
     [$Team, $Captain] = opponentTeamSetup();
     [$RivalTeam, $RivalCaptain] = opponentTeamSetup();
