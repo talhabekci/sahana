@@ -718,15 +718,23 @@
   bar boşluğu) yok sayar. Düzeltme: `useSafeAreaInsets()` ile
   `top: insets.top + ...`.
 
-### 43. Uygulama geneli "liquid glass" tasarım dili
+### 43. Uygulama geneli "liquid glass" tasarım dili ✅ (ilk dalga)
+- **Tamamlandı:** 2026-07-11 — yeni `shared/ui/GlassView.tsx` (`expo-blur`,
+  koyu tint + turf yeşiline çalan yarı saydam film). Uygulanan yüzeyler:
+  (a) **tab bar** — saydam + absolute, içerik altından akıyor, arka planı
+  buzlu cam (tab ekranlarının liste/footer alt boşlukları yüzer barın
+  altında içerik kalmasın diye artırıldı); (b) **bottom sheet'ler** —
+  maç kur (takvim + saha seçici), maç detayı (video ekle / skor gir /
+  istatistik gir) ve profil düzenleme (şehir seçici). Kart yüzeyleri
+  bilinçli solid bırakıldı (listede çok sayıda blur katmanı performansı
+  vurur; cam etkisi "krom"da yoğunlaştı). `expo-blur` YENİ native modül —
+  `expo-video` ile aynı rebuild'de; **efekt ancak yeni development
+  build'de görünür** (kullanıcı 2026-07-11'de "göremedim" dedi — sebep bu,
+  cache değil).
 - **Bağlı modül:** cross-cutting (tasarım)
 - **Talep tarihi:** 2026-07-11
 - "Uygulamada genel olarak bir liquid glass havası olsun istiyorum,
-  tablar da falan ya da diğer yerlerde." Gerçek buzlu cam efekti için
-  `expo-blur` (YENİ native modül — rebuild gerektirir; #37'nin video
-  oynatıcısı `expo-video` ile aynı rebuild'de birleştirilebilir).
-  Kapsam: tab bar, modallar/bottom sheet'ler, kart yüzeyleri —
-  mevcut koyu "çim/saha" paletinin üstüne yarı saydam blur katmanları.
+  tablar da falan ya da diğer yerlerde."
 
 ### 44. Profildeki Sezon kartına tıklayınca sezon detayı açılmalı ✅
 - **Tamamlandı:** 2026-07-11 — Yeni `GET /players/{id}/stats/matches?season=`
@@ -753,6 +761,37 @@
 - **Bağlı modül:** Modül 3/4 — keşfet/arama yüzeyi
 - **Talep tarihi:** 2026-07-11
 - "Sanırım keşfette rakip ilanları görünmüyor onu da bi kontrol et."
+
+### 46. Bug: yüklenen maç videosu feed kartında oynatılmıyor + videolar uygulama içinde oynasın
+- **Bağlı modül:** Modül 4/5
+- **Talep tarihi:** 2026-07-11 (cihaz testi 3. tur)
+- Kullanıcı: "maç videosu yükledim akışa geldi ama video oynatılmıyor"
+  + "tarayıcıda açılıyor, uygulamanın içinde açılsa daha iyi olur."
+- **Kök neden (teşhis):** `video_shared` feed kartı `post.video.url`
+  kullanıyor — yüklenen videolarda `url` NULL (dosya `storage_path`/
+  `video_url`'de), karta dokununca hiçbir şey olmuyor. Ayrıca `PostResource`
+  'un `video` bloğu `video_url`'i hiç dönmüyor. Düzeltme: `video_url`
+  alanını post'un video bloğuna ekle; feed kartında yüklenen videoyu
+  `PostVideoPlayer` ile satır içinde oynat; maç detayındaki video satırı
+  da yüklenen videolar için uygulama içi oynatıcı (modal) açsın — harici
+  linkler (YouTube vb.) tarayıcıda kalır.
+
+### 47. Bug: sohbetteki ses kayıtları oynatılmıyor (sessiz mod)
+- **Bağlı modül:** Modül 7
+- **Talep tarihi:** 2026-07-11 (cihaz testi 3. tur)
+- **Kök neden (teşhis):** iOS'ta `playsInSilentMode` ayarlanmadan çalınan
+  ses, telefon sessiz moddayken duyulmaz — oynatma "çalışmıyor" gibi
+  görünür. Düzeltme: `VoiceMessageBubble` çalmaya başlamadan önce
+  `setAudioModeAsync({ playsInSilentMode: true })` çağırır.
+
+### 48. Sohbette medya seçilince hemen gönderilmesin — önizleme + gönder butonu
+- **Bağlı modül:** Modül 7
+- **Talep tarihi:** 2026-07-11 (cihaz testi 3. tur)
+- "Ses kayıtları ve fotoğraf seçildikten sonra hemen gönderiliyor...
+  yine yolla tuşuna bassın kullanıcı, yollamak istemeyebilir, yanlışlıkla
+  bişey olmuş olabilir." `ChatConversation` composer'ında seçilen fotoğraf /
+  biten ses kaydı önce bekleyen ek (önizleme çipi + kaldırma X'i) olarak
+  gösterilir; gönderim yalnızca gönder butonuyla olur.
 
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).

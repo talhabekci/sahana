@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: space(3),
-    paddingBottom: space(6),
+    paddingBottom: space(24),
   },
   card: {
     backgroundColor: Palette.turf,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     color: Palette.moss,
   },
   footer: {
-    paddingBottom: space(6),
+    paddingBottom: space(22),
     paddingTop: space(3),
   },
 });

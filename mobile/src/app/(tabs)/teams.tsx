@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   list: {
-    paddingBottom: space(6),
+    paddingBottom: space(24),
   },
   row: {
     flexDirection: 'row',
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   footer: {
-    paddingBottom: space(6),
+    paddingBottom: space(22),
     paddingTop: space(3),
   },
 });

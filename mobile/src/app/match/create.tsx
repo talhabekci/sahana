@@ -19,6 +19,7 @@ import { listTeams } from '@/features/team/api';
 import { listVenues } from '@/features/venue/api';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
+import { GlassView } from '@/shared/ui/GlassView';
 import { MonthCalendar } from '@/shared/ui/MonthCalendar';
 import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
@@ -212,7 +213,7 @@ export default function CreateMatch() {
 
           <Modal visible={CalendarVisible} transparent animationType="slide">
             <Pressable style={styles.calendarBackdrop} onPress={() => setCalendarVisible(false)} />
-            <View style={styles.calendarSheet}>
+            <GlassView style={styles.calendarSheet}>
               <View style={styles.calendarHandle} />
               <MonthCalendar
                 value={SelectedDate}
@@ -222,12 +223,12 @@ export default function CreateMatch() {
                   setCalendarVisible(false);
                 }}
               />
-            </View>
+            </GlassView>
           </Modal>
 
           <Modal visible={VenuePickerVisible} transparent animationType="slide">
             <Pressable style={styles.calendarBackdrop} onPress={() => setVenuePickerVisible(false)} />
-            <View style={styles.venuePickerSheet}>
+            <GlassView style={styles.venuePickerSheet}>
               <View style={styles.calendarHandle} />
               <Text style={styles.venuePickerTitle}>SAHA SEÇ</Text>
               <ScrollView style={styles.venuePickerList}>
@@ -251,7 +252,7 @@ export default function CreateMatch() {
                   <Text style={styles.venuePickerEmpty}>Henüz saha eklenmedi.</Text>
                 )}
               </ScrollView>
-            </View>
+            </GlassView>
           </Modal>
 
           <Text style={styles.sectionLabel}>SAAT</Text>
@@ -427,7 +428,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   calendarSheet: {
-    backgroundColor: Palette.turf,
     borderTopLeftRadius: Radius.l,
     borderTopRightRadius: Radius.l,
     paddingTop: space(3),
@@ -455,7 +455,6 @@ const styles = StyleSheet.create({
     color: Palette.lime,
   },
   venuePickerSheet: {
-    backgroundColor: Palette.turf,
     borderTopLeftRadius: Radius.l,
     borderTopRightRadius: Radius.l,
     paddingTop: space(3),

@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: space(6),
     paddingTop: space(4),
-    paddingBottom: space(10),
+    paddingBottom: space(24),
   },
   kicker: {
     fontFamily: Type.mono,

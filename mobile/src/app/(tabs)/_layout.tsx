@@ -1,6 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
+import { StyleSheet } from 'react-native';
 
+import { GlassView } from '@/shared/ui/GlassView';
 import { Palette, Type } from '@/shared/ui/theme';
 
 export default function TabsLayout() {
@@ -8,10 +10,15 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Liquid glass tab bar (BACKLOG #43): bar saydam + absolute, içerik
+        // altından akar; arka plan GlassView (expo-blur) ile buzlu cam.
         tabBarStyle: {
-          backgroundColor: Palette.turf,
+          position: 'absolute',
+          backgroundColor: 'transparent',
           borderTopColor: Palette.lineFaint,
+          elevation: 0,
         },
+        tabBarBackground: () => <GlassView style={StyleSheet.absoluteFillObject} intensity={60} />,
         tabBarActiveTintColor: Palette.lime,
         tabBarInactiveTintColor: Palette.moss,
         tabBarLabelStyle: {

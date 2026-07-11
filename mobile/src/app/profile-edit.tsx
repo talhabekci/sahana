@@ -24,6 +24,7 @@ import { PitchPositionPicker } from '@/features/auth/PitchPositionPicker';
 import { toApiFailure } from '@/shared/api/client';
 import { ensureJpeg } from '@/shared/media/ensureJpeg';
 import { Button } from '@/shared/ui/Button';
+import { GlassView } from '@/shared/ui/GlassView';
 import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
@@ -327,7 +328,7 @@ export default function ProfileEdit() {
 
         <Modal visible={CityPickerVisible} transparent animationType="slide">
           <Pressable style={styles.cityBackdrop} onPress={() => setCityPickerVisible(false)} />
-          <View style={styles.citySheet}>
+          <GlassView style={styles.citySheet}>
             <View style={styles.cityHandle} />
             <Text style={styles.citySheetTitle}>ŞEHİR SEÇ</Text>
             <TextField
@@ -358,7 +359,7 @@ export default function ProfileEdit() {
                 </Pressable>
               )}
             />
-          </View>
+          </GlassView>
         </Modal>
       </KeyboardAvoidingView>
     </Screen>
@@ -529,7 +530,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(11,26,15,0.6)',
   },
   citySheet: {
-    backgroundColor: Palette.turf,
     borderTopLeftRadius: Radius.l,
     borderTopRightRadius: Radius.l,
     paddingHorizontal: space(6),

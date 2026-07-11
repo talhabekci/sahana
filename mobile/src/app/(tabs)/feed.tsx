@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: space(6),
-    paddingBottom: space(8),
+    paddingBottom: space(24),
   },
   separator: {
     height: space(3),

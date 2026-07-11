@@ -45,6 +45,7 @@ import {
 import VideoDefaultCover from '@/assets/images/video-default-cover.png';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
+import { GlassView } from '@/shared/ui/GlassView';
 import { Screen } from '@/shared/ui/Screen';
 import { Palette, Radius, Type, space } from '@/shared/ui/theme';
 
@@ -541,7 +542,7 @@ export default function MatchDetail() {
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.modalBackdrop} onPress={() => setVideoModalVisible(false)} />
-          <View style={styles.modalSheet}>
+          <GlassView style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Video ekle</Text>
             <Text style={styles.modalSub}>YouTube veya sosyalhalisaha video linkini yapıştır.</Text>
@@ -564,7 +565,7 @@ export default function MatchDetail() {
               disabled={VideoUrl.trim().length < 8}
               loading={AddVideo.isPending}
             />
-          </View>
+          </GlassView>
         </KeyboardAvoidingView>
       </Modal>
 
@@ -573,7 +574,7 @@ export default function MatchDetail() {
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable style={styles.modalBackdrop} onPress={() => setResultModalVisible(false)} />
-          <View style={styles.modalSheet}>
+          <GlassView style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>Skoru gir</Text>
             <Text style={styles.modalSub}>Rakip kaptan onaylayana (ya da 48 saat geçene) kadar bekler.</Text>
@@ -639,13 +640,13 @@ export default function MatchDetail() {
               disabled={HomeScore.trim() === '' || AwayScore.trim() === ''}
               loading={EnterResult.isPending}
             />
-          </View>
+          </GlassView>
         </KeyboardAvoidingView>
       </Modal>
 
       <Modal visible={StatModalVisible} transparent animationType="slide">
         <Pressable style={styles.modalBackdrop} onPress={() => setStatModalVisible(false)} />
-        <View style={styles.modalSheet}>
+        <GlassView style={styles.modalSheet}>
           <View style={styles.modalHandle} />
           <Text style={styles.modalTitle}>{StatTarget?.name ?? 'Oyuncu'}</Text>
           <Text style={styles.modalSub}>Gol ve asist sayısını gir.</Text>
@@ -691,7 +692,7 @@ export default function MatchDetail() {
           </View>
 
           <Button label="Kaydet" onPress={() => SubmitStat.mutate()} loading={SubmitStat.isPending} />
-        </View>
+        </GlassView>
       </Modal>
     </Screen>
   );
@@ -899,7 +900,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalSheet: {
-    backgroundColor: Palette.turf,
     borderTopLeftRadius: Radius.l,
     borderTopRightRadius: Radius.l,
     paddingHorizontal: space(5),

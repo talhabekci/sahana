@@ -3,6 +3,21 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (13) — Backlog #43: liquid glass (ilk dalga) + 3. tur cihaz geri bildirimi
+
+- **#43:** yeni `shared/ui/GlassView.tsx` (`expo-blur`) — tab bar saydam +
+  absolute + buzlu cam arka plan (tab ekranlarının alt boşlukları yüzer
+  bara göre artırıldı); maç kur / maç detayı / profil düzenleme bottom
+  sheet'leri GlassView'a geçti. Kartlar bilinçli solid (performans).
+  Efekt yeni development build gerektiriyor (expo-blur native).
+- Kullanıcı 3. tur cihaz testinden 6 madde bildirdi: #46 (yüklenen maç
+  videosu feed'de oynamıyor + uygulama içi oynatma), #47 (ses kayıtları
+  sessiz modda duyulmuyor), #48 (sohbet medyası önizlemesiz hemen
+  gidiyor) BACKLOG'a eklendi. "Liquid glass görünmüyor" = rebuild
+  gerekiyor (4 yeni native modül birikti); PHP 8MB POST limiti hatası =
+  API hâlâ eski komutla çalışıyor, `composer serve` ile başlatılmalı
+  (kullanıcıya iletildi).
+
 ## 2026-07-11 (12) — Backlog #37: akış gönderisine video ekleme
 
 - **Backend:** `posts.video_path` (nullable, yeni migration — `video_id`
