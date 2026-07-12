@@ -27,8 +27,17 @@ class SyncSosyalhalisahaVenues extends Command
 
         $MatchedDistricts = 0;
         $VenuesUpserted = 0;
+        $SkippedCities = 0;
 
-        $this->withProgressBar(City::all(), function (City $City) use ($Client, $DelayMicroseconds, &$MatchedDistricts, &$VenuesUpserted): void {
+        $this->withProgressBar(City::all(), function (City $City) use ($Client, $DelayMicroseconds, &$MatchedDistricts, &$VenuesUpserted, &$SkippedCities): void {
+            $AlreadyProcessed = District::where('city_id', $City->id)->whereNotNull('external_id')->exists();
+
+            if ($AlreadyProcessed) {
+                $SkippedCities++;
+
+                return;
+            }
+
             $Remote = $Client->getDistricts($City->id);
             usleep($DelayMicroseconds);
 
@@ -61,7 +70,7 @@ class SyncSosyalhalisahaVenues extends Command
         });
 
         $this->newLine(2);
-        $this->info("{$MatchedDistricts} ilçe eşleşti, {$VenuesUpserted} saha kaydedildi/güncellendi.");
+        $this->info("{$MatchedDistricts} ilçe eşleşti, {$VenuesUpserted} saha kaydedildi/güncellendi, {$SkippedCities} il daha önce işlendiği için atlandı.");
 
         return self::SUCCESS;
     }

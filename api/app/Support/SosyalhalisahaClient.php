@@ -93,6 +93,8 @@ class SosyalhalisahaClient
                 'Referer' => self::BASE_URL,
                 'Accept' => 'application/json',
             ])
+            ->timeout(30)
+            ->retry(3, 1000)
             ->asForm()
             ->post(self::BASE_URL, $Data);
     }
