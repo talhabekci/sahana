@@ -35,6 +35,7 @@ class SearchController extends Controller
 
         $Players = User::whereNotNull('name')
             ->where('name', 'like', "%{$Query}%")
+            ->where('id', '!=', $Request->user()->id)
             ->with('profile.city')
             ->limit(20)
             ->get();

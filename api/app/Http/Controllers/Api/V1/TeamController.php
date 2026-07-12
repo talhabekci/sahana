@@ -29,10 +29,13 @@ class TeamController extends Controller
         return (new TeamResource($Team->loadCount('members')))->response()->setStatusCode(201);
     }
 
-    public function show(Request $Request, Team $Team): TeamResource
+    /**
+     * Takım profili herkese açık (oyuncu profili ile aynı desen, BACKLOG #53) —
+     * arama/keşiften bulunan bir takıma dokununca sayfa yüklenebiliyor. Üye-özel
+     * bilgiler (sohbet, kadro yönetimi vb.) ayrı endpoint'lerde policy ile korunuyor.
+     */
+    public function show(Team $Team): TeamResource
     {
-        $this->authorize('view', $Team);
-
         return new TeamResource($Team->load('members')->loadCount('members'));
     }
 

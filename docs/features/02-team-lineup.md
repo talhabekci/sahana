@@ -57,7 +57,7 @@ join/[inviteCode]       → davet karşılama (deep link)
 | Method | Endpoint | Açıklama |
 |---|---|---|
 | POST | /teams | Takım oluştur (oluşturan = kaptan; multipart: `name`, `badge_icon?`, `logo?`, `color_home`) |
-| GET | /teams/{id} | Detay (üyelerle) |
+| GET | /teams/{id} | Detay (üyelerle) — **herkese açık** (BACKLOG #53, 2026-07-11): oyuncu profili gibi, üyelik şartı yok — arama/keşiften bulunan takıma dokununca sayfa açılabiliyor. Üye-özel bilgiler (sohbet, kadro listesi/yönetimi) ayrı endpoint'lerde `TeamPolicy::view`/`manageLineups` ile üyeliğe bağlı kalıyor |
 | PATCH | /teams/{id} | Kaptan: isim/logo/renk (multipart, `_method=PATCH`) |
 | POST | /teams/{id}/invites | Davet linki üret `{code, expires_at}` |
 | POST | /invites/{code}/accept | Katıl (auth zorunlu; yoksa önce kayıt akışı) |

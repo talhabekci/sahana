@@ -7,6 +7,7 @@ use App\Models\User;
 
 class TeamPolicy
 {
+    /** Takım sohbeti erişimi (BACKLOG #53'ten sonra da üyelere özel kaldı). */
     public function view(User $User, Team $Team): bool
     {
         return $Team->isMember($User);

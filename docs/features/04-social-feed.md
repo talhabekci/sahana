@@ -166,7 +166,7 @@ search/               → oyuncu/takım arama
 | POST | /players/{id}/follow · DELETE /players/{id}/follow | Takip et/bırak |
 | POST | /players/{id}/block · DELETE /players/{id}/block | Engelle/kaldır |
 | POST | /reports | Şikayet (`subject_type: post\|comment\|user`, `subject_id`, `reason`) |
-| GET | /search?q=&type=player\|team | Basit isim araması |
+| GET | /search?q=&type=player\|team | Basit isim araması — oyuncu araması kendi hesabını hariç tutar (BACKLOG #53, 2026-07-11) |
 | GET | /players/{id}/followers | Takipçi listesi (BACKLOG.md #28) |
 | GET | /players/{id}/following | Takip edilenler listesi (BACKLOG.md #28) |
 

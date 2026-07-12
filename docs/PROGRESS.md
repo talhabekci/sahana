@@ -3,6 +3,29 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (18) — Backlog #53: aramada takım sayfası açılmıyordu + kendi hesabın çıkıyordu
+
+- **Takım sayfası açılmıyordu:** `TeamPolicy::view` üyelik şartı koyuyordu;
+  arama/keşiften üyesi olmadığın bir takıma dokununca `GET /teams/{id}`
+  403 dönüyor, mobil ekran bunu ele almadığı için sonsuz "yükleniyor"
+  görünüyordu. `TeamController::show`'daki authorize kaldırıldı — takım
+  profili artık oyuncu profili gibi herkese açık. Sohbet
+  (`TeamMessageController`, hâlâ `TeamPolicy::view`'i kullanıyor — o
+  metod bilerek üyelik şartını korudu) ve kadro yönetimi
+  (`manageLineups`) üyeliğe bağlı kaldı. Mobil `team/[id]/index.tsx`'e
+  `IAmMember` eklendi — üye olmayan görüntüleyende sohbet/kadro/
+  ayrıl-sil bölümleri gizleniyor, `listLineups` isteği hiç atılmıyor
+  (`enabled: my_role != null`).
+- **Kendi hesabın aramada çıkıyordu:** `SearchController` oyuncu
+  aramasında `where('id', '!=', viewer)` eksikti. Takip butonu zaten
+  kendine özel gizliydi (`PlayerPublicResource.is_following` kendine
+  `null` dönüyor) ama arama sonucunda görünmen başlı başına yanlıştı.
+- 4 yeni Pest testi (263 toplam) — takım profilinin herkese açık olduğu
+  + sohbet/kadronun hâlâ korunduğu + aramanın kendini hariç tuttuğu.
+  Pint + Larastan temiz. Mobil tsc + lint temiz.
+- Spec güncellendi: 02-team-lineup.md (`GET /teams/{id}` herkese açık
+  notu), 04-social-feed.md (arama kendini hariç tutuyor notu).
+
 ## 2026-07-11 (17) — Backlog #51/#52: ilçe ve doğum tarihi seçmeli oldu
 
 - **#51 (ilçe):** yeni `districts` tablosu (city_id = plaka) +

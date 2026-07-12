@@ -104,11 +104,20 @@ it('shows team detail with members for a member', function () {
         ->assertJsonPath('data.members.0.role', 'captain');
 });
 
-it('forbids non-members from viewing team detail', function () {
+it('lets a non-member view the team profile (public, like a player profile)', function () {
+    $Outsider = User::factory()->create();
+    $Team = Team::factory()->create(['name' => 'Kartallar FK']);
+
+    $this->actingAs($Outsider)->getJson('/api/v1/teams/'.$Team->public_id)
+        ->assertOk()
+        ->assertJsonPath('data.name', 'Kartallar FK');
+});
+
+it('still forbids non-members from managing team lineups', function () {
     $Outsider = User::factory()->create();
     $Team = Team::factory()->create();
 
-    $this->actingAs($Outsider)->getJson('/api/v1/teams/'.$Team->public_id)
+    $this->actingAs($Outsider)->getJson('/api/v1/teams/'.$Team->public_id.'/lineups')
         ->assertStatus(403)
         ->assertJsonPath('code', 'forbidden');
 });

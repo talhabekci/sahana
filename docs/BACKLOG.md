@@ -856,6 +856,25 @@
   Yeni native bağımlılık YOK (datetimepicker eklenmedi, rebuild gerekmez).
 - **Talep tarihi:** 2026-07-11
 
+### 53. Bug: aramadan bulunan takıma dokununca sayfa yüklenmiyor + kendi hesabın aramada çıkıp kendini takip edebiliyorsun ✅
+- **Tamamlandı:** 2026-07-11 — iki ayrı kök neden:
+  (a) `TeamPolicy::view` üyelik şartı koyuyordu, arama/keşiften bulunan
+  (üyesi olmadığın) bir takıma dokununca `GET /teams/{id}` 403 dönüyordu;
+  mobil ekran bu hatayı hiç ele almadığı için sonsuz yükleniyor
+  görünüyordu. Takım profili artık oyuncu profili gibi herkese açık
+  (`TeamController::show`'daki authorize kaldırıldı); sohbet ve kadro
+  yönetimi ayrı endpoint'lerde üyeliğe bağlı kalmaya devam ediyor —
+  mobil ekran üye olmayan görüntüleyende sohbet/kadro/ayrıl-sil
+  bölümlerini gizliyor, kadro isteğini hiç atmıyor.
+  (b) `SearchController` oyuncu aramasında görüntüleyenin kendisini
+  hariç tutmuyordu — kendi hesabın sonuçlarda çıkıp kendi profiline
+  gidebiliyordun (takip butonu zaten `PlayerPublicResource`'ta
+  kendine özel `null` dönüyordu ama arama sonucunda görünmen başlı
+  başına yanlıştı). Artık `where('id', '!=', viewer)` ile hariç.
+  4 yeni Pest testi (263 toplam).
+- **Bağlı modül:** Modül 2 + Modül 4 (arama)
+- **Talep tarihi:** 2026-07-11
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

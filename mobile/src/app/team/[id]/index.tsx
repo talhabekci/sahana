@@ -69,7 +69,13 @@ export default function TeamDetail() {
 
   const Team = useQuery({ queryKey: ['teams', id], queryFn: () => getTeam(id) });
   const Me = useQuery({ queryKey: ['me'], queryFn: getMe });
-  const Lineups = useQuery({ queryKey: ['teams', id, 'lineups'], queryFn: () => listLineups(id) });
+  // Takım profili herkese açık ama kadrolar üyeye özel (BACKLOG #53) —
+  // üye olmayan görüntüleyende bu istek hiç atılmaz (403'ten kaçınılır).
+  const Lineups = useQuery({
+    queryKey: ['teams', id, 'lineups'],
+    queryFn: () => listLineups(id),
+    enabled: Team.data?.my_role != null,
+  });
 
   const invalidate = () => {
     void QueryClient.invalidateQueries({ queryKey: ['teams'] });
@@ -150,6 +156,7 @@ export default function TeamDetail() {
 
   const Data = Team.data;
   const IAmCaptain = Data.my_role === 'captain';
+  const IAmMember = Data.my_role != null;
   const MyPublicId = Me.data?.id;
 
   const promptMemberActions = (Member: TeamMember) => {
@@ -253,9 +260,11 @@ export default function TeamDetail() {
           </View>
         </View>
 
-        <View style={styles.inviteRow}>
-          <Button label="Takım sohbeti" onPress={() => Router.push(`/team/${id}/chat`)} />
-        </View>
+        {IAmMember && (
+          <View style={styles.inviteRow}>
+            <Button label="Takım sohbeti" onPress={() => Router.push(`/team/${id}/chat`)} />
+          </View>
+        )}
 
         {IAmCaptain && (
           <View style={styles.inviteRow}>
@@ -279,42 +288,46 @@ export default function TeamDetail() {
           ))}
         </View>
 
-        <View style={styles.lineupHeader}>
-          <Text style={styles.sectionTitle}>KADROLAR</Text>
-          <Pressable accessibilityRole="button" onPress={promptNewLineup} hitSlop={8}>
-            <Text style={styles.newLineup}>+ Yeni kadro</Text>
-          </Pressable>
-        </View>
-
-        {Lineups.data == null || Lineups.data.length === 0 ? (
-          <Text style={styles.emptyLineups}>Henüz kadro yok.</Text>
-        ) : (
-          <View style={styles.card}>
-            {Lineups.data.map((Lineup, Index) => (
-              <Pressable
-                key={Lineup.id}
-                onPress={() => Router.push(`/team/${id}/lineup/${Lineup.id}`)}
-                onLongPress={() => promptLineupActions(Lineup)}
-                style={[styles.memberRow, Index === 0 && styles.memberRowFirst]}>
-                <Text style={styles.memberName}>{Lineup.name}</Text>
-                <Ionicons name="chevron-forward" size={18} color={Palette.moss} />
+        {IAmMember && (
+          <>
+            <View style={styles.lineupHeader}>
+              <Text style={styles.sectionTitle}>KADROLAR</Text>
+              <Pressable accessibilityRole="button" onPress={promptNewLineup} hitSlop={8}>
+                <Text style={styles.newLineup}>+ Yeni kadro</Text>
               </Pressable>
-            ))}
-          </View>
-        )}
+            </View>
 
-        <View style={styles.footer}>
-          {IAmCaptain ? (
-            <Button
-              label="Takımı sil"
-              variant="ghost"
-              onPress={promptDeleteTeam}
-              loading={DeleteTeam.isPending}
-            />
-          ) : (
-            <Button label="Takımdan ayrıl" variant="ghost" onPress={leaveTeam} />
-          )}
-        </View>
+            {Lineups.data == null || Lineups.data.length === 0 ? (
+              <Text style={styles.emptyLineups}>Henüz kadro yok.</Text>
+            ) : (
+              <View style={styles.card}>
+                {Lineups.data.map((Lineup, Index) => (
+                  <Pressable
+                    key={Lineup.id}
+                    onPress={() => Router.push(`/team/${id}/lineup/${Lineup.id}`)}
+                    onLongPress={() => promptLineupActions(Lineup)}
+                    style={[styles.memberRow, Index === 0 && styles.memberRowFirst]}>
+                    <Text style={styles.memberName}>{Lineup.name}</Text>
+                    <Ionicons name="chevron-forward" size={18} color={Palette.moss} />
+                  </Pressable>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.footer}>
+              {IAmCaptain ? (
+                <Button
+                  label="Takımı sil"
+                  variant="ghost"
+                  onPress={promptDeleteTeam}
+                  loading={DeleteTeam.isPending}
+                />
+              ) : (
+                <Button label="Takımdan ayrıl" variant="ghost" onPress={leaveTeam} />
+              )}
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <Modal visible={CustomModalVisible} transparent animationType="slide">
