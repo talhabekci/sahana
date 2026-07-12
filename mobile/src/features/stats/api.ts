@@ -45,3 +45,17 @@ export async function getPlayerSeasonMatches(playerId: string, season?: number):
 
   return data.data;
 }
+
+export type PlayerBadge = {
+  key: string;
+  label: string;
+  description: string;
+  icon: string;
+  earned_at: string;
+};
+
+export async function getPlayerBadges(playerId: string): Promise<PlayerBadge[]> {
+  const { data } = await Api.get<{ data: PlayerBadge[] }>(`/players/${playerId}/badges`);
+
+  return data.data;
+}

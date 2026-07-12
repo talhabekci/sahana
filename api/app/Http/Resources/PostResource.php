@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Post;
+use App\Support\BadgeCatalog;
 use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -59,6 +60,11 @@ class PostResource extends JsonResource
                 'title' => $this->video->title,
                 'thumbnail_url' => $this->video->thumbnail_url,
             ] : null),
+            'badge' => $this->badge_key !== null ? [
+                'key' => $this->badge_key,
+                ...BadgeCatalog::get($this->badge_key),
+            ] : null,
+            'recap' => $this->recap_data,
             'likes_count' => $this->likes_count ?? $this->likes()->count(),
             'comments_count' => $this->comments_count ?? $this->comments()->count(),
             'i_liked' => $CurrentUser !== null && $this->likes()->where('user_id', $CurrentUser->id)->exists(),

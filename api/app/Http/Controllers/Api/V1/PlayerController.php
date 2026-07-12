@@ -8,7 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PlayerPublicResource;
 use App\Http\Resources\PostResource;
 use App\Models\ListingApplication;
+use App\Models\PlayerBadge;
 use App\Models\User;
+use App\Support\BadgeCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -83,6 +85,28 @@ class PlayerController extends Controller
         $Season = (int) $Request->query('season', (string) now()->year);
 
         return response()->json(['data' => $Action->handle($Player, $Season)]);
+    }
+
+    /** Kazanılan rozetler, yeniden eskiye (BACKLOG #54). */
+    public function badges(string $PublicId): JsonResponse
+    {
+        $Player = User::where('public_id', $PublicId)->firstOrFail();
+
+        $Badges = PlayerBadge::where('user_id', $Player->id)->orderByDesc('earned_at')->get();
+
+        return response()->json([
+            'data' => $Badges->map(function (PlayerBadge $Badge): array {
+                $Catalog = BadgeCatalog::get($Badge->badge_key);
+
+                return [
+                    'key' => $Badge->badge_key,
+                    'label' => $Catalog['label'],
+                    'description' => $Catalog['description'],
+                    'icon' => $Catalog['icon'],
+                    'earned_at' => $Badge->earned_at->toIso8601String(),
+                ];
+            }),
+        ]);
     }
 
     /** Kimler takip ediyor (BACKLOG.md #28 — önceden sadece sayı vardı). */

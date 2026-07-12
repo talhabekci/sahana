@@ -172,9 +172,12 @@ search/               → oyuncu/takım arama
 
 ## Veri Modeli
 `posts` (id, public_id, user_id, team_id?, type: text|match_played|lineup_shared|
-video_shared|player_listing|opponent_listing, body?, image_path? [JPEG'e yeniden
+video_shared|player_listing|opponent_listing|badge_earned|weekly_recap
+[son ikisi BACKLOG #54/#55, 2026-07-11 — Modül 6'nın rozet/haftalık özet
+otomatik gönderileri], body?, image_path? [JPEG'e yeniden
 encode edilmiş, EXIF'siz], match_id?, lineup_id?, video_id?, player_listing_id?,
-opponent_listing_id? — genel polimorfik yerine doğrudan FK, api-conventions.md
+opponent_listing_id?, badge_key?, recap_data? [JSON]
+— genel polimorfik yerine doğrudan FK, api-conventions.md
 §8 kararıyla tutarlı, created_at) ·
 `likes` (post_id, user_id) · `comments` (id, public_id, post_id, user_id, body,
 created_at) · `follows` (follower_id, followed_id) · `blocks` (user_id,

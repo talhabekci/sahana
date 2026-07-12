@@ -7,6 +7,8 @@ use App\Models\PlayerMatchStat;
 
 class ApprovePlayerStat
 {
+    public function __construct(private readonly AwardBadges $AwardBadges) {}
+
     public function handle(PlayerMatchStat $Stat): PlayerMatchStat
     {
         if ($Stat->approved) {
@@ -14,6 +16,8 @@ class ApprovePlayerStat
         }
 
         $Stat->forceFill(['approved' => true])->save();
+
+        $this->AwardBadges->handle($Stat->user);
 
         return $Stat;
     }

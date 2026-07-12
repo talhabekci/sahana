@@ -16,7 +16,7 @@ class Post extends Model
 
     public const TYPES = [
         'text', 'match_played', 'lineup_shared', 'video_shared',
-        'player_listing', 'opponent_listing',
+        'player_listing', 'opponent_listing', 'badge_earned', 'weekly_recap',
     ];
 
     protected $fillable = [
@@ -31,7 +31,17 @@ class Post extends Model
         'video_id',
         'player_listing_id',
         'opponent_listing_id',
+        'badge_key',
+        'recap_data',
     ];
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return [
+            'recap_data' => 'array',
+        ];
+    }
 
     protected static function booted(): void
     {

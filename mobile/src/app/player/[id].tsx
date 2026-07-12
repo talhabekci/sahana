@@ -16,7 +16,8 @@ import {
   unlikePost,
 } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
-import { getPlayerStats } from '@/features/stats/api';
+import { getPlayerBadges, getPlayerStats } from '@/features/stats/api';
+import { BadgeRow } from '@/features/stats/BadgeRow';
 import { StatsCard } from '@/features/stats/StatsCard';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
@@ -39,6 +40,11 @@ export default function PlayerProfile() {
   const Stats = useQuery({
     queryKey: ['players', id, 'stats'],
     queryFn: () => getPlayerStats(id),
+    enabled: Player.data?.is_blocked !== true,
+  });
+  const Badges = useQuery({
+    queryKey: ['players', id, 'badges'],
+    queryFn: () => getPlayerBadges(id),
     enabled: Player.data?.is_blocked !== true,
   });
 
@@ -208,6 +214,8 @@ export default function PlayerProfile() {
             {!Blocked && Stats.data != null && (
               <StatsCard stats={Stats.data} onPress={() => Router.push(`/stats/${id}`)} />
             )}
+
+            {!Blocked && Badges.data != null && <BadgeRow badges={Badges.data} />}
 
             {Blocked ? (
               <Text style={styles.blockedText}>Bu kullanıcıyı engelledin, gönderileri gizli.</Text>

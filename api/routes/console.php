@@ -21,3 +21,6 @@ Schedule::command('results:auto-confirm')->hourly();
 Schedule::command('notifications:rsvp-reminders')->hourly();
 Schedule::command('notifications:match-reminders')->hourly();
 Schedule::command('notifications:social-summary')->hourly();
+
+// Haftalık performans özeti — Pazar akşamı (spec: 06-stats-rating.md, BACKLOG #55)
+Schedule::command('recap:weekly')->weeklyOn(0, '20:00');

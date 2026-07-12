@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class EnterMatchResult
 {
+    public function __construct(private readonly AwardBadges $AwardBadges) {}
+
     /**
      * @param  array<int, string>  $NoShowUserPublicIds  RSVP=yes katılımcılardan gelmeyenler
      */
@@ -32,7 +34,7 @@ class EnterMatchResult
             throw new ApiError('Bu maç için skor zaten girilmiş.', 'result_already_exists');
         }
 
-        return DB::transaction(function () use ($Match, $Captain, $HomeScore, $AwayScore, $NoShowUserPublicIds): MatchResult {
+        $Result = DB::transaction(function () use ($Match, $Captain, $HomeScore, $AwayScore, $NoShowUserPublicIds): MatchResult {
             $Result = MatchResult::create([
                 'match_id' => $Match->id,
                 'home_score' => $HomeScore,
@@ -53,5 +55,16 @@ class EnterMatchResult
 
             return $Result;
         });
+
+        // BACKLOG #54: katılım/güvenilirlik rozetleri, attended durumu netleşen
+        // her katılımcı için burada kontrol edilir (transaction dışında —
+        // rozet/post yazımı skor kaydının başarısını etkilemesin).
+        foreach ($Match->participants()->where('rsvp', 'yes')->with('user')->get() as $Participant) {
+            if ($Participant->user !== null) {
+                $this->AwardBadges->handle($Participant->user);
+            }
+        }
+
+        return $Result;
     }
 }

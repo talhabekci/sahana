@@ -99,6 +99,28 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
         </View>
       )}
 
+      {post.type === 'badge_earned' && post.badge != null && (
+        <View style={styles.badgeCard}>
+          <View style={styles.badgeIconWrap}>
+            <Ionicons name={post.badge.icon as never} size={22} color={Palette.limeInk} />
+          </View>
+          <View style={styles.flexShrink}>
+            <Text style={styles.autoKicker}>🏆 ROZET KAZANDI</Text>
+            <Text style={styles.autoText}>{post.badge.label}</Text>
+          </View>
+        </View>
+      )}
+
+      {post.type === 'weekly_recap' && post.recap != null && (
+        <View style={styles.autoCard}>
+          <Text style={styles.autoKicker}>📊 HAFTALIK ÖZET</Text>
+          <Text style={styles.autoText}>
+            {post.recap.matches} maç · {post.recap.goals} gol · {post.recap.assists} asist
+            {post.recap.avg_rating != null ? ` · ${post.recap.avg_rating.toFixed(1)} puan` : ''}
+          </Text>
+        </View>
+      )}
+
       {post.lineup != null && (
         <View style={styles.lineupCard}>
           <Text style={styles.autoKicker}>📋 {post.lineup.name}</Text>
@@ -264,6 +286,23 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.turfRaised,
     borderRadius: Radius.m,
     padding: space(3),
+  },
+  badgeCard: {
+    marginTop: space(3),
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(3),
+    backgroundColor: Palette.turfRaised,
+    borderRadius: Radius.m,
+    padding: space(3),
+  },
+  badgeIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.lime,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   lineupCard: {
     marginTop: space(3),

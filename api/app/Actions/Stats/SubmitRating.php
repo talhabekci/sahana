@@ -13,6 +13,8 @@ class SubmitRating
     /** Puanlama penceresi: maç başlangıcından 48 saat sonrasına kadar. */
     private const WINDOW_HOURS = 48;
 
+    public function __construct(private readonly AwardBadges $AwardBadges) {}
+
     public function handle(FootballMatch $Match, User $Rater, User $Ratee, int $Score): PlayerRating
     {
         if ($Rater->id === $Ratee->id) {
@@ -34,9 +36,13 @@ class SubmitRating
             throw new ApiError('Puanlama sadece maçtan sonraki 48 saat içinde yapılabilir.', 'rating_window_closed');
         }
 
-        return PlayerRating::updateOrCreate(
+        $Rating = PlayerRating::updateOrCreate(
             ['match_id' => $Match->id, 'rater_id' => $Rater->id, 'ratee_id' => $Ratee->id],
             ['score' => $Score],
         );
+
+        $this->AwardBadges->handle($Ratee);
+
+        return $Rating;
     }
 }

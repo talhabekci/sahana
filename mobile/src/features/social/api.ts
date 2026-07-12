@@ -8,7 +8,9 @@ export type PostType =
   | 'lineup_shared'
   | 'video_shared'
   | 'player_listing'
-  | 'opponent_listing';
+  | 'opponent_listing'
+  | 'badge_earned'
+  | 'weekly_recap';
 
 export type PostAuthor = {
   id: string;
@@ -47,6 +49,15 @@ export type Post = {
     provider: 'youtube' | 'sosyalhalisaha' | 'other';
     title: string | null;
     thumbnail_url: string | null;
+  } | null;
+  badge?: { key: string; label: string; description: string; icon: string } | null;
+  recap?: {
+    period_start: string;
+    period_end: string;
+    matches: number;
+    goals: number;
+    assists: number;
+    avg_rating: number | null;
   } | null;
   likes_count: number;
   comments_count: number;

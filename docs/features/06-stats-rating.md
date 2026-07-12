@@ -46,6 +46,42 @@ skor girerken RSVP=yes katılımcılar için "gelmedi" işaretleyebilir (aksi ha
 + `attended=false`) — RSVP=no/maybe veya hiç işaretlenmemiş katılımcılar
 paydaya girmez.
 
+## Rozetler (başarımlar) — BACKLOG #54, 2026-07-11
+Rekabet/retention mekaniği: kullanıcı "içeride rekabeti arttırmamız lazım, bi
+heves olmalı" dedi. Mevcut istatistik/reyting verisi üzerine hesaplanan,
+tek seferlik kazanılan (geri alınmayan) rozetler.
+
+**v1 kataloğu** (`App\Support\BadgeCatalog`):
+
+| Anahtar | Etiket | Koşul |
+|---|---|---|
+| `ilk_gol` | İlk Gol | En az 1 onaylı gol |
+| `hat_trick` | Hat-Trick | Bir maçta 3+ onaylı gol |
+| `seri_5` | 5 Maçlık Seri | Üst üste 5 maça `attended=true` (aradaki en yeni 5 katılımın hepsi) |
+| `guvenilir` | Güvenilir Oyuncu | En az 5 maçlık katılım kaydında %90+ `attended` oranı |
+| `yildiz` | Yıldız | En az 5 puanla 8.5+ zaman ağırlıklı ortalama reyting |
+
+**Ne zaman kontrol edilir:** `AwardBadges` action'ı — skor girişi (`EnterMatchResult`,
+katılımcıların `attended` durumu belirlenince), istatistik onayı
+(`ApprovePlayerStat`), reyting girişi (`SubmitRating`) sonrasında ilgili
+oyuncu(lar) için tetiklenir. İdempotent: `player_badges(user_id, badge_key)`
+unique — bir rozet bir kez kazanılır.
+
+**Akışa düşme:** yeni kazanılan her rozet için, `match_played`/`lineup_shared`
+ile birebir aynı desende, `auto_posts_enabled=false` değilse otomatik bir
+`badge_earned` tipi gönderi oluşturulur.
+
+## Haftalık performans özeti — BACKLOG #55, 2026-07-11
+Spotify Wrapped mantığı: haftada bir (Pazar 20:00, `recap:weekly` scheduled
+command — `notifications:social-summary` ile aynı "checkpoint" deseni,
+`player_profiles.last_weekly_recap_at` ile tekrar önlenir), o hafta (son 7 gün)
+en az 1 maça katılan her oyuncu için otomatik bir özet hesaplanır: maç sayısı,
+onaylı gol/asist toplamı, o haftaki maçların ortalama reytingi (puan yoksa
+`null`). `auto_posts_enabled=false` ise gönderi oluşturulmaz (checkpoint yine
+güncellenir — spam'e engel). Sonuç, `weekly_recap` tipi bir gönderi olarak
+akışa düşer; `recap_data` JSON kolonunda saklanır (ayrı ilişkisel tablo
+gerekmez, tek seferlik anlık görüntü).
+
 ## API
 
 - `POST /matches/{id}/result` `{home_score, away_score, no_show_user_ids?}` —
@@ -73,11 +109,18 @@ paydaya girmez.
   oyuncunun onaylı gol/asist'i ve o maçtaki ortalama puanı. Mobilde profil
   ve oyuncu ekranındaki sezon kartına dokununca açılan `stats/[id]` detay
   ekranı bu endpoint'i kullanır.
+- `GET /players/{id}/badges` — kazanılan rozetlerin listesi (yeniden eskiye) —
+  `{key, label, description, icon, earned_at}` (BACKLOG #54, 2026-07-11).
 
 ## Veri Modeli
 
 - `match_results`: `match_id` (unique FK), `home_score`, `away_score`,
   `entered_by`, `confirmed_by` (nullable), `status: pending|confirmed|disputed`.
+- `player_badges`: `user_id`, `badge_key`, `earned_at`. `UNIQUE(user_id, badge_key)`
+  (BACKLOG #54). Katalog PHP'de sabit (`BadgeCatalog`) — ayrı katalog tablosu yok.
+- `posts.badge_key` / `posts.recap_data` (JSON): `badge_earned`/`weekly_recap`
+  tipi otomatik gönderilerin verisi (BACKLOG #54/#55). `player_profiles.
+  last_weekly_recap_at`: haftalık özet tekrarını önleyen checkpoint.
 - `player_match_stats`: `match_id`, `user_id`, `goals`, `assists`, `approved`,
   `entered_by`. `UNIQUE(match_id, user_id)`.
 - `player_ratings`: `match_id`, `rater_id`, `ratee_id`, `score` (1-10).
@@ -97,7 +140,11 @@ paydaya girmez.
   için 1-10 arası tek dokunuşla puanlama (upsert, tekrar dokununca günceller).
 - **(tabs)/profile.tsx** ve **player/[id].tsx:** paylaşılan `StatsCard`
   bileşeni (sezon maç/gol/asist, reyting — yetersiz veri varsa "X/3 puan",
-  güvenilirlik yüzdesi, son maçların form noktaları).
+  güvenilirlik yüzdesi, son maçların form noktaları) + `BadgeRow` bileşeni
+  (kazanılan rozetler, ikon + etiket; BACKLOG #54).
+- **PostCard:** `badge_earned` ve `weekly_recap` tipleri için otomatik kart
+  render'ı — diğer auto-post tipleriyle (`match_played` vb.) aynı görsel dil
+  (BACKLOG #54/#55).
 
 ## Açık Sorular
 - [ ] v2: Reyting hacmi büyüyünce (çok maç/oyuncu) okuma-anı hesaplama yerine

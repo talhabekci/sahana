@@ -9,6 +9,8 @@ use App\Models\User;
 
 class SubmitPlayerStat
 {
+    public function __construct(private readonly AwardBadges $AwardBadges) {}
+
     /**
      * Kaptan herhangi bir katılımcı için girer (direkt onaylı); oyuncu sadece
      * kendisi için girer (kaptan onayı bekler).
@@ -25,7 +27,7 @@ class SubmitPlayerStat
             throw new ApiError('Sadece kaptan ya da oyuncunun kendisi istatistik girebilir.', 'forbidden', 403);
         }
 
-        return PlayerMatchStat::updateOrCreate(
+        $Stat = PlayerMatchStat::updateOrCreate(
             ['match_id' => $Match->id, 'user_id' => $TargetPlayer->id],
             [
                 'goals' => $Goals,
@@ -34,5 +36,13 @@ class SubmitPlayerStat
                 'entered_by' => $Actor->id,
             ],
         );
+
+        // BACKLOG #54: kaptan girişi direkt onaylı olduğundan gol rozetleri
+        // (ilk_gol/hat_trick) burada hemen kontrol edilir.
+        if ($IsCaptain) {
+            $this->AwardBadges->handle($TargetPlayer);
+        }
+
+        return $Stat;
     }
 }

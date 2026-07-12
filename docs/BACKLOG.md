@@ -875,6 +875,46 @@
 - **Bağlı modül:** Modül 2 + Modül 4 (arama)
 - **Talep tarihi:** 2026-07-11
 
+### 54. Rozet (başarım) sistemi — retention/rekabet mekaniği ✅
+- **Tamamlandı:** 2026-07-11 — yeni `player_badges` tablosu + `BadgeCatalog`
+  (5 rozet: `ilk_gol`, `hat_trick`, `seri_5`, `guvenilir`, `yildiz`) +
+  `AwardBadges` action. Skor girişi (`EnterMatchResult`), istatistik girişi/
+  onayı (`SubmitPlayerStat` kaptan-direkt, `ApprovePlayerStat` sonradan
+  onay) ve reyting girişi (`SubmitRating`) sonrasında ilgili oyuncu için
+  otomatik kontrol edilir; idempotent (`unique(user_id, badge_key)`).
+  Yeni kazanılan rozet, `auto_posts_enabled` açıksa `badge_earned` tipi
+  otomatik gönderi olarak akışa düşer (mevcut `match_played` deseniyle
+  birebir). `GET /players/{id}/badges` + `PostResource.badge`. Mobilde
+  yeni `BadgeRow` bileşeni (profil + oyuncu profili) ve `PostCard`'da
+  rozet kartı render'ı. 8 yeni Pest testi.
+- **Bağlı modül:** Modül 6 — [06-stats-rating.md](features/06-stats-rating.md)
+- **Talep tarihi:** 2026-07-11
+- Kullanıcı: "içeride rekabeti arttırmamız lazım, bi heves olmalı." Mevcut
+  istatistik/reyting altyapısı üzerine v1 rozet kataloğu: İlk Gol, Hat-Trick,
+  5 Maçlık Seri (üst üste katılım), Güvenilir Oyuncu (%90+ katılım, min 5 maç),
+  Yıldız (8.5+ ortalama reyting, min 5 puan). Maç sonucu/istatistik onayı/
+  reyting girişi sonrası otomatik kontrol edilir, kazanılınca `player_badges`
+  tablosuna yazılır ve (auto_posts_enabled açıksa) akışa otomatik "rozet
+  kazandı" kartı düşer — mevcut `match_played`/`lineup_shared` auto-post
+  desenine birebir uyumlu. Profilde rozet vitrini.
+
+### 55. Haftalık performans özeti — akışa otomatik paylaşılan kart ✅
+- **Tamamlandı:** 2026-07-11 — yeni `recap:weekly` scheduled command
+  (Pazar 20:00) — son 7 günde en az 1 maça katılan her oyuncu için
+  maç/gol/asist/ortalama puan özeti hesaplayıp `weekly_recap` tipi bir
+  gönderi olarak akışa düşürür (`recap_data` JSON). Checkpoint
+  (`player_profiles.last_weekly_recap_at`) tekrar çalışmayı önler,
+  `auto_posts_enabled=false` gönderiyi atlar (checkpoint yine güncellenir).
+  Mobilde `PostCard`'da özet kartı render'ı. 4 yeni Pest testi.
+- **Bağlı modül:** Modül 6 — [06-stats-rating.md](features/06-stats-rating.md)
+- **Talep tarihi:** 2026-07-11
+- Kullanıcı: "bi heves olmalı, yeni yaratıcı bişeyler." Spotify Wrapped
+  mantığı: haftada bir (Pazar akşamı), o hafta en az 1 maça katılan her
+  oyuncu için otomatik bir özet gönderisi ("Bu hafta: 2 maç, 3 gol, 8.2
+  ortalama puan") akışa düşer — paylaşılabilir, organik büyüme kanalı.
+  `SendSocialSummary`/`SweepMatches` scheduled command desenini izler
+  (`player_profiles.last_weekly_recap_at` ile tekrar önlenir).
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

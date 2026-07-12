@@ -12,7 +12,10 @@ return new class extends Migration
     {
         Schema::create('districts', function (Blueprint $Table) {
             $Table->id();
-            $Table->unsignedBigInteger('city_id');
+            // cities.id plaka kodu (unsignedSmallInteger) — FK tipi eşleşmeli,
+            // aksi halde MySQL 8 "incompatible" hatası verir (SQLite'ta bu
+            // uyuşmazlık sessizce geçiyordu, testler bu yüzden yakalamamıştı).
+            $Table->unsignedSmallInteger('city_id');
             $Table->string('name', 60);
             $Table->foreign('city_id')->references('id')->on('cities')->cascadeOnDelete();
             $Table->unique(['city_id', 'name']);

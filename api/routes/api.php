@@ -65,6 +65,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/players/{PublicId}/posts', [PlayerController::class, 'posts']);
         Route::get('/players/{PublicId}/stats', [PlayerController::class, 'stats']);
         Route::get('/players/{PublicId}/stats/matches', [PlayerController::class, 'statMatches']);
+        Route::get('/players/{PublicId}/badges', [PlayerController::class, 'badges']);
         Route::get('/players/{PublicId}/followers', [PlayerController::class, 'followers']);
         Route::get('/players/{PublicId}/following', [PlayerController::class, 'following']);
         Route::post('/players/{PublicId}/follow', [FollowController::class, 'store']);

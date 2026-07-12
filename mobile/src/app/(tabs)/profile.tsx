@@ -7,7 +7,8 @@ import { getMe } from '@/features/auth/api';
 import { POSITIONS } from '@/features/auth/PitchPositionPicker';
 import { getPlayerPosts, likePost, Post, unlikePost } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
-import { getPlayerStats } from '@/features/stats/api';
+import { getPlayerBadges, getPlayerStats } from '@/features/stats/api';
+import { BadgeRow } from '@/features/stats/BadgeRow';
 import { StatsCard } from '@/features/stats/StatsCard';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
@@ -37,6 +38,11 @@ export default function Profile() {
   const Stats = useQuery({
     queryKey: ['players', Me.data?.id, 'stats'],
     queryFn: () => getPlayerStats(Me.data?.id ?? ''),
+    enabled: Me.data?.id != null,
+  });
+  const Badges = useQuery({
+    queryKey: ['players', Me.data?.id, 'badges'],
+    queryFn: () => getPlayerBadges(Me.data?.id ?? ''),
     enabled: Me.data?.id != null,
   });
   const Posts = useQuery({
@@ -167,6 +173,8 @@ export default function Profile() {
             {Stats.data != null && (
               <StatsCard stats={Stats.data} onPress={() => Router.push(`/stats/${Data?.id}`)} />
             )}
+
+            {Badges.data != null && <BadgeRow badges={Badges.data} />}
 
             <View style={styles.contactBlock}>
               <Text style={styles.contactLabel}>HESAP</Text>

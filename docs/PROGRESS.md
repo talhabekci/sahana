@@ -3,6 +3,48 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-11 (19) — Backlog #54/#55: rozet sistemi + haftalık performans özeti
+
+- Kullanıcı retention/rekabet fikri istedi ("bi heves olmalı, yeni
+  yaratıcı bişeyler"); ikisine birden başlanması istendi.
+- **#54 Rozetler:** yeni `player_badges` tablosu + `App\Support\
+  BadgeCatalog` (5 rozet v1: `ilk_gol`, `hat_trick`, `seri_5` — üst üste
+  5 maça gelme, `guvenilir` — %90+ katılım min 5 maç, `yildiz` — 8.5+
+  ortalama reyting min 5 puan). Yeni `AwardBadges` action'ı —
+  `EnterMatchResult` (attended belirlenince tüm RSVP=yes katılımcılar
+  için), `SubmitPlayerStat` (kaptan girişi direkt onaylı olduğundan),
+  `ApprovePlayerStat` (oyuncu-girişi sonradan onaylanınca), `SubmitRating`
+  (her yeni puan sonrası ratee için) noktalarında tetiklenir; idempotent
+  (`unique(user_id, badge_key)`). Yeni kazanılan rozet `auto_posts_enabled`
+  açıksa `badge_earned` tipi otomatik gönderi olarak akışa düşer (mevcut
+  `match_played`/`lineup_shared` deseniyle birebir). Yeni `GET /players/
+  {id}/badges`; `PostResource`'a `badge` alanı. 8 yeni Pest testi.
+- **#55 Haftalık özet:** yeni `recap:weekly` scheduled command (Pazar
+  20:00) — `notifications:social-summary` ile aynı checkpoint deseni
+  (`player_profiles.last_weekly_recap_at`). Son 7 günde en az 1 maça
+  katılan her oyuncu için maç/gol/asist/ortalama puan hesaplanıp
+  `weekly_recap` tipi gönderi olarak (`recap_data` JSON) akışa düşer;
+  `auto_posts_enabled=false` gönderiyi atlar ama checkpoint yine
+  güncellenir (spam önleme). 4 yeni Pest testi.
+- **Mobil:** yeni `features/stats/BadgeRow.tsx` — kazanılan rozetlerin
+  yatay vitrini, profil ve oyuncu profili ekranlarına `StatsCard`'ın
+  altına eklendi (dokununca açıklama gösterir). `PostCard`'a
+  `badge_earned` (rozet ikonu + etiket) ve `weekly_recap` (maç/gol/
+  asist/puan özeti) kart render'ları eklendi — feed/profil/detayda
+  otomatik geçerli, ekstra kod gerekmedi.
+- **Yan ürün bug düzeltmesi:** `districts` migration'ı (BACKLOG #51'den)
+  hiçbir zaman gerçek MySQL'e uygulanamamıştı — `city_id` yanlışlıkla
+  `unsignedBigInteger` tanımlıydı, `cities.id` ise `unsignedSmallInteger`
+  (plaka kodu); MySQL 8 FK tip uyuşmazlığını reddediyor. SQLite (test DB)
+  bu uyuşmazlığı sessizce kabul ettiğinden testler yakalamamıştı. Migration
+  dosyası düzeltildi (hiçbir gerçek DB'de başarıyla çalışmamıştı, ek
+  migration yerine doğrudan düzeltme yapıldı), districts yeniden seed'lendi.
+- Doğrulama: api 275 test (12 yeni) + Pint + Larastan temiz; mobil tsc +
+  lint temiz.
+- Not: `recap:weekly` prod'da cron/scheduler çalışır durumda olmalı
+  (mevcut `matches:sweep` vb. ile aynı altyapı — PRODUCTION-READINESS.md
+  madde A'ya bağlı, ayrı bir iş değil).
+
 ## 2026-07-11 (18) — Backlog #53: aramada takım sayfası açılmıyordu + kendi hesabın çıkıyordu
 
 - **Takım sayfası açılmıyordu:** `TeamPolicy::view` üyelik şartı koyuyordu;
