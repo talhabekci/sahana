@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listTeams, Team } from '@/features/team/api';
@@ -37,6 +38,14 @@ function TeamRow({ team, onPress }: { team: Team; onPress: () => void }) {
 export default function Teams() {
   const Router = useRouter();
   const Teams = useQuery({ queryKey: ['teams'], queryFn: listTeams });
+
+  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
+  useFocusEffect(
+    useCallback(() => {
+      void Teams.refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   return (
     <Screen pitch pitchY={-140}>

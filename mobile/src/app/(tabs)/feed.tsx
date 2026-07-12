@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -28,6 +29,14 @@ export default function Feed() {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (LastPage) => LastPage.nextCursor ?? undefined,
   });
+
+  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
+  useFocusEffect(
+    useCallback(() => {
+      void Feed_.refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   const ToggleLike = useMutation({
     mutationFn: ({ post }: { post: Post }) => (post.i_liked ? unlikePost(post.id) : likePost(post.id)),

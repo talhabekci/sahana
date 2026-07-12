@@ -3,6 +3,19 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-12 (20) — Backlog #56/#57: sekme geçişinde veri tazeleme + yorum klavye boşluğu
+
+- **#56:** Akış, Maçlar, Takımlar, Sohbet, Profil sekmelerine `useFocusEffect`
+  ile focus-refetch eklendi — expo-router'ın tab ekranlarını mount'ta
+  tuttuğu için React Query'nin varsayılan mount-bazlı fetch'i sekme
+  geçişinde tetiklenmiyordu. Profil ekranına ayrıca `RefreshControl`
+  (pull-to-refresh) eklendi — Akış'ta zaten vardı.
+- **#57:** gönderi yorum kutusu ile klavye arasındaki fazla boşluk —
+  `post/[id].tsx`'teki `keyboardVerticalOffset={90}` hardcoded değeri,
+  bu ekranda native header olmadığı halde header'lı bir ekranmış gibi
+  ayarlanmıştı. Sohbet ekranlarındaki doğru değere (`0`) çekildi.
+- Doğrulama: tsc + lint temiz (kod tarafı, backend değişikliği yok).
+
 ## 2026-07-11 (19) — Backlog #54/#55: rozet sistemi + haftalık performans özeti
 
 - Kullanıcı retention/rekabet fikri istedi ("bi heves olmalı, yeni

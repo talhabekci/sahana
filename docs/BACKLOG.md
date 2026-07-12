@@ -915,6 +915,24 @@
   `SendSocialSummary`/`SweepMatches` scheduled command desenini izler
   (`player_profiles.last_weekly_recap_at` ile tekrar önlenir).
 
+### 56. Sekmeler arası geçişte veri tazelensin + profilde pull-to-refresh ✅
+- **Tamamlandı:** 2026-07-12 — 5 tab ekranı (Akış, Maçlar, Takımlar, Sohbet,
+  Profil) artık `useFocusEffect` ile o sekmeye her dönüşte ilgili sorguları
+  yeniden atıyor (React Query'nin varsayılan mount-bazlı davranışı, expo-router
+  tab'ları mount'ta tutmadığı için sekme geçişinde tetiklenmiyordu). Profil
+  ekranına ayrıca `RefreshControl` (yukarıdan aşağı çekince yenileme) eklendi
+  — Akış'ta zaten vardı.
+- **Bağlı modül:** cross-cutting (mobil veri tazeliği)
+- **Talep tarihi:** 2026-07-12
+
+### 57. Bug: gönderi yorum yazarken klavye ile input arasında boşluk ✅
+- **Tamamlandı:** 2026-07-12 — `post/[id].tsx`'te `keyboardVerticalOffset`
+  hardcoded `90` idi; bu ekranda native header olmadığından (headerShown:
+  false) fazladan boşluk oluşturuyordu. Sohbet ekranlarındaki doğru
+  değere (`0`) çekildi.
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-12
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

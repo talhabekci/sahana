@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listConversations } from '@/features/chat/api';
@@ -30,6 +31,14 @@ export default function Conversations() {
     queryKey: ['conversations'],
     queryFn: listConversations,
   });
+
+  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
+  useFocusEffect(
+    useCallback(() => {
+      void List.refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   return (
     <Screen bare>

@@ -104,7 +104,7 @@ export default function PostDetail() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+        keyboardVerticalOffset={0}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
           <View style={styles.topBar}>
             <Pressable accessibilityRole="button" onPress={() => Router.back()} hitSlop={12}>

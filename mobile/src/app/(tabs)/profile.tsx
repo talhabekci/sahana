@@ -1,7 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { getMe } from '@/features/auth/api';
 import { POSITIONS } from '@/features/auth/PitchPositionPicker';
@@ -51,6 +61,17 @@ export default function Profile() {
     enabled: Me.data?.id != null,
   });
 
+  const refetchAll = useCallback(() => {
+    void Me.refetch();
+    void Stats.refetch();
+    void Badges.refetch();
+    void Posts.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
+  useFocusEffect(refetchAll);
+
   const ToggleLike = useMutation({
     mutationFn: ({ post }: { post: Post }) => (post.i_liked ? unlikePost(post.id) : likePost(post.id)),
     onMutate: async ({ post }) => {
@@ -93,6 +114,13 @@ export default function Profile() {
         data={Posts.data ?? []}
         keyExtractor={(Item) => Item.id}
         contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={Me.isRefetching || Posts.isRefetching}
+            onRefresh={refetchAll}
+            tintColor={Palette.lime}
+          />
+        }
         ListHeaderComponent={
           <View>
           

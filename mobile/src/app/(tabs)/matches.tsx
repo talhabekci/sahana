@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listMatches, Match } from '@/features/match/api';
@@ -57,6 +57,14 @@ export default function Matches() {
     queryKey: ['matches', Filter],
     queryFn: () => listMatches(Filter),
   });
+
+  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
+  useFocusEffect(
+    useCallback(() => {
+      void Matches_.refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [Filter]),
+  );
 
   return (
     <Screen pitch pitchY={-160}>
