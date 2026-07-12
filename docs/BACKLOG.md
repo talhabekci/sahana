@@ -933,6 +933,32 @@
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-12
 
+### 58. sosyalhalisaha il/ilçe/saha dizini + "Videonu bul" deep-link'i canlandırma ✅
+- **Tamamlandı:** 2026-07-12 — detaylar `docs/PROGRESS.md` 2026-07-12 (21)
+  kaydında. `sosyalhalisaha:sync` komutu kullanıcı tarafından elle
+  çalıştırılana kadar `sosyalhalisaha_venues` boş kalır (bu oturumda
+  gerçek siteye karşı çalıştırılmadı, sadece `Http::fake()` ile test edildi).
+- **Bağlı modül:** Modül 5 — [05-videos.md](features/05-videos.md) v1.5
+  (2026-07-06'da speclenmiş ama veri toplama yöntemi açık soru olarak
+  kalmıştı, bkz. [../research/sosyalhalisaha.md](../research/sosyalhalisaha.md) §3.2)
+- **Talep tarihi:** 2026-07-12
+- Kullanıcı, sosyalhalisaha.com'un kendi `/filtre` sayfasının il→ilçe→saha
+  arama AJAX uç noktasını (`type=getdistrict`/`getplace`, CSRF `_token`
+  gerektiriyor) buldu — bu, önceden speclenmiş "video arama uç noktasını
+  asla çağırma" kararındaki **video arama** (`xhr/filtre/...`) uç noktasından
+  ayrı: sadece yer adı/ID dizini dönüyor, video içeriğine dokunmuyor.
+  **Karar (kullanıcı onayıyla):** bu dizin uç noktası, backend'de **tek
+  seferlik/nadiren elle tetiklenen** bir Artisan komutuyla (`sosyalhalisaha:
+  sync`) çağrılacak — canlı entegrasyon değil. CSRF token stratejisi:
+  komut kendi oturumunu açar (sayfayı GET edip token+cookie çıkarır),
+  harici bir token'a bağımlı kalmaz (kullanıcı onayıyla, "script kendi
+  oturumunu açsın" seçeneği).
+- Kapsam: `districts.external_id` + yeni `sosyalhalisaha_venues` tablosu
+  (önceki denormalize tasarımdan daha temiz); maç kurma akışına opsiyonel
+  şehir→ilçe→saha seçimi; `MatchResource.video_search_url` (sadece
+  `sosyalhalisaha_venue_id` dolu + maç `played` ise); "Videonu bul" butonu
+  linki uygulama içi tarayıcıda açar (backend linki asla kendisi çağırmaz).
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

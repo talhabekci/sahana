@@ -30,6 +30,7 @@ class FootballMatch extends Model
         'team_id',
         'opponent_team_id',
         'venue_id',
+        'sosyalhalisaha_venue_id',
         'venue_text',
         'venue_lat',
         'venue_lng',
@@ -75,6 +76,12 @@ class FootballMatch extends Model
     public function venue(): BelongsTo
     {
         return $this->belongsTo(Venue::class);
+    }
+
+    /** @return BelongsTo<SosyalhalisahaVenue, $this> */
+    public function sosyalhalisahaVenue(): BelongsTo
+    {
+        return $this->belongsTo(SosyalhalisahaVenue::class);
     }
 
     /** @return BelongsTo<Team, $this> */

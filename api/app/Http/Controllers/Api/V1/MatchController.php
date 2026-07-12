@@ -21,7 +21,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class MatchController extends Controller
 {
-    private const SHOW_RELATIONS = ['team.members', 'opponentTeam.members', 'venue', 'participants.user', 'listings', 'result'];
+    private const SHOW_RELATIONS = [
+        'team.members', 'opponentTeam.members', 'venue', 'sosyalhalisahaVenue.district',
+        'participants.user', 'listings', 'result',
+    ];
 
     public function index(Request $Request): AnonymousResourceCollection
     {
@@ -49,7 +52,7 @@ class MatchController extends Controller
 
         $Team = Team::where('public_id', $Request->validated('team_id'))->firstOrFail();
 
-        /** @var array{venue_id?: string|null, venue_text: string, venue_lat?: float|null, venue_lng?: float|null, starts_at: string, format: int, price_per_player?: int|null} $Data */
+        /** @var array{venue_id?: string|null, sosyalhalisaha_venue_id?: int|null, venue_text: string, venue_lat?: float|null, venue_lng?: float|null, starts_at: string, format: int, price_per_player?: int|null} $Data */
         $Data = $Request->safe()->except(['team_id']);
         $Data['venue_id'] = $this->resolveVenueId($Data['venue_id'] ?? null);
 

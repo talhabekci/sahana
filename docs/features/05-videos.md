@@ -32,26 +32,45 @@ v2'de kendi yükleme altyapımız, uzun vadede kendi highlight sistemimiz.
 **Yapılmayacak:** sosyalhalisaha içeriğini scrape edip kendi bünyemizde
 oynatmak (telif + KVKK + kırılganlık — research dokümanındaki karar).
 
-## v1.5 — "Videonu Bul" Deep-Link Yönlendirmesi (2026-07-06 karar)
+## v1.5 — "Videonu Bul" Deep-Link Yönlendirmesi (2026-07-06 karar, 2026-07-12 güncelleme)
 
 Kullanıcının videosunu sosyalhalisaha'da bulmasını kolaylaştıran, ama
-**otomatik çekme/gösterme içermeyen** bir kısayol. Detaylı gerekçe:
-`docs/research/sosyalhalisaha.md` §3.1.
+**otomatik video çekme/gösterme içermeyen** bir kısayol. Detaylı gerekçe:
+`docs/research/sosyalhalisaha.md` §3.1. **Bu ayrım hâlâ mutlak geçerli:**
+backend, video-arama uç noktasını (`xhr/filtre/...`) **hiçbir zaman
+çağırmaz** — link sadece kullanıcının kendi cihazında (uygulama içi
+tarayıcıda) açılır.
 
-- **Yeni referans tablo `sosyalhalisaha_venues`:** `id, il_id (cities.id ile
-  aynı), ilce_id, ilce_name, saha_id, saha_name`. Video içeriği değil, sadece
-  isim/ID eşlemesi — tek seferlik/az sıklıkla elle güncellenen statik veri
-  (seed migration). Kapsam: başlangıçta bilinen birkaç şehir/saha, ihtiyaca
-  göre genişler.
-- **Maç kurma akışına opsiyonel adım:** "Bu saha sosyalhalisaha'da kayıtlı mı?"
-  — ilçe → saha autocomplete (yukarıdaki referans tablodan). Seçilirse
-  `matches.sosyalhalisaha_venue_id` (nullable FK) set edilir. Seçilmezse akış
-  hiç görünmez.
+- **Referans veri toplama (2026-07-12 güncellemesi — önceki açık soru
+  çözüldü):** `sosyalhalisaha_venues` denormalize tablosu yerine daha temiz
+  bir şema: `districts.external_id` (nullable, sosyalhalisaha'nın kendi
+  ilçe ID'si) + ayrı `sosyalhalisaha_venues` tablosu (`district_id` FK →
+  bizim `districts.id`, `external_id`, `name`). Veri, sosyalhalisaha'nın
+  KENDİ herkese açık `/filtre` sayfasının arama AJAX uç noktasından
+  (`type=getdistrict`, `type=getplace` — video arama uç noktasından
+  **farklı ve ayrı bir uç nokta**, sadece il/ilçe/saha isim dizini)
+  **tek seferlik/nadiren elle tetiklenen** bir Artisan komutuyla
+  (`sosyalhalisaha:sync`) toplanır — canlı/sürekli bir entegrasyon değil,
+  video içeriğine hiç dokunmaz (sadece yer adı + ID). Komut kendi CSRF
+  oturumunu açar (sayfayı GET edip token+cookie çıkarır), 81 il için ilçe
+  listesini çeker, isim eşleşmesiyle (TR büyük/küçük harf duyarlı
+  normalize) bizim `districts` kayıtlarımıza `external_id` yazar, eşleşen
+  her ilçe için saha listesini çekip `sosyalhalisaha_venues`'a upsert eder.
+  Kullanıcı talebiyle başlatıldı (2026-07-12) — BACKLOG #58.
+- **Maç kurma akışına opsiyonel adım:** "Sosyal Halı Saha'da bulunsun mu?"
+  — şehir → ilçe → saha seçici (yukarıdaki referans tablodan, sadece
+  `external_id` dolu ilçeler/sahalar listelenir). Seçilirse
+  `matches.sosyalhalisaha_venue_id` (nullable FK) set edilir. Seçilmezse
+  akış hiç görünmez.
 - **Maç ekranında "Videonu bul" butonu:** yalnızca `sosyalhalisaha_venue_id`
-  doluysa ve maç `played` ise görünür. Basınca:
-  `https://sosyalhalisaha.com/xhr/filtre/{il_id}_{ilce_id}_{saha_id}_{tarih:YYYY-MM-DD}_{saat:HH:mm}_`
-  URL'i **sadece harici tarayıcıda açılır** (`Linking.openURL`). Backend bu
-  endpoint'i hiçbir zaman çağırmaz, sonuç parse etmez, önbelleklemez.
+  doluysa ve maç `played` ise görünür (`MatchResource.video_search_url`
+  backend'de hesaplanır, `null` ise buton hiç gösterilmez). Basınca:
+  `https://sosyalhalisaha.com/xhr/filtre/{il_plaka}_{ilçe_external_id}_{saha_external_id}_{tarih:YYYY-MM-DD}_{saat:HH:mm}_`
+  URL'i **sadece uygulama içi tarayıcıda** (`expo-web-browser`
+  `openBrowserAsync` — diğer video linkleriyle aynı desen) açılır. Tarih/saat
+  `Europe/Istanbul` yerel saatine çevrilerek yazılır (maçlar UTC saklanır).
+  Backend bu endpoint'i hiçbir zaman çağırmaz, sonuç parse etmez,
+  önbelleklemez — sadece URL string'i kurar.
 - Kullanıcı orada kendi videosunu bulursa linkini kopyalar, Sahana'ya döner ve
   yukarıdaki v1 "harici link ekle" akışıyla (`POST /matches/{id}/videos`) maça
   ekler — geri kalan her şey (thumbnail, feed kartı) v1 ile aynı.
@@ -108,7 +127,11 @@ pipeline'ı hâlâ yok (Açık Sorular'daki ffmpeg worker kararı bekliyor).
 ## API
 `POST /matches/{id}/videos` — `{url}` (harici link, v1) **veya** multipart
 `{video: file, duration_seconds?}` (kullanıcı yüklemesi, v2-lite) ·
-`GET /matches/{id}/videos` · `DELETE /videos/{id}` (yüklenen dosyayı da siler)
+`GET /matches/{id}/videos` · `DELETE /videos/{id}` (yüklenen dosyayı da siler) ·
+`GET /districts/{id}/sosyalhalisaha-venues` — eşleşmiş sahaların listesi
+(maç kurma akışındaki opsiyonel seçici için, BACKLOG #58) · `POST /matches`
+artık opsiyonel `sosyalhalisaha_venue_id` alır · `MatchResource.video_search_url`
+(hesaplanmış, sadece uygun olduğunda dolu)
 
 ## Kabul Kriterleri (v1)
 - [x] Maça katılan bir oyuncu video linki ekleyebiliyor; katılmayan biri ekleyemiyor (403)
@@ -125,8 +148,21 @@ pipeline'ı hâlâ yok (Açık Sorular'daki ffmpeg worker kararı bekliyor).
 - [x] Video silinince hem DB kaydı hem depodaki dosya temizleniyor
 - [x] Yükleme sırasında UI kilitlenmiyor (ilerleme yüzdesi gösteriliyor)
 
+## Kabul Kriterleri (v1.5 — 2026-07-12)
+- [ ] `sosyalhalisaha:sync` komutu 81 il için ilçe listesini çekip isim
+  eşleşmesiyle `districts.external_id` dolduruyor, eşleşen ilçeler için
+  saha listesini `sosyalhalisaha_venues`'a yazıyor
+- [ ] Komut kendi CSRF oturumunu açıyor (harici bir token'a bağımlı değil)
+- [ ] Maç kurarken opsiyonel şehir→ilçe→saha seçimi yapılabiliyor, seçilmezse
+  akış etkilenmiyor
+- [ ] `video_search_url`, sadece `sosyalhalisaha_venue_id` dolu + maç
+  `played` durumundaysa dolu geliyor; tarih/saat Europe/Istanbul'a çevrilmiş
+- [ ] "Videonu bul" butonu linki uygulama içi tarayıcıda açıyor, backend bu
+  linki hiçbir zaman kendisi çağırmıyor
+
 ## Açık Sorular
 - [ ] v2 transcode: VPS'te ffmpeg worker mı, Cloudflare Stream mi? (maliyet analizi)
 - [ ] Video izlenme sayacı Modül 6 istatistiklerine girsin mi?
-- [ ] `sosyalhalisaha_venues` referans verisi ilk seferde nasıl toplanacak
-  (elle mi, kullanıcıların "bu saha eksik" bildirimiyle mi büyüyecek)?
+- [x] ~~`sosyalhalisaha_venues` referans verisi ilk seferde nasıl toplanacak~~
+  → `sosyalhalisaha:sync` Artisan komutuyla tek seferlik/elle toplanıyor
+  (BACKLOG #58, 2026-07-12)

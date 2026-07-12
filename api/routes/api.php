@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\CommentController;
 use App\Http\Controllers\Api\V1\ConversationController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\DirectMessageController;
+use App\Http\Controllers\Api\V1\DistrictController;
 use App\Http\Controllers\Api\V1\FeedController;
 use App\Http\Controllers\Api\V1\FollowController;
 use App\Http\Controllers\Api\V1\LineupController;
@@ -45,6 +46,7 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/cities', [CityController::class, 'index']);
     Route::get('/cities/{City}/districts', [CityController::class, 'districts']);
+    Route::get('/districts/{District}/sosyalhalisaha-venues', [DistrictController::class, 'sosyalhalisahaVenues']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);

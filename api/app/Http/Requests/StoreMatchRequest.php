@@ -19,6 +19,7 @@ class StoreMatchRequest extends FormRequest
         return [
             'team_id' => ['required', 'string', 'exists:teams,public_id'],
             'venue_id' => ['sometimes', 'nullable', 'string', 'exists:venues,public_id'],
+            'sosyalhalisaha_venue_id' => ['sometimes', 'nullable', 'integer', 'exists:sosyalhalisaha_venues,id'],
             'venue_text' => ['required', 'string', 'max:120'],
             'venue_lat' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
             'venue_lng' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],

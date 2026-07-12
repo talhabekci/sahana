@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Notification;
 class CreateMatch
 {
     /**
-     * @param  array{venue_id?: int|null, venue_text: string, venue_lat?: float|null, venue_lng?: float|null, starts_at: string, format: int, price_per_player?: int|null}  $Data
+     * @param  array{venue_id?: int|null, sosyalhalisaha_venue_id?: int|null, venue_text: string, venue_lat?: float|null, venue_lng?: float|null, starts_at: string, format: int, price_per_player?: int|null}  $Data
      */
     public function handle(Team $Team, User $Creator, array $Data): FootballMatch
     {

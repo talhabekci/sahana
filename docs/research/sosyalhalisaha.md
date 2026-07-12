@@ -46,6 +46,22 @@
 3. Feed'de thumbnail kartı; tıklayınca in-app browser/embed player.
 4. `videos.provider` alanı sayesinde ileride resmi entegrasyona geçiş sancısız.
 
+### 3.2 İl/İlçe/Saha Dizini Toplama (2026-07-12 güncellemesi)
+
+Kullanıcı, `xhr/filtre` **video arama** uç noktasından **ayrı** bir uç nokta
+buldu: `sosyalhalisaha.com/filtre` sayfasının kendi arama formunun AJAX
+uç noktası (`type=getdistrict`/`type=getplace`, `_token` CSRF ile).
+Bu, sitenin kendi il→ilçe→saha seçici dropdown'ının beslediği, sadece
+**isim/ID dizini** dönen bir uç nokta — video içeriği yok, üçüncü kişi
+verisi yok. §2'deki "Seçenek C: Scraping" kararı **video içeriği** için
+geçerliliğini koruyor (telif + KVKK + kırılganlık); bu dizin verisi için
+aynı risk profili geçerli değil (sadece yer adları). Yine de kararlaştırılan
+sınır: bu uç nokta backend'de **sadece tek seferlik/nadiren elle
+tetiklenen** bir import komutuyla (`sosyalhalisaha:sync`) çağrılır — canlı/
+sürekli bir entegrasyon değil, §3.1'deki "video arama uç noktasını asla
+çağırma" kararı hâlâ mutlak geçerli. Detay: `docs/features/05-videos.md`
+v1.5.
+
 ### 3.1 Deep-Link ile "Videonu Bul" Yönlendirmesi (2026-07-06 karar)
 
 Kullanıcı önerisi: maç kurulurken il/ilçe/saha seçilsin, maç bitince video

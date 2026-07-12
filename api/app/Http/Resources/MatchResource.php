@@ -59,6 +59,10 @@ class MatchResource extends JsonResource
                     && $this->opponentTeam->relationLoaded('members')
                     && $this->opponentTeam->isCaptain($CurrentUser),
             ),
+            'video_search_url' => $this->whenLoaded(
+                'sosyalhalisahaVenue',
+                fn (): ?string => $this->buildVideoSearchUrl(),
+            ),
             'result' => $this->whenLoaded('result', fn (): ?array => $this->result !== null ? [
                 'home_score' => $this->result->home_score,
                 'away_score' => $this->result->away_score,
@@ -101,5 +105,35 @@ class MatchResource extends JsonResource
             'badge_icon' => $Team->badge_icon,
             'color_home' => $Team->color_home,
         ];
+    }
+
+    /**
+     * "Videonu bul" linki (BACKLOG #58, spec: 05-videos.md v1.5) — sadece
+     * opsiyonel saha eşleşmesi yapılmış VE maç oynanmışsa dolu gelir.
+     * Backend bu linki **hiçbir zaman kendisi çağırmaz** — sadece string'i
+     * kurar; kullanıcı uygulama içi tarayıcıda açar.
+     */
+    private function buildVideoSearchUrl(): ?string
+    {
+        if ($this->sosyalhalisahaVenue === null || $this->status !== 'played') {
+            return null;
+        }
+
+        $District = $this->sosyalhalisahaVenue->district;
+
+        if ($District === null || $District->external_id === null) {
+            return null;
+        }
+
+        $LocalStartsAt = $this->starts_at->copy()->timezone('Europe/Istanbul');
+
+        return sprintf(
+            'https://sosyalhalisaha.com/xhr/filtre/%d_%d_%d_%s_%s_',
+            $District->city_id,
+            $District->external_id,
+            $this->sosyalhalisahaVenue->external_id,
+            $LocalStartsAt->format('Y-m-d'),
+            $LocalStartsAt->format('H:i'),
+        );
     }
 }

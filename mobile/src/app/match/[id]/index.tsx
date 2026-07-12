@@ -451,6 +451,16 @@ export default function MatchDetail() {
           </>
         )}
 
+        {Data.video_search_url != null && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void WebBrowser.openBrowserAsync(Data.video_search_url as string)}
+            style={styles.findVideoButton}>
+            <Ionicons name="search-outline" size={18} color={Palette.limeInk} />
+            <Text style={styles.findVideoText}>Videonu bul (Sosyal Halı Saha)</Text>
+          </Pressable>
+        )}
+
         {Data.status !== 'cancelled' && (
           <>
             <Text style={styles.sectionLabel}>VİDEOLAR</Text>
@@ -889,6 +899,21 @@ const styles = StyleSheet.create({
     fontFamily: Type.bodyMedium,
     fontSize: 14,
     color: Palette.chalk,
+  },
+  findVideoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space(2),
+    backgroundColor: Palette.lime,
+    borderRadius: Radius.pill,
+    paddingVertical: space(3),
+    marginTop: space(5),
+  },
+  findVideoText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.limeInk,
   },
   addVideoButton: {
     flexDirection: 'row',

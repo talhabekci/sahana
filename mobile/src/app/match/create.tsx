@@ -13,7 +13,8 @@ import {
   View,
 } from 'react-native';
 
-import { createMatch } from '@/features/match/api';
+import { getCities, getDistricts } from '@/features/auth/api';
+import { createMatch, getSosyalhalisahaVenues } from '@/features/match/api';
 import { FORMATS } from '@/features/match/constants';
 import { listTeams } from '@/features/team/api';
 import { listVenues } from '@/features/venue/api';
@@ -46,6 +47,30 @@ export default function CreateMatch() {
   const [VenueText, setVenueText] = useState('');
   const [VenuePickerVisible, setVenuePickerVisible] = useState(false);
   const Venues = useQuery({ queryKey: ['venues'], queryFn: () => listVenues(), enabled: VenuePickerVisible });
+
+  // BACKLOG #58 — opsiyonel: "Videonu bul" deep-link'i için sosyalhalisaha
+  // şehir→ilçe→saha eşleşmesi. Tamamen isteğe bağlı, seçilmezse akış hiç
+  // etkilenmez (spec: 05-videos.md v1.5).
+  const [ShsExpanded, setShsExpanded] = useState(false);
+  const [ShsCityId, setShsCityId] = useState<number | null>(null);
+  const [ShsCityName, setShsCityName] = useState<string | null>(null);
+  const [ShsDistrictId, setShsDistrictId] = useState<number | null>(null);
+  const [ShsDistrictName, setShsDistrictName] = useState<string | null>(null);
+  const [ShsVenueId, setShsVenueId] = useState<number | null>(null);
+  const [ShsVenueName, setShsVenueName] = useState<string | null>(null);
+  const [ShsPickerMode, setShsPickerMode] = useState<'city' | 'district' | 'venue' | null>(null);
+
+  const ShsCities = useQuery({ queryKey: ['cities'], queryFn: getCities, enabled: ShsExpanded });
+  const ShsDistricts = useQuery({
+    queryKey: ['cities', ShsCityId, 'districts'],
+    queryFn: () => getDistricts(ShsCityId ?? 0),
+    enabled: ShsCityId != null,
+  });
+  const ShsVenues = useQuery({
+    queryKey: ['districts', ShsDistrictId, 'sosyalhalisaha-venues'],
+    queryFn: () => getSosyalhalisahaVenues(ShsDistrictId ?? 0),
+    enabled: ShsDistrictId != null,
+  });
   const [SelectedDate, setSelectedDate] = useState<Date | null>(null);
   const [CalendarVisible, setCalendarVisible] = useState(false);
   const [Hour, setHour] = useState<number | null>(null);
@@ -88,6 +113,7 @@ export default function CreateMatch() {
       createMatch({
         team_id: TeamId ?? '',
         venue_id: VenueId,
+        sosyalhalisaha_venue_id: ShsVenueId,
         venue_text: VenueText.trim(),
         starts_at: startsAtIso() ?? '',
         format: Format,
@@ -169,6 +195,123 @@ export default function CreateMatch() {
               <Text style={styles.venuePickerLink}>Rehberden seç</Text>
             </Pressable>
           </View>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setShsExpanded(!ShsExpanded)}
+            style={styles.shsToggle}>
+            <Ionicons name={ShsExpanded ? 'chevron-up' : 'chevron-down'} size={16} color={Palette.moss} />
+            <Text style={styles.shsToggleText}>
+              Sosyal Halı Saha&apos;da bulunsun mu? (opsiyonel)
+            </Text>
+          </Pressable>
+
+          {ShsExpanded && (
+            <View style={styles.shsSection}>
+              <Text style={styles.shsHint}>
+                Seçersen maç oynandıktan sonra videonu bulmayı kolaylaştıran bir kısayol
+                belirir.
+              </Text>
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setShsPickerMode('city')}
+                style={styles.shsRow}>
+                <Text style={styles.shsRowText}>{ShsCityName ?? 'Şehir seç'}</Text>
+                <Ionicons name="chevron-forward" size={16} color={Palette.moss} />
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                disabled={ShsCityId == null}
+                onPress={() => setShsPickerMode('district')}
+                style={[styles.shsRow, ShsCityId == null && styles.shsRowDisabled]}>
+                <Text style={styles.shsRowText}>
+                  {ShsDistrictName ?? (ShsCityId == null ? 'Önce şehir seç' : 'İlçe seç')}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={Palette.moss} />
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                disabled={ShsDistrictId == null}
+                onPress={() => setShsPickerMode('venue')}
+                style={[styles.shsRow, ShsDistrictId == null && styles.shsRowDisabled]}>
+                <Text style={styles.shsRowText}>
+                  {ShsVenueName ?? (ShsDistrictId == null ? 'Önce ilçe seç' : 'Saha seç')}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={Palette.moss} />
+              </Pressable>
+            </View>
+          )}
+
+          <Modal visible={ShsPickerMode != null} transparent animationType="slide">
+            <Pressable style={styles.calendarBackdrop} onPress={() => setShsPickerMode(null)} />
+            <GlassView style={styles.venuePickerSheet}>
+              <View style={styles.calendarHandle} />
+              <Text style={styles.venuePickerTitle}>
+                {ShsPickerMode === 'city' ? 'ŞEHİR SEÇ' : ShsPickerMode === 'district' ? 'İLÇE SEÇ' : 'SAHA SEÇ'}
+              </Text>
+              <ScrollView style={styles.venuePickerList}>
+                {ShsPickerMode === 'city' &&
+                  (ShsCities.data ?? []).map((City) => (
+                    <Pressable
+                      key={City.id}
+                      accessibilityRole="button"
+                      onPress={() => {
+                        setShsCityId(City.id);
+                        setShsCityName(City.name);
+                        setShsDistrictId(null);
+                        setShsDistrictName(null);
+                        setShsVenueId(null);
+                        setShsVenueName(null);
+                        setShsPickerMode(null);
+                      }}
+                      style={styles.venueOption}>
+                      <Text style={styles.venueOptionName}>{City.name}</Text>
+                    </Pressable>
+                  ))}
+
+                {ShsPickerMode === 'district' &&
+                  (ShsDistricts.data ?? []).map((District) => (
+                    <Pressable
+                      key={District.id}
+                      accessibilityRole="button"
+                      onPress={() => {
+                        setShsDistrictId(District.id);
+                        setShsDistrictName(District.name);
+                        setShsVenueId(null);
+                        setShsVenueName(null);
+                        setShsPickerMode(null);
+                      }}
+                      style={styles.venueOption}>
+                      <Text style={styles.venueOptionName}>{District.name}</Text>
+                    </Pressable>
+                  ))}
+
+                {ShsPickerMode === 'venue' &&
+                  (ShsVenues.data ?? []).map((Venue_) => (
+                    <Pressable
+                      key={Venue_.id}
+                      accessibilityRole="button"
+                      onPress={() => {
+                        setShsVenueId(Venue_.id);
+                        setShsVenueName(Venue_.name);
+                        setShsPickerMode(null);
+                      }}
+                      style={styles.venueOption}>
+                      <Text style={styles.venueOptionName}>{Venue_.name}</Text>
+                    </Pressable>
+                  ))}
+
+                {ShsPickerMode === 'venue' && (ShsVenues.data ?? []).length === 0 && (
+                  <Text style={styles.venuePickerEmpty}>
+                    Bu ilçede eşleşen saha bulunamadı.
+                  </Text>
+                )}
+              </ScrollView>
+            </GlassView>
+          </Modal>
 
           <Text style={styles.sectionLabel}>GÜN</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -444,6 +587,47 @@ const styles = StyleSheet.create({
   },
   field: {
     marginTop: space(6),
+  },
+  shsToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(1),
+    marginTop: space(4),
+  },
+  shsToggleText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 13,
+    color: Palette.moss,
+  },
+  shsSection: {
+    marginTop: space(3),
+    gap: space(2),
+  },
+  shsHint: {
+    fontFamily: Type.body,
+    fontSize: 12,
+    lineHeight: 17,
+    color: Palette.moss,
+    marginBottom: space(1),
+  },
+  shsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    backgroundColor: Palette.turf,
+    paddingVertical: space(3),
+    paddingHorizontal: space(4),
+  },
+  shsRowDisabled: {
+    opacity: 0.5,
+  },
+  shsRowText: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.chalk,
   },
   venuePickerLinkRow: {
     alignItems: 'flex-end',

@@ -38,6 +38,8 @@ export type Match = {
   participants?: MatchParticipant[];
   listings?: { id: string; status: string; needed_count: number; positions_needed: string[] }[];
   result?: MatchResult | null;
+  /** sosyalhalisaha.com'da eşleşen bir saha varsa ve maç oynandıysa dolu (BACKLOG #58). */
+  video_search_url?: string | null;
 };
 
 export type MatchResultStatus = 'pending' | 'confirmed' | 'disputed';
@@ -111,10 +113,17 @@ export type OpponentListing = {
 export type CreateMatchPayload = {
   team_id: string;
   venue_id?: string | null;
+  /** BACKLOG #58 — "Videonu bul" deep-link'i için opsiyonel saha eşleşmesi. */
+  sosyalhalisaha_venue_id?: number | null;
   venue_text: string;
   starts_at: string;
   format: number;
   price_per_player?: number | null;
+};
+
+export type SosyalhalisahaVenue = {
+  id: number;
+  name: string;
 };
 
 export type CreateListingPayload = {
@@ -128,6 +137,14 @@ export type CreateListingPayload = {
 
 export async function listMatches(filter: 'upcoming' | 'past'): Promise<Match[]> {
   const { data } = await Api.get<{ data: Match[] }>('/matches', { params: { filter } });
+
+  return data.data;
+}
+
+export async function getSosyalhalisahaVenues(districtId: number): Promise<SosyalhalisahaVenue[]> {
+  const { data } = await Api.get<{ data: SosyalhalisahaVenue[] }>(
+    `/districts/${districtId}/sosyalhalisaha-venues`,
+  );
 
   return data.data;
 }

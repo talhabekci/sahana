@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\District;
 use App\Models\FootballMatch;
+use App\Models\SosyalhalisahaVenue;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Venue;
@@ -124,4 +126,51 @@ it('creates a match with a venue picked from the directory', function () {
         ->assertJsonPath('data.venue.name', 'Kadıköy Halı Saha');
 
     $this->assertDatabaseHas('matches', ['venue_id' => $Venue->id]);
+});
+
+it('creates a match with an optional sosyalhalisaha venue match', function () {
+    [$Team, $Captain] = teamWithCaptain();
+    $District = District::where('city_id', 34)->where('name', 'Kadıköy')->firstOrFail();
+    $District->forceFill(['external_id' => 415])->save();
+    $SosyalhalisahaVenue = SosyalhalisahaVenue::create([
+        'district_id' => $District->id, 'external_id' => 1616, 'name' => 'Çekmeköy Belediye Spor Kulubü Halı Saha',
+    ]);
+
+    $Response = $this->actingAs($Captain)->postJson('/api/v1/matches', [
+        'team_id' => $Team->public_id,
+        'sosyalhalisaha_venue_id' => $SosyalhalisahaVenue->id,
+        'venue_text' => 'Çekmeköy Belediye Spor Kulubü Halı Saha',
+        'starts_at' => now()->addDays(3)->toIso8601String(),
+        'format' => 7,
+    ])->assertCreated();
+
+    $this->assertDatabaseHas('matches', [
+        'public_id' => $Response->json('data.id'),
+        'sosyalhalisaha_venue_id' => $SosyalhalisahaVenue->id,
+    ]);
+});
+
+it('exposes video_search_url only when the match is played and a venue is matched', function () {
+    [$Team, $Captain] = teamWithCaptain();
+    $District = District::where('city_id', 34)->where('name', 'Kadıköy')->firstOrFail();
+    $District->forceFill(['external_id' => 415])->save();
+    $SosyalhalisahaVenue = SosyalhalisahaVenue::create([
+        'district_id' => $District->id, 'external_id' => 1616, 'name' => 'Test Saha',
+    ]);
+
+    // UTC 20:00 -> Europe/Istanbul (+3) 23:00.
+    $Match = FootballMatch::factory()->for($Team)->create([
+        'sosyalhalisaha_venue_id' => $SosyalhalisahaVenue->id,
+        'starts_at' => '2026-06-30 20:00:00',
+    ]);
+    $Match->participants()->create(['user_id' => $Captain->id, 'source' => 'team']);
+
+    $NotPlayedResponse = $this->actingAs($Captain)->getJson("/api/v1/matches/{$Match->public_id}")->assertOk();
+    expect($NotPlayedResponse->json('data.video_search_url'))->toBeNull();
+
+    $Match->forceFill(['status' => 'played'])->save();
+
+    $PlayedResponse = $this->actingAs($Captain)->getJson("/api/v1/matches/{$Match->public_id}")->assertOk();
+    expect($PlayedResponse->json('data.video_search_url'))
+        ->toBe('https://sosyalhalisaha.com/xhr/filtre/34_415_1616_2026-06-30_23:00_');
 });

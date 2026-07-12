@@ -3,6 +3,54 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-12 (21) — Backlog #58: sosyalhalisaha il/ilçe/saha dizini + "Videonu bul" canlandırma
+
+- Kullanıcı sosyalhalisaha.com'un kendi `/filtre` sayfasının il→ilçe→saha
+  AJAX uç noktasını (`type=getdistrict`/`getplace`, CSRF `_token`) buldu ve
+  bunu kullanarak 2026-07-06'da speclenmiş ama veri toplama yöntemi açık
+  soru olarak kalan v1.5 "Videonu bul" deep-link özelliğini tamamlamamı
+  istedi. **Önemli ayrım netleştirildi ve dokümante edildi:** bu, önceki
+  "asla çağırma" kararındaki **video arama** uç noktasından (`xhr/filtre/
+  {...}`) tamamen ayrı bir uç nokta — sadece yer adı/ID dizini, video
+  içeriği yok. O karar (backend video arama uç noktasını hiç çağırmaz,
+  sadece kullanıcı cihazında açılır) mutlak geçerliliğini koruyor.
+- **CSRF stratejisi (kullanıcı kararı):** `SosyalhalisahaClient` kendi
+  oturumunu açar (sayfayı GET edip gizli `_token` alanı + oturum
+  çerezlerini çıkarır) — harici/elle girilen bir token'a bağımlı değil,
+  tekrar çalıştırılabilir.
+- **Backend:** `districts.external_id` + yeni `sosyalhalisaha_venues`
+  tablosu (önceki denormalize `sosyalhalisaha_venues: il_id/ilce_id/
+  ilce_name/saha_id/saha_name` tasarımından daha temiz — `district_id` FK
+  ile normalize). Yeni `sosyalhalisaha:sync` Artisan komutu — tek
+  seferlik/nadiren elle tetiklenir, 81 il için ilçe listesini çeker, TR
+  büyük/küçük harf duyarlı isim normalize'iyle bizim `districts`
+  kayıtlarımıza `external_id` yazar, eşleşen ilçeler için saha listesini
+  `sosyalhalisaha_venues`'a upsert eder (nazik davranmak için istekler
+  arası gecikme, `--delay-ms` ile ayarlanabilir). Yeni `GET /districts/
+  {id}/sosyalhalisaha-venues`. `POST /matches` artık opsiyonel
+  `sosyalhalisaha_venue_id` kabul ediyor. `MatchResource.video_search_url`
+  — sadece saha eşleşmesi var VE maç `played` ise dolu, `starts_at`
+  Europe/Istanbul'a çevrilerek `https://sosyalhalisaha.com/xhr/filtre/
+  {il_plaka}_{ilçe_external_id}_{saha_external_id}_{tarih}_{saat}_`
+  formatında kuruluyor (backend bu linki asla kendisi çağırmıyor).
+- **Mobil:** maç kurma ekranına opsiyonel, kapalı başlayan "Sosyal Halı
+  Saha'da bulunsun mu?" bölümü — şehir→ilçe→saha kademeli seçici (tek
+  paylaşımlı bottom-sheet modal, mod'a göre içerik değişiyor). Maç
+  detayında, uygun olduğunda "Videonu bul (Sosyal Halı Saha)" butonu —
+  linki `expo-web-browser` ile uygulama içi tarayıcıda açıyor (diğer
+  video linkleriyle aynı desen).
+- Doğrulama: sync komutu gerçek siteye dokunmadan `Http::fake()` ile test
+  edildi (isim eşleştirme + eşleşmeyen ilçelerde `external_id` null kalma);
+  `video_search_url`'in Europe/Istanbul dönüşümü dahil doğru kurulduğu
+  test edildi. 281 test toplam (12 yeni), Pint + Larastan temiz. Mobil
+  tsc + lint temiz.
+- **Not:** `sosyalhalisaha:sync` komutu bu oturumda gerçek siteye karşı
+  ÇALIŞTIRILMADI — kullanıcı elle `php artisan sosyalhalisaha:sync`
+  çalıştırmalı (birkaç dakika sürebilir, ~1000 istek, `--delay-ms` ile
+  hız ayarlanabilir).
+- Spec güncellendi: `docs/features/05-videos.md` v1.5 + kabul kriterleri,
+  `docs/research/sosyalhalisaha.md` §3.2 (yeni uç nokta keşfi + ayrım).
+
 ## 2026-07-12 (20) — Backlog #56/#57: sekme geçişinde veri tazeleme + yorum klavye boşluğu
 
 - **#56:** Akış, Maçlar, Takımlar, Sohbet, Profil sekmelerine `useFocusEffect`
