@@ -26,6 +26,17 @@
 - Kullanıcı pill animasyonunu cihazda test etsin; beğenmezse pill boyutu/
   spring parametreleri (`damping`/`stiffness`) veya glow şiddeti ayarlanabilir.
 
+### Düzeltme (aynı gün, kullanıcı geri bildirimi)
+- Kullanıcı cihazda test etti: (1) spring animasyonu sağa-sola fazla
+  sallanıyordu, (2) referans görseldeki gibi üst kenarda aktif sekmeye göre
+  kayan bir "çentik" yoktu. `SPRING_CONFIG`'e `overshootClamping: true`
+  eklendi (damping 16→24, stiffness 180→260) — artık hedefi geçip geri
+  sekmiyor. Ayrıca `styles.notch`: üst kenarın üstüne taşan (negatif `top`)
+  5px'lik limon renkli bir çubuk eklendi, pill ile aynı `CenterX` shared
+  value'sundan besleniyor, dolayısıyla ikiz animasyon birebir senkron kayıyor.
+  `wrap`'teki `overflow: 'hidden'` kaldırıldı (GlassView zaten kendi
+  overflow'unu yönetiyor) ki notch kırpılmadan taşabilsin.
+
 ## 2026-07-12 (21) — Backlog #58: sosyalhalisaha il/ilçe/saha dizini + "Videonu bul" canlandırma
 
 - Kullanıcı sosyalhalisaha.com'un kendi `/filtre` sayfasının il→ilçe→saha

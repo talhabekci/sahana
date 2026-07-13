@@ -7,45 +7,56 @@ import { GlassView } from '@/shared/ui/GlassView';
 import { Palette, Radius, space } from '@/shared/ui/theme';
 
 const PILL_SIZE = 46;
+const NOTCH_WIDTH = 32;
+const NOTCH_HEIGHT = 5;
+
+/** Yay animasyonunun sekmeler arası geçişte fazla sıçramaması için sıkı sönümleme. */
+const SPRING_CONFIG = { damping: 24, stiffness: 260, mass: 0.7, overshootClamping: true };
 
 /**
  * Alt sekme çubuğu (BACKLOG #59): aktif sekmenin altında limon renginde bir
- * "pill" spring animasyonuyla kayar. BACKLOG #43'teki liquid glass zemini
- * korunur; ikonlar her `Tabs.Screen`'in kendi `tabBarIcon`'undan gelir
- * (aktif/pasif ikon seçimini oradaki `focused` parametresi belirler).
+ * "pill" ve üst kenarda kayan bir "çentik" (notch) aynı anda animasyonla
+ * bir sonraki sekmeye geçer (`overshootClamping` ile sıçrama/sallanma
+ * olmadan tek yönde kayar). BACKLOG #43'teki liquid glass zemini korunur;
+ * ikonlar her `Tabs.Screen`'in kendi `tabBarIcon`'undan gelir (aktif/pasif
+ * ikon seçimini oradaki `focused` parametresi belirler).
  */
 export function AnimatedTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   const [TabCenters, setTabCenters] = useState<Record<number, number>>({});
-  const PillX = useSharedValue(0);
-  const PillOpacity = useSharedValue(0);
+  const CenterX = useSharedValue(0);
+  const IndicatorOpacity = useSharedValue(0);
   const HasPositioned = useRef(false);
 
   useEffect(() => {
-    const CenterX = TabCenters[state.index];
+    const TargetCenterX = TabCenters[state.index];
 
-    if (CenterX == null) {
+    if (TargetCenterX == null) {
       return;
     }
 
-    const TargetX = CenterX - PILL_SIZE / 2;
-
     if (!HasPositioned.current) {
-      PillX.value = TargetX;
-      PillOpacity.value = withTiming(1, { duration: 150 });
+      CenterX.value = TargetCenterX;
+      IndicatorOpacity.value = withTiming(1, { duration: 150 });
       HasPositioned.current = true;
     } else {
-      PillX.value = withSpring(TargetX, { damping: 16, stiffness: 180 });
+      CenterX.value = withSpring(TargetCenterX, SPRING_CONFIG);
     }
-  }, [state.index, TabCenters, PillX, PillOpacity]);
+  }, [state.index, TabCenters, CenterX, IndicatorOpacity]);
 
   const PillStyle = useAnimatedStyle(() => ({
-    opacity: PillOpacity.value,
-    transform: [{ translateX: PillX.value }],
+    opacity: IndicatorOpacity.value,
+    transform: [{ translateX: CenterX.value - PILL_SIZE / 2 }],
+  }));
+
+  const NotchStyle = useAnimatedStyle(() => ({
+    opacity: IndicatorOpacity.value,
+    transform: [{ translateX: CenterX.value - NOTCH_WIDTH / 2 }],
   }));
 
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, space(3)) }]}>
       <GlassView style={StyleSheet.absoluteFillObject} intensity={60} />
+      <Animated.View pointerEvents="none" style={[styles.notch, NotchStyle]} />
       <Animated.View pointerEvents="none" style={[styles.pill, PillStyle]} />
       <View style={styles.row}>
         {state.routes.map((Route, Index) => {
@@ -98,7 +109,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    overflow: 'hidden',
+    // GlassView kendi overflow'unu yönetiyor; burada gizlemiyoruz ki notch
+    // üst kenarın üstüne taşabilsin.
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Palette.lineFaint,
   },
@@ -125,5 +137,19 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 0 },
     elevation: 8,
+  },
+  /** Aktif sekmeyi işaretleyen, üst kenarın üstüne taşan "çentik". */
+  notch: {
+    position: 'absolute',
+    top: -NOTCH_HEIGHT / 2,
+    width: NOTCH_WIDTH,
+    height: NOTCH_HEIGHT,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.lime,
+    shadowColor: Palette.lime,
+    shadowOpacity: 0.7,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6,
   },
 });
