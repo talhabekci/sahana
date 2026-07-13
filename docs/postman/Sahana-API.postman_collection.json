@@ -1,0 +1,2417 @@
+{
+    "info": {
+        "name": "Sahana API v1",
+        "_postman_id": "a3f0c1e2-5b6a-4b8e-9d3a-sahana-api-v1",
+        "description": "Sahana halı saha sosyal ağı — API v1 koleksiyonu. Otomatik olarak routes/api.php ve FormRequest doğrulama kurallarından üretilmiştir (2026-07-13).\n\nKullanım: `base_url` ve `token` koleksiyon değişkenlerini doldur. `token` = POST /auth/verify yanıtındaki `data.token`. `Authorization: Bearer` başlığı koleksiyon seviyesinde tanımlıdır, health/otp/verify/cities/districts/sosyalhalisaha-venues hariç.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8000/api/v1",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "identifier",
+            "value": "05001234567",
+            "type": "string"
+        },
+        {
+            "key": "otp_code",
+            "value": "123456",
+            "type": "string"
+        },
+        {
+            "key": "my_public_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "player_public_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "city_id",
+            "value": "34",
+            "type": "string"
+        },
+        {
+            "key": "district_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "team_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "invite_code",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "lineup_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "venue_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "match_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "video_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "stat_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "listing_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "application_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "opponent_listing_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "post_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "comment_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "notification_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "device_token",
+            "value": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+            "type": "string"
+        },
+        {
+            "key": "user_public_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Health & Reference Data",
+            "item": [
+                {
+                    "name": "Health check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    }
+                },
+                {
+                    "name": "İl listesi",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/cities",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "cities"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    }
+                },
+                {
+                    "name": "İlçe listesi",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/cities/{{city_id}}/districts",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "cities",
+                                "{{city_id}}",
+                                "districts"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    }
+                },
+                {
+                    "name": "Sosyal Halı Saha eşleşen sahalar",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/districts/{{district_id}}/sosyalhalisaha-venues",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "districts",
+                                "{{district_id}}",
+                                "sosyalhalisaha-venues"
+                            ]
+                        },
+                        "auth": {
+                            "type": "noauth"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "OTP gönder",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/otp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "otp"
+                            ]
+                        },
+                        "description": "identifier: telefon (05xxxxxxxxx) veya e-posta.",
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"{{identifier}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "OTP doğrula (giriş/kayıt)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/verify",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "verify"
+                            ]
+                        },
+                        "description": "Başarılı yanıt: data.token — bunu koleksiyonun `token` değişkenine kopyala. data.is_new_user true ise onboarding akışı.",
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"identifier\": \"{{identifier}}\",\n    \"code\": \"{{otp_code}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Çıkış yap",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Ben (Profil)",
+            "item": [
+                {
+                    "name": "Profilimi getir",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "me"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Profilimi güncelle",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "me"
+                            ]
+                        },
+                        "description": "multipart/form-data. positions[] birden fazla eklenebilir (forvet|orta_saha|defans|kaleci). foot: L|R|B.",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Talha Bekci",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "positions[]",
+                                    "value": "defans",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "foot",
+                                    "value": "R",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "level",
+                                    "value": "3",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "city_id",
+                                    "value": "34",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "district",
+                                    "value": "Kadıköy",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "bio",
+                                    "value": "Halı sahada 10 yıllık defans.",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "birth_date",
+                                    "value": "1998-05-14",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "avatar",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Hesabımı sil",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "me"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Push bildirim cihazı kaydet",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/me/devices",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "me",
+                                "devices"
+                            ]
+                        },
+                        "description": "platform: ios|android.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"expo_push_token\": \"{{device_token}}\",\n    \"platform\": \"ios\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Bildirim tercihlerimi getir",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/me/notification-preferences",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "me",
+                                "notification-preferences"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Bildirim tercihlerimi güncelle",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/me/notification-preferences",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "me",
+                                "notification-preferences"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"quiet_hours_enabled\": true,\n    \"categories\": {\n        \"match_created\": true,\n        \"match_confirmed\": true,\n        \"rsvp_reminder\": true,\n        \"match_reminder\": true,\n        \"listing_application\": true,\n        \"application_decision\": true,\n        \"invite_accepted\": true,\n        \"opponent_found\": true,\n        \"social_summary\": true,\n        \"chat_message\": true\n    }\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Bildirimler",
+            "item": [
+                {
+                    "name": "Bildirim listesi",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/notifications?cursor=",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cursor",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Bildirimi okundu işaretle",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/notifications/{{notification_id}}/read",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "{{notification_id}}",
+                                "read"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Tümünü okundu işaretle",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/notifications/read-all",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "notifications",
+                                "read-all"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Oyuncular / Sosyal Grafik",
+            "item": [
+                {
+                    "name": "Oyuncu profili",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Oyuncunun gönderileri",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/posts",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "posts"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Oyuncu istatistikleri (sezon)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/stats?season=2026",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "stats"
+                            ],
+                            "query": [
+                                {
+                                    "key": "season",
+                                    "value": "2026"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Oyuncunun sezon maçları",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/stats/matches?season=2026",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "stats",
+                                "matches"
+                            ],
+                            "query": [
+                                {
+                                    "key": "season",
+                                    "value": "2026"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Oyuncunun rozetleri",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/badges",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "badges"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takipçileri",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/followers",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "followers"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takip ettikleri",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/following",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "following"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takip et",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/follow",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "follow"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takibi bırak",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/follow",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "follow"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Engelle",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/block",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "block"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Engeli kaldır",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/block",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "block"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Direkt Mesajlar (DM)",
+            "item": [
+                {
+                    "name": "Sohbet listesi (DM + takım)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/conversations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "conversations"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Oyuncuyla mesajlar",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/messages?before=&limit=30",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "messages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "before",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "30"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Oyuncuya mesaj gönder",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/players/{{player_public_id}}/messages",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "players",
+                                "{{player_public_id}}",
+                                "messages"
+                            ]
+                        },
+                        "description": "multipart/form-data. type: text|image|audio — sadece ilgili alanı doldur (body veya image veya audio+audio_duration).",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "type",
+                                    "value": "text",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "body",
+                                    "value": "Selam, maça geliyor musun?",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "audio",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "audio_duration",
+                                    "value": "",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Takımlar",
+            "item": [
+                {
+                    "name": "Takımlarım",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takım kur",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams"
+                            ]
+                        },
+                        "description": "multipart/form-data. color_home: #RRGGBB. logo verilirse badge_icon yok sayılır.",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Kartallar FK",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "badge_icon",
+                                    "value": "shield-checkmark",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "logo",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "color_home",
+                                    "value": "#C9F24E",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takım detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takımı güncelle",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}"
+                            ]
+                        },
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "name",
+                                    "value": "Kartallar FK",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "badge_icon",
+                                    "value": "shield-checkmark",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "logo",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "color_home",
+                                    "value": "#C9F24E",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takımı sil",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Davet linki oluştur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}/invites",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}",
+                                "invites"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"expires_at\": null,\n    \"max_uses\": 20\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Daveti kabul et",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/invites/{{invite_code}}/accept",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "invites",
+                                "{{invite_code}}",
+                                "accept"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Üyeyi takımdan çıkar",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}/members/{{user_public_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}",
+                                "members",
+                                "{{user_public_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Kaptanlığı devret",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}/transfer-captaincy",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}",
+                                "transfer-captaincy"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": \"{{user_public_id}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Kadrolar (Lineups)",
+            "item": [
+                {
+                    "name": "Takımın kadroları",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}/lineups",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}",
+                                "lineups"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Kadro oluştur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}/lineups",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}",
+                                "lineups"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"7 Kişilik Kadrosu\",\n    \"formation\": \"2-3-1\",\n    \"positions\": [\n        {\n            \"id\": \"p1\",\n            \"x\": 0.5,\n            \"y\": 0.92,\n            \"label\": \"K\"\n        },\n        {\n            \"id\": \"p2\",\n            \"x\": 0.3,\n            \"y\": 0.7,\n            \"label\": \"1\"\n        },\n        {\n            \"id\": \"p3\",\n            \"x\": 0.7,\n            \"y\": 0.7,\n            \"label\": \"2\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Kadro detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/lineups/{{lineup_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "lineups",
+                                "{{lineup_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Kadroyu güncelle",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/lineups/{{lineup_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "lineups",
+                                "{{lineup_id}}"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"positions\": [\n        {\n            \"id\": \"p1\",\n            \"x\": 0.5,\n            \"y\": 0.9,\n            \"label\": \"K\",\n            \"user_id\": \"{{user_public_id}}\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Kadroyu sil",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/lineups/{{lineup_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "lineups",
+                                "{{lineup_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Takım Sohbeti",
+            "item": [
+                {
+                    "name": "Takım mesajları",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}/messages?before=&limit=30",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}",
+                                "messages"
+                            ],
+                            "query": [
+                                {
+                                    "key": "before",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "limit",
+                                    "value": "30"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Takıma mesaj gönder",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/teams/{{team_id}}/messages",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "teams",
+                                "{{team_id}}",
+                                "messages"
+                            ]
+                        },
+                        "description": "multipart/form-data. type: text|image|audio|match_ref|lineup_ref.",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "type",
+                                    "value": "text",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "body",
+                                    "value": "Bu haftaki maç saat 21:00",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "audio",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "audio_duration",
+                                    "value": "",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "match_id",
+                                    "value": "",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "lineup_id",
+                                    "value": "",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Sahalar (Venues)",
+            "item": [
+                {
+                    "name": "Saha listesi / ara",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/venues?search=&near=41.0082,28.9784&radius=10",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "venues"
+                            ],
+                            "query": [
+                                {
+                                    "key": "search",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "near",
+                                    "value": "41.0082,28.9784"
+                                },
+                                {
+                                    "key": "radius",
+                                    "value": "10"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Saha detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/venues/{{venue_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "venues",
+                                "{{venue_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Sahayı yorumla",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/venues/{{venue_id}}/reviews",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "venues",
+                                "{{venue_id}}",
+                                "reviews"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"match_id\": \"{{match_id}}\",\n    \"score\": 5,\n    \"body\": \"Zemin çok iyiydi.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Maçlar",
+            "item": [
+                {
+                    "name": "Maç listesi",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches?filter=upcoming",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches"
+                            ],
+                            "query": [
+                                {
+                                    "key": "filter",
+                                    "value": "upcoming"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Maç kur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/matches",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"team_id\": \"{{team_id}}\",\n    \"venue_id\": null,\n    \"sosyalhalisaha_venue_id\": null,\n    \"venue_text\": \"Yıldız Halı Saha, Kadıköy\",\n    \"venue_lat\": 40.98,\n    \"venue_lng\": 29.03,\n    \"starts_at\": \"2026-08-01T18:00:00Z\",\n    \"format\": 7,\n    \"price_per_player\": 150\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Maç detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Maçı güncelle",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"venue_text\": \"Yıldız Halı Saha, Kadıköy\",\n    \"starts_at\": \"2026-08-01T19:00:00Z\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Maçı onayla",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/confirm",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "confirm"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Maçı iptal et",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/cancel",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "cancel"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "RSVP gönder",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/rsvp",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "rsvp"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"status\": \"yes\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Maç Videoları",
+            "item": [
+                {
+                    "name": "Maç videoları listesi",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/videos",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "videos"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Video ekle (link)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/videos",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "videos"
+                            ]
+                        },
+                        "description": "Link yerine dosya yüklemek için ayrı bir istek olarak \"Video yükle (dosya)\" kullan.",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"url\": \"https://www.youtube.com/watch?v=xxxxxxxxxxx\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Video yükle (dosya)",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/videos",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "videos"
+                            ]
+                        },
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "video",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "duration_seconds",
+                                    "value": "45",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Videoyu sil",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/videos/{{video_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "videos",
+                                "{{video_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Maç Sonucu",
+            "item": [
+                {
+                    "name": "Sonucu gir",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/result",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "result"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"home_score\": 5,\n    \"away_score\": 3,\n    \"no_show_user_ids\": []\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Sonucu onayla",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/result/confirm",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "result",
+                                "confirm"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Sonuca itiraz et",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/result/dispute",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "result",
+                                "dispute"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Oyuncu İstatistikleri (Maç Bazlı)",
+            "item": [
+                {
+                    "name": "Maç istatistik listesi",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/player-stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "player-stats"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Gol/asist gir",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/player-stats",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "player-stats"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"user_id\": \"{{user_public_id}}\",\n    \"goals\": 2,\n    \"assists\": 1\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "İstatistiği onayla",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/player-stats/{{stat_id}}/approve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "player-stats",
+                                "{{stat_id}}",
+                                "approve"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Oyuncu Puanlama",
+            "item": [
+                {
+                    "name": "Takım arkadaşını puanla",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/ratings",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "ratings"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"ratee_id\": \"{{user_public_id}}\",\n    \"score\": 8\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Adam Eksik İlanları",
+            "item": [
+                {
+                    "name": "İlan aç",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/matches/{{match_id}}/listings",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "matches",
+                                "{{match_id}}",
+                                "listings"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"positions_needed\": [\n        \"defans\",\n        \"kaleci\"\n    ],\n    \"needed_count\": 2,\n    \"level_min\": 2,\n    \"level_max\": 4,\n    \"lat\": 40.98,\n    \"lng\": 29.03\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "İlanları keşfet",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/listings?near=41.0082,28.9784&radius=25&position=&date=",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "listings"
+                            ],
+                            "query": [
+                                {
+                                    "key": "near",
+                                    "value": "41.0082,28.9784"
+                                },
+                                {
+                                    "key": "radius",
+                                    "value": "25"
+                                },
+                                {
+                                    "key": "position",
+                                    "value": ""
+                                },
+                                {
+                                    "key": "date",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "İlan detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/listings/{{listing_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "listings",
+                                "{{listing_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "İlana başvur",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/listings/{{listing_id}}/applications",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "listings",
+                                "{{listing_id}}",
+                                "applications"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"note\": \"Kaleci oynarım, müsaitim.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Başvuruyu onayla",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/applications/{{application_id}}/approve",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "applications",
+                                "{{application_id}}",
+                                "approve"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Başvuruyu reddet",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/applications/{{application_id}}/reject",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "applications",
+                                "{{application_id}}",
+                                "reject"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Rakip Arıyor İlanları",
+            "item": [
+                {
+                    "name": "İlan ver",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/opponent-listings",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "opponent-listings"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"team_id\": \"{{team_id}}\",\n    \"match_id\": null,\n    \"note\": \"Cumartesi 20:00 rakip arıyoruz\",\n    \"lat\": 40.98,\n    \"lng\": 29.03\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "İlanları keşfet",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/opponent-listings?near=41.0082,28.9784&radius=25",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "opponent-listings"
+                            ],
+                            "query": [
+                                {
+                                    "key": "near",
+                                    "value": "41.0082,28.9784"
+                                },
+                                {
+                                    "key": "radius",
+                                    "value": "25"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "İlan detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/opponent-listings/{{opponent_listing_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "opponent-listings",
+                                "{{opponent_listing_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Maçı eşleştir",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/opponent-listings/{{opponent_listing_id}}/match",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "opponent-listings",
+                                "{{opponent_listing_id}}",
+                                "match"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"team_id\": \"{{team_id}}\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Akış & Gönderiler",
+            "item": [
+                {
+                    "name": "Akışı getir",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/feed?cursor=",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "feed"
+                            ],
+                            "query": [
+                                {
+                                    "key": "cursor",
+                                    "value": ""
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Gönderi paylaş",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/posts",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "posts"
+                            ]
+                        },
+                        "description": "multipart/form-data. image ve video aynı anda gönderilemez.",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "body",
+                                    "value": "Bugün harika bir maçtı!",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "team_id",
+                                    "value": "",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "video",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "lineup_id",
+                                    "value": "",
+                                    "type": "text"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Gönderi detayı",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/posts/{{post_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "posts",
+                                "{{post_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Gönderiyi sil",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/posts/{{post_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "posts",
+                                "{{post_id}}"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Gönderiyi beğen",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/posts/{{post_id}}/like",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "posts",
+                                "{{post_id}}",
+                                "like"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Beğeniyi geri al",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/posts/{{post_id}}/like",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "posts",
+                                "{{post_id}}",
+                                "like"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Yorumları getir",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/posts/{{post_id}}/comments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "posts",
+                                "{{post_id}}",
+                                "comments"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Yorum yap",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/posts/{{post_id}}/comments",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "posts",
+                                "{{post_id}}",
+                                "comments"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"body\": \"Tebrikler, harika oynadın!\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "Yorumu sil",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/comments/{{comment_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "comments",
+                                "{{comment_id}}"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Şikayetler",
+            "item": [
+                {
+                    "name": "Şikayet gönder",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/reports",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "reports"
+                            ]
+                        },
+                        "description": "subject_type: post|user (Report::SUBJECT_TYPES).",
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"subject_type\": \"post\",\n    \"subject_id\": \"{{post_id}}\",\n    \"reason\": \"spam\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Arama",
+            "item": [
+                {
+                    "name": "Oyuncu/takım ara",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/search?q=ahmet&type=player",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "q",
+                                    "value": "ahmet"
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "player"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

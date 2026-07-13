@@ -1,6 +1,10 @@
 # API Standartları
 
 > Tüm endpoint'ler bu kurallara uyar. İlgili: [architecture.md](architecture.md)
+> Postman koleksiyonu (tüm 88 endpoint, örnek gövdelerle):
+> [postman/Sahana-API.postman_collection.json](postman/Sahana-API.postman_collection.json)
+> — `routes/api.php` + FormRequest kurallarından üretildi (2026-07-13),
+> elle senkron tutulmalı.
 
 ## 1. Genel
 
