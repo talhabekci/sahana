@@ -3,6 +3,29 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-13 (1) — Backlog #59: alt sekme çubuğuna animasyonlu limon pill
+
+- Kullanıcı bir referans görsel paylaştı (TikTok tarzı ikon çubuğu, aktif
+  öğenin arkasında kayan bir pill). `(tabs)/_layout.tsx`'teki varsayılan
+  ikon+etiket render'ı yerine özel `tabBar` prop'u ile
+  `shared/ui/AnimatedTabBar.tsx` bağlandı: `react-native-reanimated` ile
+  aktif sekmenin altında limon renginde (`Palette.lime`) bir pill,
+  `withSpring` ile bir sonraki ikonun altına kayıyor; ilk mount'ta sıçrama
+  olmaması için ilk konumlandırma animasyonsuz yapılıyor. Etiketler
+  referans görseldeki gibi kaldırıldı (yalnızca ikon), erişilebilirlik için
+  her sekmeye `accessibilityLabel`/`accessibilityRole="button"` eklendi.
+  BACKLOG #43'teki liquid glass (`GlassView`) zemini korundu. İkonlar artık
+  `focused` durumuna göre dolu/anahat (`newspaper`/`newspaper-outline` vb.)
+  değişiyor.
+- `npx tsc --noEmit` ve `npm run lint` temiz (yalnızca önceden var olan
+  ilgisiz axios uyarısı). Native animasyon/gesture davranışı bu ortamdan
+  görsel olarak doğrulanamadı — kullanıcının cihazda kontrol etmesi gerekiyor.
+- **Bağlı modül:** cross-cutting (mobil navigasyon)
+
+### Sonraki adım
+- Kullanıcı pill animasyonunu cihazda test etsin; beğenmezse pill boyutu/
+  spring parametreleri (`damping`/`stiffness`) veya glow şiddeti ayarlanabilir.
+
 ## 2026-07-12 (21) — Backlog #58: sosyalhalisaha il/ilçe/saha dizini + "Videonu bul" canlandırma
 
 - Kullanıcı sosyalhalisaha.com'un kendi `/filtre` sayfasının il→ilçe→saha

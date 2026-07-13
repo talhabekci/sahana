@@ -1,38 +1,26 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import { StyleSheet } from 'react-native';
 
-import { GlassView } from '@/shared/ui/GlassView';
-import { Palette, Type } from '@/shared/ui/theme';
+import { AnimatedTabBar } from '@/shared/ui/AnimatedTabBar';
+import { Palette } from '@/shared/ui/theme';
 
 export default function TabsLayout() {
   return (
     <Tabs
+      // Animasyonlu pill sekme çubuğu (BACKLOG #59): varsayılan ikon+etiket
+      // render'ı yerine özel `tabBar`, BACKLOG #43'teki liquid glass zemini
+      // kendi içinde korur.
+      tabBar={(props) => <AnimatedTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        // Liquid glass tab bar (BACKLOG #43): bar saydam + absolute, içerik
-        // altından akar; arka plan GlassView (expo-blur) ile buzlu cam.
-        tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: 'transparent',
-          borderTopColor: Palette.lineFaint,
-          elevation: 0,
-        },
-        tabBarBackground: () => <GlassView style={StyleSheet.absoluteFillObject} intensity={60} />,
-        tabBarActiveTintColor: Palette.lime,
-        tabBarInactiveTintColor: Palette.moss,
-        tabBarLabelStyle: {
-          fontFamily: Type.bodyMedium,
-          fontSize: 11,
-        },
         sceneStyle: { backgroundColor: Palette.pitchNight },
       }}>
       <Tabs.Screen
         name="feed"
         options={{
           title: 'Akış',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="newspaper-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? 'newspaper' : 'newspaper-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -40,8 +28,8 @@ export default function TabsLayout() {
         name="matches"
         options={{
           title: 'Maçlar',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="football-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? 'football' : 'football-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -49,8 +37,8 @@ export default function TabsLayout() {
         name="teams"
         options={{
           title: 'Takımlar',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="shield-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? 'shield' : 'shield-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -58,8 +46,8 @@ export default function TabsLayout() {
         name="conversations"
         options={{
           title: 'Sohbet',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={color} />
           ),
         }}
       />
@@ -67,8 +55,8 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: 'Profil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={size} color={color} />
           ),
         }}
       />

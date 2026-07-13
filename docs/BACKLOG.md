@@ -959,6 +959,23 @@
   `sosyalhalisaha_venue_id` dolu + maç `played` ise); "Videonu bul" butonu
   linki uygulama içi tarayıcıda açar (backend linki asla kendisi çağırmaz).
 
+### 59. Alt sekme çubuğu: aktif sekmeyi gösteren animasyonlu "pill" ✅
+- **Tamamlandı:** 2026-07-13 — detaylar `docs/PROGRESS.md` 2026-07-13 (1)
+  kaydında. Native animasyon davranışı bu ortamdan görsel doğrulanamadı,
+  kullanıcı cihazda kontrol etmeli.
+- **Talep tarihi:** 2026-07-13
+- Kullanıcı bir referans görsel paylaştı (TikTok tarzı bir uygulamanın alt
+  ikon çubuğu): aktif sekmenin arkasında limon renginde, kayarak hareket
+  eden yuvarlak bir "pill" var; sekme değişince pill bir sonraki ikonun
+  altına animasyonlu şekilde geçiyor. İstek: bizim 5 sekmemizde (Akış,
+  Maçlar, Takımlar, Sohbet, Profil) de aynı davranış.
+- **Bağlı modül:** cross-cutting (mobil navigasyon) — BACKLOG #43 "liquid
+  glass tab bar"ın üstüne inşa ediliyor, aynı GlassView zeminini korur.
+- Kapsam: `react-native-reanimated` ile özel `tabBar` render'ı (varsayılan
+  ikon+etiket yerine ikon-only, aktif ikonun altında spring animasyonlu
+  limon pill), etiketler görseldeki gibi kaldırılıyor (erişilebilirlik için
+  accessibilityLabel korunuyor).
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün
