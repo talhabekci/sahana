@@ -1045,6 +1045,25 @@
   gereksiz yere yeniden çiziliyordu.
 - **Bağlı modül:** cross-cutting (mobil performans)
 
+### 64. Premium açılış animasyonu (gol sekansı) ✅
+- **Talep tarihi:** 2026-07-13
+- Kullanıcı detaylı bir prompt verdi: minimalist silüet oyuncu şut çeker,
+  top lime renkli iz bırakarak kaleye gider, kaleci uzanır ama yetişemez,
+  top üst köşeye gider, file dalgalanır, çarpma flaşı + kamera sarsıntısı,
+  sonra Sahana logosuna geçiş. Stil: sadece silüet/vektör, karikatür değil,
+  gereksiz efekt/parçacık yok, 60fps, responsive, yeniden kullanılabilir
+  bileşenler.
+- **Uygulama:** `react-native-svg` (zaten kurulu) + Reanimated ile
+  `mobile/src/shared/ui/splash/` altında yeni bileşenler (`PlayerFigure`,
+  `GoalkeeperFigure`, `Ball`, `GoalNet`, `ImpactFlash`, `GoalIntro`
+  orkestratör + `bezier`/`geometry` yardımcıları) — Olimpiyat piktogramı
+  tarzı kalın çizgi silüetler (dolgu şekil değil), tek aksan lime top izi/
+  çarpma flaşı. `AnimatedSplash.tsx` önce bu sekansı oynatıyor, bitince
+  mevcut logo/halka animasyonuna geçiyor — `ready` kapısı artık hem auth/
+  font/tema hazır olmasını HEM sekansın bitmesini bekliyor.
+- **Bağlı modül:** cross-cutting (mobil marka/açılış deneyimi, BACKLOG #22
+  üzerine inşa edildi)
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

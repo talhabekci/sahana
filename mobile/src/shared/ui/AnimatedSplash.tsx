@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import Animated, {
   Easing,
@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import SplashMark from '@/assets/images/splash-icon.png';
+import { GoalIntro } from './splash/GoalIntro';
 import { PaletteTokens, useTheme } from './theme';
 
 type Props = {
@@ -21,21 +22,31 @@ type Props = {
 };
 
 /**
- * Native splash (statik) kapanır kapanmaz devreye giren, aynı marka görseliyle
- * (splash-icon.png) devam eden kısa bir giriş animasyonu — sıçrayarak
- * büyüyen amblem + genişleyip kaybolan floodlight halkası, sonra tüm ekran
- * solarak asıl uygulamayı açığa çıkarır. Bkz. BACKLOG.md #22.
+ * Native splash (statik) kapanır kapanmaz devreye giren giriş animasyonu:
+ * önce BACKLOG #64 gol sekansı (oyuncu şut çeker, top file'a gider) oynar,
+ * ardından aynı marka görseliyle (splash-icon.png) sıçrayarak büyüyen amblem
+ * + genişleyip kaybolan floodlight halkası gösterilir, sonra tüm ekran
+ * solarak asıl uygulamayı açığa çıkarır. Bkz. BACKLOG.md #22, #64.
  */
 export function AnimatedSplash({ ready, onFinish }: Props) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
+  const [IntroDone, setIntroDone] = useState(false);
   const MarkScale = useSharedValue(0.7);
   const MarkOpacity = useSharedValue(0);
   const RingScale = useSharedValue(0.9);
   const RingOpacity = useSharedValue(0);
   const OverlayOpacity = useSharedValue(1);
 
+  const handleSequenceEnd = useCallback(() => {
+    setIntroDone(true);
+  }, []);
+
   useEffect(() => {
+    if (!IntroDone) {
+      return;
+    }
+
     MarkOpacity.value = withTiming(1, { duration: 380, easing: Easing.out(Easing.cubic) });
     MarkScale.value = withSequence(
       withTiming(1.08, { duration: 340, easing: Easing.out(Easing.back(1.5)) }),
@@ -47,10 +58,10 @@ export function AnimatedSplash({ ready, onFinish }: Props) {
     );
     RingScale.value = withDelay(120, withTiming(1.7, { duration: 900, easing: Easing.out(Easing.quad) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [IntroDone]);
 
   useEffect(() => {
-    if (ready) {
+    if (ready && IntroDone) {
       OverlayOpacity.value = withDelay(
         500,
         withTiming(0, { duration: 380 }, (Finished) => {
@@ -61,7 +72,7 @@ export function AnimatedSplash({ ready, onFinish }: Props) {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+  }, [ready, IntroDone]);
 
   const MarkStyle = useAnimatedStyle(() => ({
     opacity: MarkOpacity.value,
@@ -75,10 +86,15 @@ export function AnimatedSplash({ ready, onFinish }: Props) {
 
   return (
     <Animated.View style={[styles.container, OverlayStyle]}>
-      <Animated.View style={[styles.ring, RingStyle]} />
-      <Animated.View style={MarkStyle}>
-        <Image source={SplashMark} style={styles.mark} resizeMode="contain" />
-      </Animated.View>
+      {!IntroDone && <GoalIntro Palette={Palette} onSequenceEnd={handleSequenceEnd} />}
+      {IntroDone && (
+        <>
+          <Animated.View style={[styles.ring, RingStyle]} />
+          <Animated.View style={MarkStyle}>
+            <Image source={SplashMark} style={styles.mark} resizeMode="contain" />
+          </Animated.View>
+        </>
+      )}
     </Animated.View>
   );
 }

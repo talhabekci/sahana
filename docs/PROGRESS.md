@@ -3,6 +3,53 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-13 (4) — Backlog #64: premium açılış animasyonu (gol sekansı)
+
+Kullanıcı detaylı bir prompt verdi: minimalist silüet bir oyuncu şut çeker,
+top lime renkli (`#C9F24E`) bir izle kaleye gider, kamera topu hafifçe
+takip eder, kaleci tam uzanır ama yetişemez, top üst köşeye çarpar (file
+doğal dalgalanır, çarpma anı lokal bir flaş + hafif kamera sarsıntısıyla
+vurgulanır), sonra sahne sönüp Sahana logosuna geçilir. İstenen stil:
+sadece silüet/vektör (karikatür değil), gereksiz efekt/parçacık yok,
+60fps, yeniden kullanılabilir bileşenler, farklı ekran boyutlarına duyarlı.
+
+**Uygulama:** `react-native-svg` (zaten kurulu, 15.12.1) + Reanimated
+(4.1.1) ile `mobile/src/shared/ui/splash/` altında yeni bir bileşen seti:
+- `geometry.ts` — sahne koordinat sabitleri (400×220 birimlik sabit
+  `viewBox`; responsive'lik ekran boyutuna göre hesap yapmak yerine bu
+  viewBox'ı yüzde genişlik + `aspectRatio` kilitli bir kapsayıcıya
+  oturtarak çözüldü).
+- `bezier.ts` — kavisli şut yörüngesi için `'worklet'` etiketli kuadratik
+  Bezier fonksiyonu.
+- `PlayerFigure.tsx` / `GoalkeeperFigure.tsx` — Olimpiyat piktogramı
+  tarzında (dolgu silüet değil, kalın yuvarlak-uçlu çizgi + daire kafa)
+  oyuncu ve kaleci; oyuncunun şut bacağı/kolu, kalecinin tüm gövdesi
+  (rotate+translate ile "dalış") ve uzanan kolu ayrı `SharedValue`'larla
+  animasyonlu.
+- `Ball.tsx` — top + `BallTrailDot` alt-bileşeni ile 4 noktalı soluklaşan
+  lime iz (hook'ların `.map()` içinde çağrılmaması için iz noktaları ayrı
+  bir alt-bileşene çıkarıldı, `NetLine` için de aynı desen uygulandı).
+- `GoalNet.tsx` — kale çerçevesi + 9 file çizgisi (`NetLine`), çarpma
+  köşesine yakınlığa göre ölçeklenen kısa bir esneme animasyonu.
+- `ImpactFlash.tsx` — çarpma anında beliren, hızla sönümlenen lokal lime
+  parlama (tam ekran flaş değil).
+- `GoalIntro.tsx` — orkestratör: tüm `SharedValue`'ları tek yerde tutup
+  `withSequence`/`withDelay`/`withTiming` ile tek bir zaman çizelgesi
+  kuruyor (şut → top uçuşu + kamera pan → dalış → çarpma anında flaş/
+  file/sarsıntı → sahne solması), bitince `onSequenceEnd` çağırıyor.
+  Alt bileşenler kendi zamanlamalarını yönetmiyor — sadece kendilerine
+  verilen `SharedValue`'ları okuyor (senkron kayması riski yok).
+
+`AnimatedSplash.tsx`'e `IntroDone` state'i eklendi: önce `GoalIntro`
+oynatılıyor, bitince mevcut logo/halka reveal `useEffect`'i tetikleniyor;
+`ready`'ye bağlı kapanış fade'i artık hem `ready` HEM `IntroDone`'ı
+bekliyor (erken kapanıp sekansın yarıda kesilmesini önlemek için).
+
+**Doğrulama:** `npx tsc --noEmit` temiz, `npm run lint` temiz (mobilde
+zaten var olan, bu değişiklikle ilgisiz 1 axios import uyarısı hariç).
+Animasyonun gerçek zamanlama/ölçek/hissi bu ortamda (simulator erişimi
+yok) test edilemedi — cihazda çalıştırılıp geri bildirim beklenmeli.
+
 ## 2026-07-13 (3) — Backlog #61/#62/#63: e-posta-only giriş, venues birleştirme, mobil performans
 
 Kullanıcı üç ayrı istek verdi (JWT önerisi de dahil — reddedildi, bkz. altta), sırayla ele alındı.
