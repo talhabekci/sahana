@@ -7,26 +7,25 @@ import { GlassView } from '@/shared/ui/GlassView';
 import { Palette, Radius, space } from '@/shared/ui/theme';
 
 const TAB_HEIGHT = 54;
+/** İkonun sıradaki sabit dikey merkezi — hem ikon hem delik/düğme buna göre hizalanır, ikon ASLA yer değiştirmez. */
+const ROW_CENTER_Y = space(3) + TAB_HEIGHT / 2;
 /** Camın içinden "oyulmuş" gibi görünen delik — ekran zemini rengiyle boyanır. */
 const HOLE_SIZE = 72;
 /** Deliğin içini dolduran limon düğme. */
 const BUTTON_SIZE = 54;
-/** İki şeklin de ortaklaşa hizalandığı, üst kenara göre dikey merkez (negatifse çubuğun üstüne taşar). */
-const NOTCH_CENTER_Y = 4;
-/** Aktif ikonun, normal sıra hizasından bu düğmenin merkezine kadar yükseldiği mesafe. */
-const ICON_LIFT = NOTCH_CENTER_Y - (space(3) + TAB_HEIGHT / 2);
 
 /** Yay animasyonunun sekmeler arası geçişte fazla sıçramaması için sıkı sönümleme. */
 const SPRING_CONFIG = { damping: 24, stiffness: 260, mass: 0.7, overshootClamping: true };
 
 /**
- * Alt sekme çubuğu (BACKLOG #59): referans görseldeki gibi, aktif sekmenin
- * üstünde çubuğun kendi zemininden "oyulmuş" bir delik ve içinde limon
- * renginde, ikonu taşıyan yükseltilmiş bir düğme var. İkisi de aynı
- * `CenterX` shared value'suyla, `overshootClamping` sayesinde sıçramadan tek
- * yönde bir sonraki sekmeye kayıyor. BACKLOG #43'teki liquid glass zemin
- * korunur; ikonlar her `Tabs.Screen`'in kendi `tabBarIcon`'undan gelir
- * (aktif/pasif ikon seçimini oradaki `focused` parametresi belirler).
+ * Alt sekme çubuğu (BACKLOG #59): aktif sekmenin ikonu HİÇBİR ZAMAN yer
+ * değiştirmez — sadece arkasındaki delik+düğme (çubuğun zemininden
+ * "oyulmuş" gibi görünen daire + içindeki limon düğme) yatayda bir sonraki
+ * sekmeye kayar. İkisi de aynı `CenterX` shared value'suyla,
+ * `overshootClamping` sayesinde sıçramadan tek yönde kayar. BACKLOG
+ * #43'teki liquid glass zemin korunur; ikonlar her `Tabs.Screen`'in kendi
+ * `tabBarIcon`'undan gelir (aktif/pasif ikon seçimini oradaki `focused`
+ * parametresi belirler).
  */
 export function AnimatedTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   const [TabCenters, setTabCenters] = useState<Record<number, number>>({});
@@ -98,13 +97,11 @@ export function AnimatedTabBar({ state, descriptors, navigation, insets }: Botto
               accessibilityState={IsFocused ? { selected: true } : {}}
               accessibilityLabel={typeof options.title === 'string' ? options.title : Route.name}
               style={styles.tab}>
-              <View style={IsFocused && styles.iconLifted}>
-                {options.tabBarIcon?.({
-                  focused: IsFocused,
-                  color: IsFocused ? Palette.limeInk : Palette.moss,
-                  size: IsFocused ? 24 : 22,
-                })}
-              </View>
+              {options.tabBarIcon?.({
+                focused: IsFocused,
+                color: IsFocused ? Palette.limeInk : Palette.moss,
+                size: IsFocused ? 24 : 22,
+              })}
             </Pressable>
           );
         })}
@@ -135,22 +132,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: TAB_HEIGHT,
   },
-  iconLifted: {
-    transform: [{ translateY: ICON_LIFT }],
-  },
   /** Çubuğun zemininden oyulmuş delik — ekranın kendi zemin rengiyle boyanır. */
   hole: {
     position: 'absolute',
-    top: NOTCH_CENTER_Y - HOLE_SIZE / 2,
+    top: ROW_CENTER_Y - HOLE_SIZE / 2,
     width: HOLE_SIZE,
     height: HOLE_SIZE,
     borderRadius: Radius.pill,
     backgroundColor: Palette.pitchNight,
   },
-  /** Deliğin içindeki, ikonu taşıyan yükseltilmiş limon düğme. */
+  /** Deliğin içindeki, sabit duran ikonun arkasındaki limon düğme. */
   button: {
     position: 'absolute',
-    top: NOTCH_CENTER_Y - BUTTON_SIZE / 2,
+    top: ROW_CENTER_Y - BUTTON_SIZE / 2,
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
     borderRadius: Radius.pill,

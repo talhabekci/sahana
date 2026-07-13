@@ -53,6 +53,18 @@
   ICON_LIFT) cihazda görülmeden tahmini ayarlandı — kullanıcının cihazda
   kontrol edip ince ayar istemesi bekleniyor.**
 
+### Düzeltme #3 (aynı gün, kullanıcı geri bildirimi)
+- Kullanıcı cihazda gördü: aktif ikon yukarı kalkınca diğerlerinden kopmuş,
+  havada asılı duruyormuş gibi görünüyordu — istenmiyor. Karar: **ikon
+  hiçbir zaman yer değiştirmeyecek**, sadece arkasındaki delik+düğme
+  (gösterge) yatayda sekmeler arası kayacak. `ICON_LIFT`/`iconLifted`
+  kaldırıldı; `NOTCH_CENTER_Y` yerine `ROW_CENTER_Y = space(3) +
+  TAB_HEIGHT/2` (ikonun zaten durduğu sabit merkez) kullanılıyor, delik ve
+  düğme artık bu sabit merkeze göre konumlanıyor. Sonuç: ikon tamamen
+  statik, yalnızca delik/düğme çifti sekmeler arası yatayda kayıyor (üst
+  kenardan taşma efekti bu haliyle kalktı — istenirse ayrı bir istekle
+  tekrar eklenebilir). `tsc`/`lint` temiz.
+
 ## 2026-07-12 (21) — Backlog #58: sosyalhalisaha il/ilçe/saha dizini + "Videonu bul" canlandırma
 
 - Kullanıcı sosyalhalisaha.com'un kendi `/filtre` sayfasının il→ilçe→saha
