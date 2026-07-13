@@ -37,6 +37,22 @@
   `wrap`'teki `overflow: 'hidden'` kaldırıldı (GlassView zaten kendi
   overflow'unu yönetiyor) ki notch kırpılmadan taşabilsin.
 
+### Düzeltme #2 (aynı gün, referans görsel daha net paylaşıldı)
+- İnce çentik çubuğu yetersizdi; kullanıcı referans görseli tekrar
+  inceleyip asıl istenen görünümü netleştirdi: aktif sekmenin üstünde
+  çubuğun kendi zemininden "oyulmuş" gibi bir delik var, deliğin içi
+  başka bir renkle (limon düğme) dolu. `styles.notch` kaldırıldı, yerine
+  iki iç içe daire: `styles.hole` (ekranın `Palette.pitchNight` zemin
+  rengiyle boyalı, çapı 72 — camdan oyulmuş delik illüzyonu) ve içindeki
+  `styles.button` (limon, çapı 54, glow'lu — ikonu taşıyan yükseltilmiş
+  düğme). İkisi de aynı `CenterX`'ten besleniyor. Aktif sekmenin ikonu artık
+  normal sıra hizasından `ICON_LIFT` kadar yukarı taşınıyor (`iconLifted`
+  stili) ki düğmenin içinde/merkezinde görünsün; `hitSlop={{top:30}}`
+  eklendi ki yükseltilmiş ikonun üstüne dokunma da algılansın.
+  `tsc`/`lint` temiz. **Bu değerler (HOLE_SIZE, BUTTON_SIZE, NOTCH_CENTER_Y,
+  ICON_LIFT) cihazda görülmeden tahmini ayarlandı — kullanıcının cihazda
+  kontrol edip ince ayar istemesi bekleniyor.**
+
 ## 2026-07-12 (21) — Backlog #58: sosyalhalisaha il/ilçe/saha dizini + "Videonu bul" canlandırma
 
 - Kullanıcı sosyalhalisaha.com'un kendi `/filtre` sayfasının il→ilçe→saha

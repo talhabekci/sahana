@@ -6,20 +6,27 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } fr
 import { GlassView } from '@/shared/ui/GlassView';
 import { Palette, Radius, space } from '@/shared/ui/theme';
 
-const PILL_SIZE = 46;
-const NOTCH_WIDTH = 32;
-const NOTCH_HEIGHT = 5;
+const TAB_HEIGHT = 54;
+/** Camın içinden "oyulmuş" gibi görünen delik — ekran zemini rengiyle boyanır. */
+const HOLE_SIZE = 72;
+/** Deliğin içini dolduran limon düğme. */
+const BUTTON_SIZE = 54;
+/** İki şeklin de ortaklaşa hizalandığı, üst kenara göre dikey merkez (negatifse çubuğun üstüne taşar). */
+const NOTCH_CENTER_Y = 4;
+/** Aktif ikonun, normal sıra hizasından bu düğmenin merkezine kadar yükseldiği mesafe. */
+const ICON_LIFT = NOTCH_CENTER_Y - (space(3) + TAB_HEIGHT / 2);
 
 /** Yay animasyonunun sekmeler arası geçişte fazla sıçramaması için sıkı sönümleme. */
 const SPRING_CONFIG = { damping: 24, stiffness: 260, mass: 0.7, overshootClamping: true };
 
 /**
- * Alt sekme çubuğu (BACKLOG #59): aktif sekmenin altında limon renginde bir
- * "pill" ve üst kenarda kayan bir "çentik" (notch) aynı anda animasyonla
- * bir sonraki sekmeye geçer (`overshootClamping` ile sıçrama/sallanma
- * olmadan tek yönde kayar). BACKLOG #43'teki liquid glass zemini korunur;
- * ikonlar her `Tabs.Screen`'in kendi `tabBarIcon`'undan gelir (aktif/pasif
- * ikon seçimini oradaki `focused` parametresi belirler).
+ * Alt sekme çubuğu (BACKLOG #59): referans görseldeki gibi, aktif sekmenin
+ * üstünde çubuğun kendi zemininden "oyulmuş" bir delik ve içinde limon
+ * renginde, ikonu taşıyan yükseltilmiş bir düğme var. İkisi de aynı
+ * `CenterX` shared value'suyla, `overshootClamping` sayesinde sıçramadan tek
+ * yönde bir sonraki sekmeye kayıyor. BACKLOG #43'teki liquid glass zemin
+ * korunur; ikonlar her `Tabs.Screen`'in kendi `tabBarIcon`'undan gelir
+ * (aktif/pasif ikon seçimini oradaki `focused` parametresi belirler).
  */
 export function AnimatedTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
   const [TabCenters, setTabCenters] = useState<Record<number, number>>({});
@@ -43,21 +50,21 @@ export function AnimatedTabBar({ state, descriptors, navigation, insets }: Botto
     }
   }, [state.index, TabCenters, CenterX, IndicatorOpacity]);
 
-  const PillStyle = useAnimatedStyle(() => ({
+  const HoleStyle = useAnimatedStyle(() => ({
     opacity: IndicatorOpacity.value,
-    transform: [{ translateX: CenterX.value - PILL_SIZE / 2 }],
+    transform: [{ translateX: CenterX.value - HOLE_SIZE / 2 }],
   }));
 
-  const NotchStyle = useAnimatedStyle(() => ({
+  const ButtonStyle = useAnimatedStyle(() => ({
     opacity: IndicatorOpacity.value,
-    transform: [{ translateX: CenterX.value - NOTCH_WIDTH / 2 }],
+    transform: [{ translateX: CenterX.value - BUTTON_SIZE / 2 }],
   }));
 
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, space(3)) }]}>
       <GlassView style={StyleSheet.absoluteFillObject} intensity={60} />
-      <Animated.View pointerEvents="none" style={[styles.notch, NotchStyle]} />
-      <Animated.View pointerEvents="none" style={[styles.pill, PillStyle]} />
+      <Animated.View pointerEvents="none" style={[styles.hole, HoleStyle]} />
+      <Animated.View pointerEvents="none" style={[styles.button, ButtonStyle]} />
       <View style={styles.row}>
         {state.routes.map((Route, Index) => {
           const { options } = descriptors[Route.key];
@@ -86,15 +93,18 @@ export function AnimatedTabBar({ state, descriptors, navigation, insets }: Botto
               key={Route.key}
               onLayout={onLayout}
               onPress={onPress}
+              hitSlop={{ top: 30 }}
               accessibilityRole="button"
               accessibilityState={IsFocused ? { selected: true } : {}}
               accessibilityLabel={typeof options.title === 'string' ? options.title : Route.name}
               style={styles.tab}>
-              {options.tabBarIcon?.({
-                focused: IsFocused,
-                color: IsFocused ? Palette.limeInk : Palette.moss,
-                size: IsFocused ? 24 : 22,
-              })}
+              <View style={IsFocused && styles.iconLifted}>
+                {options.tabBarIcon?.({
+                  focused: IsFocused,
+                  color: IsFocused ? Palette.limeInk : Palette.moss,
+                  size: IsFocused ? 24 : 22,
+                })}
+              </View>
             </Pressable>
           );
         })}
@@ -109,8 +119,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    // GlassView kendi overflow'unu yönetiyor; burada gizlemiyoruz ki notch
-    // üst kenarın üstüne taşabilsin.
+    // GlassView kendi overflow'unu yönetiyor; burada gizlemiyoruz ki delik/
+    // düğme üst kenarın üstüne taşabilsin.
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Palette.lineFaint,
   },
@@ -123,33 +133,32 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: PILL_SIZE,
+    height: TAB_HEIGHT,
   },
-  pill: {
+  iconLifted: {
+    transform: [{ translateY: ICON_LIFT }],
+  },
+  /** Çubuğun zemininden oyulmuş delik — ekranın kendi zemin rengiyle boyanır. */
+  hole: {
     position: 'absolute',
-    top: space(3),
-    width: PILL_SIZE,
-    height: PILL_SIZE,
+    top: NOTCH_CENTER_Y - HOLE_SIZE / 2,
+    width: HOLE_SIZE,
+    height: HOLE_SIZE,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.pitchNight,
+  },
+  /** Deliğin içindeki, ikonu taşıyan yükseltilmiş limon düğme. */
+  button: {
+    position: 'absolute',
+    top: NOTCH_CENTER_Y - BUTTON_SIZE / 2,
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
     borderRadius: Radius.pill,
     backgroundColor: Palette.lime,
     shadowColor: Palette.lime,
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
+    shadowOpacity: 0.6,
+    shadowRadius: 14,
     shadowOffset: { width: 0, height: 0 },
     elevation: 8,
-  },
-  /** Aktif sekmeyi işaretleyen, üst kenarın üstüne taşan "çentik". */
-  notch: {
-    position: 'absolute',
-    top: -NOTCH_HEIGHT / 2,
-    width: NOTCH_WIDTH,
-    height: NOTCH_HEIGHT,
-    borderRadius: Radius.pill,
-    backgroundColor: Palette.lime,
-    shadowColor: Palette.lime,
-    shadowOpacity: 0.7,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
   },
 });
