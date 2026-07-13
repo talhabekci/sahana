@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -83,6 +83,13 @@ export default function PlayerProfile() {
       );
     },
   });
+
+  // BACKLOG #63: PostCard React.memo — bu callback'lerin SABİT referans
+  // olması gerekiyor, yoksa memo her satırda kırılır.
+  const handleOpenPost = useCallback((PostId: string) => Router.push(`/post/${PostId}`), [Router]);
+  // ToggleLike.mutate react-query tarafından sabit referans garantisi verilir (exhaustive-deps yanlış pozitif).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleToggleLike = useCallback((Post_: Post) => ToggleLike.mutate({ post: Post_ }), [ToggleLike.mutate]);
 
   const ReportPlayer = useMutation({
     mutationFn: (Reason: string) => reportSubject({ subject_type: 'user', subject_id: id, reason: Reason }),
@@ -229,11 +236,7 @@ export default function PlayerProfile() {
         }
         renderItem={({ item }) => (
           <View style={styles.postWrap}>
-            <PostCard
-              post={item}
-              onPress={() => Router.push(`/post/${item.id}`)}
-              onToggleLike={() => ToggleLike.mutate({ post: item })}
-            />
+            <PostCard post={item} onPress={handleOpenPost} onToggleLike={handleToggleLike} />
           </View>
         )}
         ListEmptyComponent={

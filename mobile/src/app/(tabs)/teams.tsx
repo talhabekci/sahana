@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listTeams, Team } from '@/features/team/api';
@@ -12,12 +12,13 @@ import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
-function TeamRow({ team, onPress }: { team: Team; onPress: () => void }) {
+/** BACKLOG #63: memo — `onPress` ebeveynden SABİT referans olarak gelmeli (useCallback), team.id ile burada çağrılır. */
+const TeamRow = memo(function TeamRow({ team, onPress }: { team: Team; onPress: (id: string) => void }) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
 
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
+    <Pressable accessibilityRole="button" onPress={() => onPress(team.id)} style={styles.row}>
       {team.logo_url != null ? (
         <Image source={{ uri: team.logo_url }} style={styles.badge} />
       ) : (
@@ -36,7 +37,7 @@ function TeamRow({ team, onPress }: { team: Team; onPress: () => void }) {
       <Ionicons name="chevron-forward" size={20} color={Palette.moss} />
     </Pressable>
   );
-}
+});
 
 export default function Teams() {
   const Palette = useTheme();
@@ -51,6 +52,8 @@ export default function Teams() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
+
+  const handleOpenTeam = useCallback((Id: string) => Router.push(`/team/${Id}`), [Router]);
 
   return (
     <Screen pitch pitchY={-140}>
@@ -70,9 +73,7 @@ export default function Teams() {
           data={Teams.data}
           keyExtractor={(Team_) => Team_.id}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <TeamRow team={item} onPress={() => Router.push(`/team/${item.id}`)} />
-          )}
+          renderItem={({ item }) => <TeamRow team={item} onPress={handleOpenTeam} />}
           ListEmptyComponent={
             <EmptyState
               icon="people-outline"

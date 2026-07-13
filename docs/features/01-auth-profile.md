@@ -7,9 +7,12 @@ Kullanıcının saniyeler içinde hesap açıp kendini "oyuncu" olarak tanımlam
 Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 
 ## Kapsam (v1)
-- **Telefon VEYA e-posta + OTP** ile kayıt/giriş — tek `identifier` alanı
-  (kullanıcı kararı 2026-07-03: e-posta OTP v1'de aktif, maliyetsiz başlangıç;
-  SMS driver arayüzü arkasında hazır — lokalde log'a yazar, sağlayıcı seçilince açılır)
+- **Sadece e-posta + OTP** ile kayıt/giriş (kullanıcı kararı 2026-07-13: SMS
+  sağlayıcısı henüz entegre değil — `identifier` alanı şimdilik yalnızca
+  e-posta kabul eder, telefon formatı 422 döner). Altyapı telefona hazır:
+  `users.phone` kolonu ve `SmsSender` arayüzü (lokalde log driver) duruyor —
+  sağlayıcı seçilince `SendOtpRequest::identifierRule()`'daki kısıtlama
+  kaldırılıp telefon de yeniden açılır.
 - Google / Apple ile giriş (Apple, App Store zorunluluğu) —
   **implementasyon store hesapları/anahtarlar hazır olunca**; endpoint tasarımı sabit
 - Oyuncu profili oluşturma ve düzenleme
@@ -20,7 +23,7 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 - E-posta/şifre girişi · profil doğrulama rozetleri · gizlilik ayarları (granüler)
 
 ## Kullanıcı Hikayeleri
-1. Oyuncu olarak telefon numaramla 30 saniyede kayıt olmak istiyorum ki
+1. Oyuncu olarak e-posta adresimle 30 saniyede kayıt olmak istiyorum ki
    arkadaşımın attığı maç davetine hemen katılabileyim.
 2. Mevkimi ve seviyemi belirtmek istiyorum ki "adam eksik" ilanlarında doğru
    maçlarla eşleşeyim.
@@ -43,8 +46,8 @@ Profil, diğer tüm modüllerin (kadro, eşleşme, reyting) veri temelidir.
 
 ## Ekranlar (expo-router)
 ```
-(auth)/welcome      → değer önerisi + "Telefonla devam et" / Google / Apple
-(auth)/identifier   → telefon/e-posta girişi (e-posta OTP kararı sonrası)
+(auth)/welcome      → değer önerisi + "Devam et" / Google / Apple
+(auth)/identifier   → e-posta girişi (telefon şimdilik kapalı, bkz. Kapsam)
 (auth)/otp          → 6 haneli kod, 120sn geri sayım, tekrar gönder
 (auth)/onboarding   → isim → mevki(ler) → seviye → şehir (adım adım, atlanabilir alanlar hariç)
 (tabs)/profile      → kendi profilim (avatar, takipçi/takip sayıları, düzenle + ayarlar simgesi)
@@ -58,7 +61,7 @@ player/[id]         → başka oyuncunun profili
 
 | Method | Endpoint | Açıklama |
 |---|---|---|
-| POST | /auth/otp | `{identifier}` (telefon veya e-posta) → OTP gönderir. Rate: 3/saat/identifier + 10/saat/IP |
+| POST | /auth/otp | `{identifier}` (yalnızca e-posta, bkz. Kapsam) → OTP gönderir. Rate: 3/saat/identifier + 10/saat/IP |
 | POST | /auth/verify | `{identifier, code}` → `{token, is_new_user}` |
 | POST | /auth/social | `{provider: google\|apple, id_token}` → `{token, is_new_user}` |
 | POST | /auth/logout | Token iptali |
@@ -83,7 +86,7 @@ city_id, district_id, availability JSON, bio, birth_date nullable date).
 - [ ] Yeni numara ile kayıt → onboarding → profil oluşturma < 60 sn tamamlanabiliyor
 - [ ] Yanlış OTP 5 kez → 429 + kullanıcıya net mesaj
 - [ ] SMS gönderimi kuyruk üzerinden (senkron istek SMS sağlayıcısını beklemez)
-- [ ] Hesap silme sonrası: token geçersiz, profil 404, telefon yeniden kayıt olabilir
+- [ ] Hesap silme sonrası: token geçersiz, profil 404, e-posta yeniden kayıt olabilir
 - [ ] Apple ile giriş çalışıyor (App Store review şartı)
 - [ ] Pest: her endpoint için happy path + rate limit + validasyon testi
 

@@ -41,22 +41,27 @@ backend, video-arama uç noktasını (`xhr/filtre/...`) **hiçbir zaman
 çağırmaz** — link sadece kullanıcının kendi cihazında (uygulama içi
 tarayıcıda) açılır.
 
-- **Referans veri toplama (2026-07-12 güncellemesi — önceki açık soru
-  çözüldü):** `sosyalhalisaha_venues` denormalize tablosu yerine daha temiz
-  bir şema: `districts.external_id` (nullable, sosyalhalisaha'nın kendi
-  ilçe ID'si) + ayrı `sosyalhalisaha_venues` tablosu (`district_id` FK →
-  bizim `districts.id`, `external_id`, `name`). Veri, sosyalhalisaha'nın
-  KENDİ herkese açık `/filtre` sayfasının arama AJAX uç noktasından
-  (`type=getdistrict`, `type=getplace` — video arama uç noktasından
-  **farklı ve ayrı bir uç nokta**, sadece il/ilçe/saha isim dizini)
-  **tek seferlik/nadiren elle tetiklenen** bir Artisan komutuyla
-  (`sosyalhalisaha:sync`) toplanır — canlı/sürekli bir entegrasyon değil,
-  video içeriğine hiç dokunmaz (sadece yer adı + ID). Komut kendi CSRF
-  oturumunu açar (sayfayı GET edip token+cookie çıkarır), 81 il için ilçe
-  listesini çeker, isim eşleşmesiyle (TR büyük/küçük harf duyarlı
-  normalize) bizim `districts` kayıtlarımıza `external_id` yazar, eşleşen
-  her ilçe için saha listesini çekip `sosyalhalisaha_venues`'a upsert eder.
-  Kullanıcı talebiyle başlatıldı (2026-07-12) — BACKLOG #58.
+- **Referans veri toplama (2026-07-12, şema 2026-07-13'te sadeleştirildi —
+  BACKLOG #62):** `districts.external_id` (nullable, sosyalhalisaha'nın
+  kendi ilçe ID'si) + saha eşleşmeleri artık ayrı bir tabloda değil,
+  genel `venues` tablosunda `type='sosyalhalisaha'` satırları olarak
+  duruyor (`district_id`, `external_id` dolu; `lat`/`lng`/yorumlar yok).
+  Kullanıcı kararı: kaynak başına ayrı tablo açmak yerine tek `venues`
+  tablosu + `type` ayrımı — ileride kendi eklediğimiz sahalar da aynı
+  tabloda `type='internal'` olarak durur. `GET /venues` ve `GET /venues/{id}`
+  yalnızca `type='internal'` döner, sosyalhalisaha satırları rehberde
+  görünmez. Veri, sosyalhalisaha'nın KENDİ herkese açık `/filtre`
+  sayfasının arama AJAX uç noktasından (`type=getdistrict`, `type=getplace`
+  — video arama uç noktasından **farklı ve ayrı bir uç nokta**, sadece
+  il/ilçe/saha isim dizini) **tek seferlik/nadiren elle tetiklenen** bir
+  Artisan komutuyla (`sosyalhalisaha:sync`) toplanır — canlı/sürekli bir
+  entegrasyon değil, video içeriğine hiç dokunmaz (sadece yer adı + ID).
+  Komut kendi CSRF oturumunu açar (sayfayı GET edip token+cookie çıkarır),
+  81 il için ilçe listesini çeker, isim eşleşmesiyle (TR büyük/küçük harf
+  duyarlı normalize) bizim `districts` kayıtlarımıza `external_id` yazar,
+  eşleşen her ilçe için saha listesini çekip `venues`'a
+  `type='sosyalhalisaha'` olarak upsert eder. Kullanıcı talebiyle
+  başlatıldı (2026-07-12) — BACKLOG #58.
 - **Maç kurma akışına opsiyonel adım:** "Sosyal Halı Saha'da bulunsun mu?"
   — şehir → ilçe → saha seçici (yukarıdaki referans tablodan, sadece
   `external_id` dolu ilçeler/sahalar listelenir). Seçilirse
@@ -151,7 +156,7 @@ artık opsiyonel `sosyalhalisaha_venue_id` alır · `MatchResource.video_search_
 ## Kabul Kriterleri (v1.5 — 2026-07-12)
 - [ ] `sosyalhalisaha:sync` komutu 81 il için ilçe listesini çekip isim
   eşleşmesiyle `districts.external_id` dolduruyor, eşleşen ilçeler için
-  saha listesini `sosyalhalisaha_venues`'a yazıyor
+  saha listesini `venues`'a `type='sosyalhalisaha'` olarak yazıyor
 - [ ] Komut kendi CSRF oturumunu açıyor (harici bir token'a bağımlı değil)
 - [ ] Maç kurarken opsiyonel şehir→ilçe→saha seçimi yapılabiliyor, seçilmezse
   akış etkilenmiyor
@@ -166,3 +171,6 @@ artık opsiyonel `sosyalhalisaha_venue_id` alır · `MatchResource.video_search_
 - [x] ~~`sosyalhalisaha_venues` referans verisi ilk seferde nasıl toplanacak~~
   → `sosyalhalisaha:sync` Artisan komutuyla tek seferlik/elle toplanıyor
   (BACKLOG #58, 2026-07-12)
+- [x] ~~sosyalhalisaha eşleşmeleri ayrı bir tabloda mı dursun~~ → hayır,
+  genel `venues` tablosuna `type='sosyalhalisaha'` olarak taşındı
+  (BACKLOG #62, 2026-07-13)

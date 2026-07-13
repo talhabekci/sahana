@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\District;
-use App\Models\SosyalhalisahaVenue;
+use App\Models\Venue;
 use Illuminate\Support\Facades\Http;
 
 it('bootstraps a session, matches district names and upserts venues', function () {
@@ -37,7 +37,7 @@ it('bootstraps a session, matches district names and upserts venues', function (
     $District = District::where('city_id', 34)->where('name', 'Kadıköy')->firstOrFail();
     expect($District->external_id)->toBe(415);
 
-    $Venue = SosyalhalisahaVenue::where('district_id', $District->id)->first();
+    $Venue = Venue::where('district_id', $District->id)->where('type', 'sosyalhalisaha')->first();
     expect($Venue)->not->toBeNull()
         ->and($Venue->external_id)->toBe(1616)
         ->and($Venue->name)->toBe('Test Halı Saha');
@@ -52,5 +52,5 @@ it('leaves external_id null for districts with no match in the remote directory'
 
     $District = District::where('city_id', 34)->where('name', 'Kadıköy')->firstOrFail();
     expect($District->external_id)->toBeNull();
-    expect(SosyalhalisahaVenue::count())->toBe(0);
+    expect(Venue::where('type', 'sosyalhalisaha')->count())->toBe(0);
 });

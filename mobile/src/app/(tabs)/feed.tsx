@@ -69,6 +69,26 @@ export default function Feed() {
 
   const Posts = Feed_.data?.pages.flatMap((Page) => Page.data) ?? [];
 
+  // BACKLOG #63: PostCard React.memo — bu callback'lerin SABİT referans
+  // olması gerekiyor, yoksa memo her satırda kırılır.
+  const handleOpenPost = useCallback((Id: string) => Router.push(`/post/${Id}`), [Router]);
+  const handleOpenAuthor = useCallback((Id: string) => Router.push(`/player/${Id}`), [Router]);
+  // ToggleLike.mutate react-query tarafından sabit referans garantisi verilir (exhaustive-deps yanlış pozitif).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleToggleLike = useCallback((Post_: Post) => ToggleLike.mutate({ post: Post_ }), [ToggleLike.mutate]);
+
+  const renderPost = useCallback(
+    ({ item }: { item: Post }) => (
+      <PostCard
+        post={item}
+        onPress={handleOpenPost}
+        onToggleLike={handleToggleLike}
+        onPressAuthor={handleOpenAuthor}
+      />
+    ),
+    [handleOpenPost, handleToggleLike, handleOpenAuthor],
+  );
+
   return (
     <Screen pitch pitchY={-160} bare>
       <View style={styles.header}>
@@ -117,14 +137,7 @@ export default function Feed() {
               <ActivityIndicator color={Palette.lime} style={styles.footerSpinner} />
             ) : null
           }
-          renderItem={({ item }) => (
-            <PostCard
-              post={item}
-              onPress={() => Router.push(`/post/${item.id}`)}
-              onToggleLike={() => ToggleLike.mutate({ post: item })}
-              onPressAuthor={item.author != null ? () => Router.push(`/player/${item.author?.id}`) : undefined}
-            />
-          )}
+          renderItem={renderPost}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
             <EmptyState

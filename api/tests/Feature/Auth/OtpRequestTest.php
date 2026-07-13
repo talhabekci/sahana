@@ -13,10 +13,10 @@ it('sends an otp mail for a valid email identifier', function () {
     Mail::assertQueued(OtpCodeMail::class);
 });
 
-it('accepts a phone identifier', function () {
+it('rejects a phone identifier (BACKLOG #61 — SMS sağlayıcısı entegre değil)', function () {
     $this->postJson('/api/v1/auth/otp', ['identifier' => '+905321234567'])
-        ->assertOk()
-        ->assertJsonPath('data.status', 'sent');
+        ->assertStatus(422)
+        ->assertJsonPath('code', 'validation_failed');
 });
 
 it('rejects an invalid identifier', function () {

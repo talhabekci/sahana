@@ -1002,6 +1002,49 @@
   Bu değerler cihazda görülmeden seçildi, kullanıcı geri bildirimiyle
   ayarlanabilir.
 
+### 61. Girişi e-posta-only yap (SMS sağlayıcısı yok) ✅
+- **Tamamlandı:** 2026-07-13 — detaylar `docs/PROGRESS.md` 2026-07-13 (3)
+  kaydında.
+- **Talep tarihi:** 2026-07-13
+- Kullanıcı: "şu an sms entegrasyonumuz olmadığı için girişleri mail ile
+  yapalım". `LogSmsSender` zaten sadece log'a yazıyor, telefonla kayıt
+  olan kimse kodu hiç alamıyordu — bu aslında canlıda kırık bir yoldu.
+  `SendOtpRequest::identifierRule()` yalnızca e-posta kabul edecek şekilde
+  daraltılıyor; `SmsSender`/`users.phone` altyapısı silinmiyor, sağlayıcı
+  seçilince kural gevşetilip telefon geri açılabilir.
+- **Bağlı modül:** Modül 1 — [01-auth-profile.md](features/01-auth-profile.md)
+
+### 62. sosyalhalisaha_venues + venues tablo birleştirme ✅
+- **Tamamlandı:** 2026-07-13 — detaylar `docs/PROGRESS.md` 2026-07-13 (3)
+  kaydında. Migration gerçek MySQL'de çalıştırıldı ve doğrulandı, 283 test
+  geçti (2 yeni).
+- **Talep tarihi:** 2026-07-13
+- Kullanıcı: "venues tarzında genel bir tablo yapıp içine type atalım...
+  ileride kendimiz halı saha eklediğimizde type'a internal yazarız, farklı
+  farklı tablo olmamış olur". `venues` tablosuna `type`
+  (`internal`|`sosyalhalisaha`), `district_id`, `external_id` eklenir;
+  `sosyalhalisaha_venues` verisi taşınıp tablo kaldırılır. **Kapsam kararı
+  (kullanıcı onayıyla):** `matches.venue_id` ve
+  `matches.sosyalhalisaha_venue_id` iki ayrı FK olarak kalıyor (ikisi de
+  birleşik `venues` tablosuna işaret ediyor) — mobil maç kurma UX'i
+  değişmiyor, sadece tek tabloya taşınıyor.
+- **Bağlı modül:** Modül 8 — [08-venues.md](features/08-venues.md),
+  Modül 5 v1.5 — [05-videos.md](features/05-videos.md)
+
+### 63. Mobil performans iyileştirmesi (VirtualizedList uyarıları) ✅
+- **Tamamlandı:** 2026-07-13 — detaylar `docs/PROGRESS.md` 2026-07-13 (3)
+  kaydında.
+- **Talep tarihi:** 2026-07-13
+- Kullanıcı log'da `VirtualizedList: You have a large list that is slow to
+  update` uyarıları gördü (dt 27705ms'e kadar çıkıyordu). Kök neden:
+  `PostCard`'daki `PostVideoPlayer` akış/liste bağlamında bile videolu her
+  gönderi için native video player'ı anında/eagerly kuruyordu (birden
+  fazla video aynı anda decode ediliyordu); ayrıca birçok `FlatList`'te
+  `renderItem` inline fonksiyon olduğu ve satır bileşenleri
+  `React.memo` olmadığı için her yeniden render'da tüm görünür satırlar
+  gereksiz yere yeniden çiziliyordu.
+- **Bağlı modül:** cross-cutting (mobil performans)
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

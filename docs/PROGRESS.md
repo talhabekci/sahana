@@ -3,6 +3,107 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-13 (3) — Backlog #61/#62/#63: e-posta-only giriş, venues birleştirme, mobil performans
+
+Kullanıcı üç ayrı istek verdi (JWT önerisi de dahil — reddedildi, bkz. altta), sırayla ele alındı.
+
+**JWT vs Sanctum (karar: HAYIR):** Kullanıcı API auth'u JWT'ye çevirmeyi
+önerdi ("güvenlik için daha iyi olmaz mı"). Karşı önerim kabul edildi:
+Sanctum'da kal. Gerekçe: Sahana tek bir Laravel monolit, JWT'nin tek
+gerçek avantajı (stateless doğrulama, çoklu servis senaryosu) hiç
+işlemiyor; buna karşılık JWT ile bir token çalınırsa süresi dolana kadar
+iptal edilemiyor (blocklist tutmadıkça — o da JWT'yi zaten stateless
+olmaktan çıkarır). Sanctum'un DB'de tutulan, anında iptal edilebilen
+token'ları bu mimari için net bir kazanç; JWT bir gerileme olurdu.
+
+**Backlog #61 — Girişi e-posta-only yap:** `LogSmsSender` zaten sadece
+log'a yazıyordu — telefonla kayıt olan biri kodu hiç alamıyordu (canlıda
+kırık bir yol, kimse fark etmemişti). `SendOtpRequest::identifierRule()`
+yalnızca e-posta kabul edecek şekilde daraltıldı (telefon formatı artık
+422 döner). `SmsSender`/`users.phone` altyapısı SİLİNMEDİ — sağlayıcı
+seçilince kural gevşetilip telefon geri açılabilir. Mobilde
+`(auth)/identifier.tsx` metinleri e-posta-only'e güncellendi
+("Telefon veya e-posta" → "E-posta"). `docs/features/01-auth-profile.md`
+ve `docs/tech-stack.md` güncellendi. Pest: `OtpRequestTest`'teki "accepts
+a phone identifier" testi "rejects a phone identifier" olarak tersine
+çevrildi.
+
+**Backlog #62 — sosyalhalisaha_venues + venues tablo birleştirme:**
+Kullanıcı: "venues tarzında genel bir tablo yapıp içine type atalım...
+farklı farklı tablo olmamış olur." Şema incelendi: `venues` (zengin,
+lat/lng/yorum) ile `sosyalhalisaha_venues` (sadece isim/ID) ayrı
+tablolardı, `matches`'te de iki ayrı FK vardı. Kapsam kararı (kullanıcı
+onayıyla): tablolar birleşsin, `matches`'teki iki FK aynen kalsın (ikisi
+de birleşik `venues`'e işaret eder) — mobil maç kurma UX'i değişmedi.
+- Yeni migration `merge_sosyalhalisaha_venues_into_venues_table`:
+  `venues`'e `type` (`internal`|`sosyalhalisaha`, default `internal`),
+  `district_id` (nullable FK), `external_id` (nullable) eklendi; `lat`/
+  `lng` nullable yapıldı (`doctrine/dbal` composer'a eklendi —
+  `nullable()->change()` için gerekiyordu); `sosyalhalisaha_venue_id`
+  FK'ı eski tablodan kaldırılıp veri taşındıktan sonra `venues`'e yeniden
+  bağlandı; `sosyalhalisaha_venues` tablosu drop edildi. **Gerçek yerel
+  MySQL'de migrate edilip doğrulandı** (sadece SQLite testleriyle değil).
+- `SosyalhalisahaVenue` modeli silindi. `Venue` modeline `type`,
+  `district_id`, `external_id` fillable + `district()` ilişkisi eklendi.
+  `District::sosyalhalisahaVenues()` ve `FootballMatch::sosyalhalisahaVenue()`
+  artık `Venue::class`'a (type filtreli) işaret ediyor —
+  `DistrictController`/`MatchResource` hiç değişmedi (aynı method adları).
+  `SyncSosyalhalisahaVenues` komutu `Venue::updateOrCreate(...,
+  type: 'sosyalhalisaha')` kullanıyor.
+- `VenueController::index()`/`show()` artık `type='internal'` filtreli —
+  sosyalhalisaha satırları saha rehberinde görünmüyor/404 dönüyor.
+  `StoreMatchRequest`/`UpdateMatchRequest`'teki `exists` kuralları
+  `Rule::exists(...)->where('type', ...)` ile sıkılaştırıldı.
+  `VenueFactory`'e `sosyalhalisaha(districtId, externalId)` state'i eklendi.
+- Testler güncellendi (`MatchTest`, `CityTest`, `SosyalhalisahaSyncTest`)
+  + `VenueTest`'e 2 yeni test (sosyalhalisaha satırları rehberde
+  görünmüyor / doğrudan görüntülenemiyor). Pint/Larastan/Pest hepsi temiz
+  — **283 test geçti (2 yeni)**.
+- Docs güncellendi: `08-venues.md` Veri Modeli, `05-videos.md` v1.5
+  bölümü, `tech-stack.md` (doctrine/dbal satırı eklendi).
+
+**Backlog #63 — Mobil performans (VirtualizedList uyarıları):** Kullanıcı
+log'da `dt: 27705ms`'e varan "slow to update" uyarıları gördü. Kök neden
+teşhisi: `PostCard`'daki `PostVideoPlayer`, akış/liste bağlamında bile
+videolu HER gönderi için native video player'ı anında kuruyordu (birden
+fazla video aynı anda decode ediliyor, JS thread'i bloke ediyordu).
+- `PostCard`: video artık yalnızca `detailed` (gönderi detay ekranı) true
+  iken gerçek oynatıcıyla kuruluyor; liste bağlamında statik kapak görseli
+  + play rozeti gösteriliyor, dokununca kartın kendi `onPress`'i detay
+  sayfasına götürüyor (orada gerçek oynatıcı kuruluyor). Hem üst seviye
+  `post.video_url` hem `video_shared` tipindeki yüklenmiş video için aynı
+  desen uygulandı.
+- `PostCard` `React.memo` ile sarıldı; bunun işe yaraması için
+  `onPress`/`onToggleLike`/`onPressAuthor` prop'ları artık post/id ile
+  çağrılan SABİT (useCallback) referanslar olarak alınıyor (önceden her
+  satır için ebeveyn tarafında taze closure kuruluyordu, memo'yu boşa
+  çıkarıyordu). 4 kullanım yeri güncellendi: `feed.tsx`, `(tabs)/profile.tsx`,
+  `player/[id].tsx` (üçünde de `useCallback` + `renderItem` stabilize
+  edildi), `post/[id].tsx` (tek kart, değişiklik gerekmedi — TS yapısal
+  tiplemesi eski imzayı da kabul ediyor).
+- Aynı `memo` + sabit-callback deseni daha hafif listelere de uygulandı:
+  `matches.tsx` (`MatchCard`), `teams.tsx` (`TeamRow`), `search/index.tsx`
+  (`PlayerRow`+`TeamRow`), `connections/[id].tsx` (`PlayerRow`) — hepsinde
+  satır bileşeni `React.memo`, `onPress` artık id alan sabit bir callback.
+  Kalan basit/düz metin listeleri (notifications, conversations, listings,
+  venues, stats) kapsam dışı bırakıldı — ayrı bileşene çıkarılmamış inline
+  JSX, video/ağır medya yok, marjinal fayda küçük.
+- `npx tsc --noEmit` ve `npm run lint` temiz (3 tane `react-hooks/
+  exhaustive-deps` yanlış pozitifi — `ToggleLike.mutate` react-query'de
+  sabit referans garantili — `eslint-disable-next-line` ile bastırıldı,
+  aynı dosyalardaki mevcut desenle tutarlı).
+- **Bu oturumdan görsel/performans doğrulaması yapılamadı** (gerçek
+  cihaz/simülatör yok) — kullanıcının cihazda akışı gezip log'da aynı
+  uyarının tekrar çıkıp çıkmadığını kontrol etmesi gerekiyor.
+
+### Sonraki adım
+- Kullanıcı cihazda test etsin: akışta videolu gönderiler artık kapak
+  görseli + dokunarak açma şeklinde mi görünüyor, log'daki
+  VirtualizedList uyarısı tekrar çıkıyor mu.
+- `sosyalhalisaha:sync` komutu daha önce hiç çalıştırılmadıysa hâlâ
+  kullanıcının elle tetiklemesi gerekiyor (BACKLOG #58) — artık `venues`
+  tablosuna `type=sosyalhalisaha` olarak yazacak.
+
 ## 2026-07-13 (2) — Backlog #60: Açık/Koyu tema desteği
 
 - Kullanıcı Ayarlar'a açık/koyu tema seçici istedi, varsayılan "sistem"

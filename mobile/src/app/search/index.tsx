@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { PublicPlayer, searchPlayers, searchTeams, TeamSearchResult } from '@/features/social/api';
@@ -36,6 +36,9 @@ export default function Search() {
   const Loading = ActiveTab === 'player' ? Players.isFetching : Teams.isFetching;
   const IsError = ActiveTab === 'player' ? Players.isError : Teams.isError;
   const TooShort = Query.trim().length < 2;
+
+  const handleOpenPlayer = useCallback((Id: string) => Router.push(`/player/${Id}`), [Router]);
+  const handleOpenTeam = useCallback((Id: string) => Router.push(`/team/${Id}`), [Router]);
 
   return (
     <Screen bare>
@@ -90,7 +93,7 @@ export default function Search() {
           data={Players.data ?? []}
           keyExtractor={(Item) => Item.id}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => <PlayerRow player={item} onPress={() => Router.push(`/player/${item.id}`)} />}
+          renderItem={({ item }) => <PlayerRow player={item} onPress={handleOpenPlayer} />}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={<EmptyState icon="search-outline" message="Sonuç bulunamadı." />}
         />
@@ -99,7 +102,7 @@ export default function Search() {
           data={Teams.data ?? []}
           keyExtractor={(Item) => Item.id}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => <TeamRow team={item} onPress={() => Router.push(`/team/${item.id}`)} />}
+          renderItem={({ item }) => <TeamRow team={item} onPress={handleOpenTeam} />}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={<EmptyState icon="search-outline" message="Sonuç bulunamadı." />}
         />
@@ -108,12 +111,13 @@ export default function Search() {
   );
 }
 
-function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: () => void }) {
+/** BACKLOG #63: memo — `onPress` ebeveynden SABİT referans olarak gelmeli (useCallback). */
+const PlayerRow = memo(function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: (id: string) => void }) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
 
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
+    <Pressable accessibilityRole="button" onPress={() => onPress(player.id)} style={styles.row}>
       <View style={styles.avatarPlaceholder}>
         <Ionicons name="person-outline" size={18} color={Palette.moss} />
       </View>
@@ -127,21 +131,22 @@ function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: () => v
       </View>
     </Pressable>
   );
-}
+});
 
-function TeamRow({ team, onPress }: { team: TeamSearchResult; onPress: () => void }) {
+/** BACKLOG #63: memo — `onPress` ebeveynden SABİT referans olarak gelmeli (useCallback). */
+const TeamRow = memo(function TeamRow({ team, onPress }: { team: TeamSearchResult; onPress: (id: string) => void }) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
 
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
+    <Pressable accessibilityRole="button" onPress={() => onPress(team.id)} style={styles.row}>
       <View style={styles.avatarPlaceholder}>
         <Ionicons name={badgeIonicon(team.badge_icon)} size={18} color={Palette.lime} />
       </View>
       <Text style={styles.rowTitle}>{team.name}</Text>
     </Pressable>
   );
-}
+});
 
 const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   topBar: {

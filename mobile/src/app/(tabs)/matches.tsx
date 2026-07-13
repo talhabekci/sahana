@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listMatches, Match } from '@/features/match/api';
@@ -12,13 +12,14 @@ import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
-function MatchCard({ match, onPress }: { match: Match; onPress: () => void }) {
+/** BACKLOG #63: memo — `onPress` ebeveynden SABİT referans olarak gelmeli (useCallback), match.id ile burada çağrılır. */
+const MatchCard = memo(function MatchCard({ match, onPress }: { match: Match; onPress: (id: string) => void }) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Summary = match.rsvp_summary;
 
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.card}>
+    <Pressable accessibilityRole="button" onPress={() => onPress(match.id)} style={styles.card}>
       <View style={styles.cardTop}>
         <View style={styles.flexShrink}>
           <Text style={styles.cardTeam}>{match.team?.name ?? 'Takım'}</Text>
@@ -49,7 +50,7 @@ function MatchCard({ match, onPress }: { match: Match; onPress: () => void }) {
       </View>
     </Pressable>
   );
-}
+});
 
 export default function Matches() {
   const Palette = useTheme();
@@ -69,6 +70,8 @@ export default function Matches() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [Filter]),
   );
+
+  const handleOpenMatch = useCallback((Id: string) => Router.push(`/match/${Id}`), [Router]);
 
   return (
     <Screen pitch pitchY={-160}>
@@ -119,9 +122,7 @@ export default function Matches() {
           data={Matches_.data}
           keyExtractor={(Match_) => Match_.id}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <MatchCard match={item} onPress={() => Router.push(`/match/${item.id}`)} />
-          )}
+          renderItem={({ item }) => <MatchCard match={item} onPress={handleOpenMatch} />}
           ListEmptyComponent={
             <EmptyState
               icon={Filter === 'upcoming' ? 'calendar-outline' : 'time-outline'}

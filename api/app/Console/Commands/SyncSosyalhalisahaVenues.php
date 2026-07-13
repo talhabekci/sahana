@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\City;
 use App\Models\District;
-use App\Models\SosyalhalisahaVenue;
+use App\Models\Venue;
 use App\Support\SosyalhalisahaClient;
 use Illuminate\Console\Command;
 
@@ -18,7 +18,7 @@ class SyncSosyalhalisahaVenues extends Command
 {
     protected $signature = 'sosyalhalisaha:sync {--delay-ms=250 : Her istek arası bekleme (nazik davranmak için)}';
 
-    protected $description = 'sosyalhalisaha.com\'un il/ilçe/saha dizinini tek seferlik içe aktarır (districts.external_id + sosyalhalisaha_venues)';
+    protected $description = 'sosyalhalisaha.com\'un il/ilçe/saha dizinini tek seferlik içe aktarır (districts.external_id + venues[type=sosyalhalisaha])';
 
     public function handle(SosyalhalisahaClient $Client): int
     {
@@ -60,8 +60,8 @@ class SyncSosyalhalisahaVenues extends Command
                 usleep($DelayMicroseconds);
 
                 foreach ($Places as $Place) {
-                    SosyalhalisahaVenue::updateOrCreate(
-                        ['district_id' => $District_->id, 'external_id' => $Place['id']],
+                    Venue::updateOrCreate(
+                        ['district_id' => $District_->id, 'external_id' => $Place['id'], 'type' => 'sosyalhalisaha'],
                         ['name' => $Place['title']],
                     );
                     $VenuesUpserted++;

@@ -78,10 +78,11 @@ class FootballMatch extends Model
         return $this->belongsTo(Venue::class);
     }
 
-    /** @return BelongsTo<SosyalhalisahaVenue, $this> */
+    /** BACKLOG #62: sosyalhalisaha_venues tablosu venues'e taşındı (type=sosyalhalisaha). */
+    /** @return BelongsTo<Venue, $this> */
     public function sosyalhalisahaVenue(): BelongsTo
     {
-        return $this->belongsTo(SosyalhalisahaVenue::class);
+        return $this->belongsTo(Venue::class, 'sosyalhalisaha_venue_id');
     }
 
     /** @return BelongsTo<Team, $this> */

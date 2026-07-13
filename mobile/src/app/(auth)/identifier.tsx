@@ -40,18 +40,18 @@ export default function Identifier() {
         <View style={styles.body}>
           <Text style={styles.headline}>GİRİŞ YAP</Text>
           <Text style={styles.sub}>
-            Numaranı ya da e-postanı yaz; sana 6 haneli tek kullanımlık kod gönderelim.
+            E-postanı yaz; sana 6 haneli tek kullanımlık kod gönderelim.
           </Text>
 
           <View style={styles.field}>
             <TextField
-              label="Telefon veya e-posta"
+              label="E-posta"
               value={Identifier_}
               onChangeText={(Value) => {
                 setIdentifier(Value);
                 setError(null);
               }}
-              placeholder="05xx ya da ad@ornek.com"
+              placeholder="ad@ornek.com"
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"

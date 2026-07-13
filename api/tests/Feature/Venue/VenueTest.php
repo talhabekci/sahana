@@ -1,8 +1,28 @@
 <?php
 
+use App\Models\District;
 use App\Models\User;
 use App\Models\Venue;
 use App\Models\VenueReview;
+
+it('excludes sosyalhalisaha-matched venues from the public directory (BACKLOG #62)', function () {
+    Venue::factory()->create(['name' => 'Rehberdeki Saha']);
+    $District = District::first();
+    Venue::factory()->sosyalhalisaha($District->id, 1616)->create(['name' => 'Sadece Eşleşme']);
+    $User = User::factory()->create();
+
+    $Response = $this->actingAs($User)->getJson('/api/v1/venues')->assertOk();
+
+    $Response->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Rehberdeki Saha');
+});
+
+it('404s when trying to view a sosyalhalisaha-matched venue directly (BACKLOG #62)', function () {
+    $District = District::first();
+    $Venue = Venue::factory()->sosyalhalisaha($District->id, 1616)->create(['name' => 'Sadece Eşleşme']);
+    $User = User::factory()->create();
+
+    $this->actingAs($User)->getJson("/api/v1/venues/{$Venue->public_id}")->assertStatus(404);
+});
 
 it('lists venues', function () {
     Venue::factory()->count(3)->create();

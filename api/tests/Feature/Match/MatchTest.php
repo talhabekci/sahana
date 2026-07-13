@@ -2,7 +2,6 @@
 
 use App\Models\District;
 use App\Models\FootballMatch;
-use App\Models\SosyalhalisahaVenue;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Venue;
@@ -132,9 +131,9 @@ it('creates a match with an optional sosyalhalisaha venue match', function () {
     [$Team, $Captain] = teamWithCaptain();
     $District = District::where('city_id', 34)->where('name', 'Kadıköy')->firstOrFail();
     $District->forceFill(['external_id' => 415])->save();
-    $SosyalhalisahaVenue = SosyalhalisahaVenue::create([
-        'district_id' => $District->id, 'external_id' => 1616, 'name' => 'Çekmeköy Belediye Spor Kulubü Halı Saha',
-    ]);
+    $SosyalhalisahaVenue = Venue::factory()
+        ->sosyalhalisaha($District->id, 1616)
+        ->create(['name' => 'Çekmeköy Belediye Spor Kulubü Halı Saha']);
 
     $Response = $this->actingAs($Captain)->postJson('/api/v1/matches', [
         'team_id' => $Team->public_id,
@@ -154,9 +153,9 @@ it('exposes video_search_url only when the match is played and a venue is matche
     [$Team, $Captain] = teamWithCaptain();
     $District = District::where('city_id', 34)->where('name', 'Kadıköy')->firstOrFail();
     $District->forceFill(['external_id' => 415])->save();
-    $SosyalhalisahaVenue = SosyalhalisahaVenue::create([
-        'district_id' => $District->id, 'external_id' => 1616, 'name' => 'Test Saha',
-    ]);
+    $SosyalhalisahaVenue = Venue::factory()
+        ->sosyalhalisaha($District->id, 1616)
+        ->create(['name' => 'Test Saha']);
 
     // UTC 20:00 -> Europe/Istanbul (+3) 23:00.
     $Match = FootballMatch::factory()->for($Team)->create([

@@ -14,7 +14,9 @@ class VenueController extends Controller
     /** Rehber: near/radius/search filtreleri (spec: 08-venues.md §API). */
     public function index(Request $Request): AnonymousResourceCollection
     {
-        $Query = Venue::query()->withCount('reviews')->withAvg('reviews', 'score');
+        // BACKLOG #62: venues artık sosyalhalisaha eşleşmelerini de barındırıyor
+        // (type=sosyalhalisaha) — bunların lat/lng'i yok, rehberde görünmemeli.
+        $Query = Venue::query()->where('type', 'internal')->withCount('reviews')->withAvg('reviews', 'score');
 
         $Search = $Request->query('search');
 
@@ -51,6 +53,8 @@ class VenueController extends Controller
 
     public function show(Venue $Venue): VenueResource
     {
+        abort_if($Venue->type !== 'internal', 404);
+
         $Venue->loadCount('reviews')->loadAvg('reviews', 'score');
         $Venue->load(['reviews' => fn ($Builder) => $Builder->with('user')->latest()->limit(20)]);
 

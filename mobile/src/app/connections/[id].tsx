@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listFollowers, listFollowing, PublicPlayer } from '@/features/social/api';
@@ -21,12 +21,13 @@ function initials(name: string | null): string {
   return (First + Last).toUpperCase();
 }
 
-function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: () => void }) {
+/** BACKLOG #63: memo — `onPress` ebeveynden SABİT referans olarak gelmeli (useCallback). */
+const PlayerRow = memo(function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: (id: string) => void }) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
 
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
+    <Pressable accessibilityRole="button" onPress={() => onPress(player.id)} style={styles.row}>
       <View style={styles.avatar}>
         <Text style={styles.avatarInitials}>{initials(player.name)}</Text>
       </View>
@@ -40,7 +41,7 @@ function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: () => v
       </View>
     </Pressable>
   );
-}
+});
 
 export default function Connections() {
   const Palette = useTheme();
@@ -51,6 +52,8 @@ export default function Connections() {
   const [ActiveTab, setActiveTab] = useState<'followers' | 'following'>(
     tab === 'following' ? 'following' : 'followers',
   );
+
+  const handleOpenPlayer = useCallback((PlayerId: string) => Router.push(`/player/${PlayerId}`), [Router]);
 
   const Followers = useQuery({
     queryKey: ['players', id, 'followers'],
@@ -102,9 +105,7 @@ export default function Connections() {
           data={List.data}
           keyExtractor={(Player) => Player.id}
           contentContainerStyle={styles.list}
-          renderItem={({ item }) => (
-            <PlayerRow player={item} onPress={() => Router.push(`/player/${item.id}`)} />
-          )}
+          renderItem={({ item }) => <PlayerRow player={item} onPress={handleOpenPlayer} />}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
             <EmptyState

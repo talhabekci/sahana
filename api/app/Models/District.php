@@ -23,9 +23,10 @@ class District extends Model
         return $this->belongsTo(City::class);
     }
 
-    /** @return HasMany<SosyalhalisahaVenue, $this> */
+    /** BACKLOG #62: sosyalhalisaha_venues tablosu venues'e taşındı (type=sosyalhalisaha). */
+    /** @return HasMany<Venue, $this> */
     public function sosyalhalisahaVenues(): HasMany
     {
-        return $this->hasMany(SosyalhalisahaVenue::class);
+        return $this->hasMany(Venue::class)->where('type', 'sosyalhalisaha');
     }
 }

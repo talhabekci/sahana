@@ -67,11 +67,17 @@ Aşama 2 (rezervasyon) API'si henüz taslak, kodlanmadı:
 `GET /venues/{id}/availability?date=` · `POST /venues/{id}/bookings`.
 
 ## Veri Modeli (Aşama 1 — uygulandı)
-- `venues`: `id`, `public_id` (ULID), `name`, `lat`/`lng` (decimal, Modül
-  3'teki `matches.venue_lat/lng` ile aynı format), `address?`,
-  `photos` (JSON, url listesi), `price_min?`/`price_max?` (TL),
-  `amenities` (JSON — `indoor`, `capacity`, `shower`, `parking`, `cafeteria`
-  gibi anahtarlar), `status: seeded|verified` (default `seeded`).
+- `venues`: `id`, `public_id` (ULID), `name`, `type: internal|sosyalhalisaha`
+  (default `internal` — BACKLOG #62: kaynak başına ayrı tablo yerine tek
+  tablo + ayrım kolonu; `type=sosyalhalisaha` satırları sadece isim/ID
+  eşlemesi taşır — `district_id`/`external_id` dolu, `lat`/`lng`/yorum yok,
+  `GET /venues` rehberinde görünmez), `district_id?`/`external_id?`
+  (sadece `sosyalhalisaha` tipinde dolu), `lat?`/`lng?` (decimal, Modül
+  3'teki `matches.venue_lat/lng` ile aynı format — `internal` dışında
+  nullable), `address?`, `photos` (JSON, url listesi), `price_min?`/
+  `price_max?` (TL), `amenities` (JSON — `indoor`, `capacity`, `shower`,
+  `parking`, `cafeteria` gibi anahtarlar), `status: seeded|verified`
+  (default `seeded`).
 - `venue_reviews`: `venue_id`, `user_id`, `match_id` (kanıt bağı, zorunlu),
   `score` (1-5), `body?`.
 - `matches.venue_id` (nullable, `venues.id`'ye FK) — `venue_text`'in yanında.

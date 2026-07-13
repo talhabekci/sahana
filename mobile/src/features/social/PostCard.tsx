@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as WebBrowser from 'expo-web-browser';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Post } from './api';
@@ -32,30 +32,51 @@ function initials(name: string | null | undefined): string {
 
 type Props = {
   post: Post;
-  onPress?: () => void;
-  onToggleLike: () => void;
-  onPressAuthor?: () => void;
+  /** Stabil referans ver (useCallback) — post.id ile çağrılır. */
+  onPress?: (postId: string) => void;
+  /** Stabil referans ver (useCallback) — güncel post nesnesiyle çağrılır. */
+  onToggleLike: (post: Post) => void;
+  /** Stabil referans ver (useCallback) — yazar ID'siyle çağrılır. */
+  onPressAuthor?: (authorId: string) => void;
   /** Gönderi detay sayfasında true — kadro için görsel saha önizlemesi gösterir. Feed/liste bağlamında sade metin kartı yeterli. */
   detailed?: boolean;
 };
 
-export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed = false }: Props) {
+/**
+ * BACKLOG #63: memo — feed/profil listelerinde her yeniden render'da tüm
+ * satırların yeniden çizilmesini önler. Bunun işe yaraması için ebeveynler
+ * `onPress`/`onToggleLike`/`onPressAuthor`'ı useCallback ile SABİT referans
+ * olarak vermeli — her satıra özel closure'ı burada, post/id ile içeride
+ * kuruyoruz.
+ */
+export const PostCard = memo(function PostCard({
+  post,
+  onPress,
+  onToggleLike,
+  onPressAuthor,
+  detailed = false,
+}: Props) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { apply, promptOpponentMatch } = useListingActions();
 
+  const handlePress = onPress != null ? () => onPress(post.id) : undefined;
+  const handleToggleLike = () => onToggleLike(post);
+  const handlePressAuthor =
+    onPressAuthor != null && post.author != null ? () => onPressAuthor(post.author!.id) : undefined;
+
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
-      disabled={onPress == null}
+      onPress={handlePress}
+      disabled={handlePress == null}
       style={styles.card}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Pressable
             accessibilityRole="button"
-            onPress={onPressAuthor}
-            disabled={onPressAuthor == null}
+            onPress={handlePressAuthor}
+            disabled={handlePressAuthor == null}
             style={styles.avatar}
             hitSlop={4}>
             {post.author?.avatar_path != null ? (
@@ -68,8 +89,8 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
           <View style={styles.flexShrink}>
             <Pressable
               accessibilityRole="button"
-              onPress={onPressAuthor}
-              disabled={onPressAuthor == null}
+              onPress={handlePressAuthor}
+              disabled={handlePressAuthor == null}
               hitSlop={4}>
               <Text style={styles.authorName}>{post.author?.name ?? 'İsimsiz'}</Text>
             </Pressable>
@@ -90,7 +111,21 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
         <Image source={{ uri: post.image_url }} style={styles.photo} />
       )}
 
-      {post.video_url != null && <PostVideoPlayer uri={post.video_url} />}
+      {post.video_url != null && (
+        detailed ? (
+          <PostVideoPlayer uri={post.video_url} />
+        ) : (
+          // BACKLOG #63: liste bağlamında native oynatıcıyı eagerly kurmuyoruz
+          // (VirtualizedList perf uyarısı) — statik kapak + kartın kendi
+          // onPress'i (detay sayfasına gider, orada gerçek oynatıcı kurulur).
+          <Pressable accessibilityRole="button" onPress={handlePress} style={styles.videoCard}>
+            <Image source={VideoDefaultCover} style={styles.videoThumbnail} />
+            <View style={styles.videoPlayBadge}>
+              <Ionicons name="play" size={14} color={Palette.limeInk} />
+            </View>
+          </Pressable>
+        )
+      )}
 
       {post.type === 'match_played' && post.match != null && (
         <View style={styles.autoCard}>
@@ -157,10 +192,30 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
         post.video.video_url != null ? (
           // Yüklenen maç videosu (BACKLOG #46): tarayıcıya gitmeden akış
           // içinde oynatılır — harici linklerde (YouTube vb.) tarayıcı kalır.
-          <View>
-            <Text style={[styles.autoKicker, styles.videoUploadedKicker]}>🎬 VİDEO PAYLAŞILDI</Text>
-            <PostVideoPlayer uri={post.video.video_url} />
-          </View>
+          // BACKLOG #63: liste bağlamında oynatıcı eagerly kurulmuyor, aynı
+          // statik kapak deseni (aşağıdaki harici link dalıyla birebir).
+          detailed ? (
+            <View>
+              <Text style={[styles.autoKicker, styles.videoUploadedKicker]}>🎬 VİDEO PAYLAŞILDI</Text>
+              <PostVideoPlayer uri={post.video.video_url} />
+            </View>
+          ) : (
+            <Pressable accessibilityRole="button" onPress={handlePress} style={styles.videoCard}>
+              <Image
+                source={post.video.thumbnail_url != null ? { uri: post.video.thumbnail_url } : VideoDefaultCover}
+                style={styles.videoThumbnail}
+              />
+              <View style={styles.videoPlayBadge}>
+                <Ionicons name="play" size={14} color={Palette.limeInk} />
+              </View>
+              <View style={styles.videoInfo}>
+                <Text style={styles.autoKicker}>🎬 VİDEO PAYLAŞILDI</Text>
+                <Text style={styles.autoText} numberOfLines={1}>
+                  {post.video.title ?? 'Maç videosunu izle'}
+                </Text>
+              </View>
+            </Pressable>
+          )
         ) : (
           <Pressable
             accessibilityRole="button"
@@ -188,7 +243,7 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
       )}
 
       <View style={styles.footer}>
-        <Pressable accessibilityRole="button" onPress={onToggleLike} style={styles.actionButton} hitSlop={8}>
+        <Pressable accessibilityRole="button" onPress={handleToggleLike} style={styles.actionButton} hitSlop={8}>
           <Ionicons
             name={post.i_liked ? 'heart' : 'heart-outline'}
             size={18}
@@ -206,7 +261,7 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
       </View>
     </Pressable>
   );
-}
+});
 
 const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   card: {

@@ -89,6 +89,13 @@ export default function Profile() {
     },
   });
 
+  // BACKLOG #63: PostCard React.memo — bu callback'lerin SABİT referans
+  // olması gerekiyor, yoksa memo her satırda kırılır.
+  const handleOpenPost = useCallback((Id: string) => Router.push(`/post/${Id}`), [Router]);
+  // ToggleLike.mutate react-query tarafından sabit referans garantisi verilir (exhaustive-deps yanlış pozitif).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleToggleLike = useCallback((Post_: Post) => ToggleLike.mutate({ post: Post_ }), [ToggleLike.mutate]);
+
   if (Me.isError) {
     return (
       <Screen>
@@ -216,11 +223,7 @@ export default function Profile() {
         }
         renderItem={({ item }) => (
           <View style={styles.postWrap}>
-            <PostCard
-              post={item}
-              onPress={() => Router.push(`/post/${item.id}`)}
-              onToggleLike={() => ToggleLike.mutate({ post: item })}
-            />
+            <PostCard post={item} onPress={handleOpenPost} onToggleLike={handleToggleLike} />
           </View>
         )}
         ListEmptyComponent={

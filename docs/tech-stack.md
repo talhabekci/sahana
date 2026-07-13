@@ -78,7 +78,8 @@ Bu projede hepsi Modül 1-7 arasında lazım. Laravel'de birinci parti:
 | Queue izleme | `laravel/horizon` |
 | WebSocket | `laravel/reverb` |
 | Görsel işleme (thumbnail, crop) | `intervention/image` |
-| SMS (OTP) | Netgsm/İleti Merkezi entegrasyonu (TR); arayüz arkasına saklanır |
+| Migration kolon değişikliği | `doctrine/dbal` (2026-07-13 eklendi — `nullable()->change()` için gerekli, BACKLOG #62) |
+| SMS (OTP) | Netgsm/İleti Merkezi entegrasyonu (TR); arayüz arkasına saklanır. **Henüz seçilmedi** — v1'de girişler yalnızca e-posta (BACKLOG #61, 2026-07-13); `SmsSender`/`LogSmsSender` altyapısı sağlayıcı seçilene kadar hazır bekliyor |
 | API dokümantasyonu | `dedoc/scramble` (OpenAPI otomatik üretim) |
 | Test | Pest |
 | Statik analiz | Larastan (PHPStan level 6+) |

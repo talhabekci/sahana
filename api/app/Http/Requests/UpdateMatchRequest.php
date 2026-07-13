@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateMatchRequest extends FormRequest
 {
@@ -17,7 +18,10 @@ class UpdateMatchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'venue_id' => ['sometimes', 'nullable', 'string', 'exists:venues,public_id'],
+            'venue_id' => [
+                'sometimes', 'nullable', 'string',
+                Rule::exists('venues', 'public_id')->where('type', 'internal'),
+            ],
             'venue_text' => ['sometimes', 'required', 'string', 'max:120'],
             'venue_lat' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
             'venue_lng' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],

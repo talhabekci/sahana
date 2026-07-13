@@ -17,13 +17,7 @@ class SendOtpRequest extends FormRequest
         $Identifier = $this->input('identifier');
 
         if (is_string($Identifier)) {
-            $Identifier = trim($Identifier);
-
-            if (str_contains($Identifier, '@')) {
-                $Identifier = mb_strtolower($Identifier);
-            }
-
-            $this->merge(['identifier' => $Identifier]);
+            $this->merge(['identifier' => mb_strtolower(trim($Identifier))]);
         }
     }
 
@@ -37,14 +31,19 @@ class SendOtpRequest extends FormRequest
         ];
     }
 
+    /**
+     * BACKLOG #61: SMS sağlayıcısı entegre edilene kadar yalnızca e-posta
+     * kabul edilir — telefon formatı kasıtlı olarak reddedilir. `users.phone`
+     * ve `SmsSender` altyapısı silinmedi; sağlayıcı seçilince buraya tekrar
+     * bir `IsPhone` dalı eklenip açılabilir.
+     */
     public static function identifierRule(): Closure
     {
         return function (string $Attribute, mixed $Value, Closure $Fail): void {
             $IsEmail = is_string($Value) && filter_var($Value, FILTER_VALIDATE_EMAIL) !== false;
-            $IsPhone = is_string($Value) && preg_match('/^\+?[0-9]{10,15}$/', $Value) === 1;
 
-            if (! $IsEmail && ! $IsPhone) {
-                $Fail('Geçerli bir telefon numarası veya e-posta adresi girin.');
+            if (! $IsEmail) {
+                $Fail('Geçerli bir e-posta adresi girin.');
             }
         };
     }
