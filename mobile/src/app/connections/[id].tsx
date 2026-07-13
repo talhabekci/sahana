@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listFollowers, listFollowing, PublicPlayer } from '@/features/social/api';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 function initials(name: string | null): string {
   if (name == null || name.trim() === '') {
@@ -22,6 +22,9 @@ function initials(name: string | null): string {
 }
 
 function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: () => void }) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
       <View style={styles.avatar}>
@@ -40,6 +43,8 @@ function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: () => v
 }
 
 export default function Connections() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { id, tab } = useLocalSearchParams<{ id: string; tab?: string }>();
   const Router = useRouter();
 
@@ -113,7 +118,7 @@ export default function Connections() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   topBar: {
     paddingHorizontal: space(6),
     paddingTop: space(4),

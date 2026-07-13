@@ -20,7 +20,7 @@ import { Button } from '@/shared/ui/Button';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 const STEPS = ['name', 'positions', 'level', 'city'] as const;
 
@@ -35,6 +35,8 @@ const STEP_TITLES: Record<(typeof STEPS)[number], { title: string; sub: string }
 };
 
 export default function Onboarding() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
   const [StepIndex, setStepIndex] = useState(0);
   const [Name, setName] = useState('');
@@ -224,7 +226,7 @@ export default function Onboarding() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   flex: {
     flex: 1,
   },

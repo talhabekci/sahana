@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useState } from 'react';
+import { forwardRef, useCallback, useMemo, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -9,7 +9,7 @@ import Animated, {
 import ViewShot from 'react-native-view-shot';
 
 import type { LineupPosition } from './api';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 const PUCK_SIZE = 56;
 
@@ -22,6 +22,8 @@ type PuckProps = {
 };
 
 function Puck({ position, boardWidth, boardHeight, onMove, onPress }: PuckProps) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const TranslateX = useSharedValue(position.x * boardWidth - PUCK_SIZE / 2);
   const TranslateY = useSharedValue(position.y * boardHeight - PUCK_SIZE / 2);
   const StartX = useSharedValue(0);
@@ -95,6 +97,8 @@ export const PitchBoard = forwardRef<ViewShot, Props>(function PitchBoard(
   { positions, onPositionsChange, onSlotPress },
   Ref,
 ) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const [BoardSize, setBoardSize] = useState({ width: 0, height: 0 });
 
   const handleLayout = (Event: LayoutChangeEvent) => {
@@ -135,6 +139,9 @@ export const PitchBoard = forwardRef<ViewShot, Props>(function PitchBoard(
 
 /** Sahanın altına export'ta gömülen büyüme kancası (spec: 02-team-lineup.md). */
 export function PitchWatermark({ inviteCode }: { inviteCode?: string }) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View style={styles.watermark}>
       <Text style={styles.watermarkText}>sahana.app ile kuruldu</Text>
@@ -143,7 +150,7 @@ export function PitchWatermark({ inviteCode }: { inviteCode?: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   shot: {
     backgroundColor: Palette.pitchNight,
   },

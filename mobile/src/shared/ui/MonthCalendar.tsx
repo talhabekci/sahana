@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Type, space } from './theme';
+import { PaletteTokens, Type, space, useTheme } from './theme';
 
 const MONTH_NAMES = [
   'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
@@ -55,6 +55,8 @@ type Props = {
  * kaldırıldı. Harici bağımlılık yok, tema token'larıyla birebir uyumlu.
  */
 export function MonthCalendar({ value, minDate, onSelect }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Min = startOfDay(minDate);
   const Initial = value ?? Min;
   const [ViewYear, setViewYear] = useState(Initial.getFullYear());
@@ -153,7 +155,7 @@ export function MonthCalendar({ value, minDate, onSelect }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

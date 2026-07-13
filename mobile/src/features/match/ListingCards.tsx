@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { OpponentListing, PlayerListing } from './api';
 import { formatDayLabel, formatTimeLabel } from './constants';
 import { shareListing } from './shareListing';
 import { POSITIONS } from '@/features/auth/PitchPositionPicker';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 function positionLabel(Key: string): string {
   return POSITIONS.find((Position) => Position.key === Key)?.label ?? Key;
@@ -24,6 +25,9 @@ type PlayerListingCardProps = {
 
 /** Adam-eksik ilan kartı — Keşfet ve feed'de aynı görünüm/işlev. */
 export function PlayerListingCard({ listing, onApply }: PlayerListingCardProps) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View style={styles.card}>
       <View style={styles.cardTop}>
@@ -84,6 +88,9 @@ type OpponentListingCardProps = {
 
 /** Rakip-arıyor ilan kartı — Keşfet ve feed'de aynı görünüm/işlev. */
 export function OpponentListingCard({ listing, onMatch }: OpponentListingCardProps) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View style={styles.card}>
       <View style={styles.cardTop}>
@@ -116,7 +123,7 @@ export function OpponentListingCard({ listing, onMatch }: OpponentListingCardPro
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   card: {
     backgroundColor: Palette.turf,
     borderRadius: Radius.l,

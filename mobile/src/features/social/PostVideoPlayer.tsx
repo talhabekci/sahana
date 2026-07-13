@@ -1,7 +1,8 @@
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { Palette, Radius, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, space, useTheme } from '@/shared/ui/theme';
 
 type Props = {
   uri: string;
@@ -12,6 +13,8 @@ type Props = {
  * otomatik oynatma yok, ses/oynatma kontrolü native player'da.
  */
 export function PostVideoPlayer({ uri }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Player = useVideoPlayer(uri, (Instance) => {
     Instance.loop = false;
   });
@@ -19,7 +22,7 @@ export function PostVideoPlayer({ uri }: Props) {
   return <VideoView player={Player} style={styles.video} nativeControls contentFit="cover" />;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   video: {
     width: '100%',
     height: 220,

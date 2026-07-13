@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Palette } from './theme';
+import { PaletteTokens, useTheme } from './theme';
 
 type Props = {
   /** Orta yuvarlağın dikey konumu (ekran üstünden px) */
@@ -13,6 +14,9 @@ type Props = {
  * aynı sahanın bir karesi gibi hissettirir.
  */
 export function PitchLines({ y = -120 }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <View style={[styles.halfwayLine, { top: y + CIRCLE / 2 }]} />
@@ -24,7 +28,7 @@ export function PitchLines({ y = -120 }: Props) {
 
 const CIRCLE = 340;
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   halfwayLine: {
     position: 'absolute',
     left: 0,

@@ -1,9 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { Palette, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Type, space, useTheme } from '@/shared/ui/theme';
 
 export function formatDuration(seconds: number): string {
   const Minutes = Math.floor(seconds / 60);
@@ -18,6 +18,8 @@ type Props = {
 };
 
 export function VoiceMessageBubble({ uri, durationSeconds }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Player = useAudioPlayer(uri);
   const Status = useAudioPlayerStatus(Player);
 
@@ -57,7 +59,7 @@ export function VoiceMessageBubble({ uri, durationSeconds }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',

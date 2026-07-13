@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import {
@@ -24,9 +25,11 @@ import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 export default function PlayerProfile() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const Router = useRouter();
   const QueryClient = useQueryClient();
@@ -243,7 +246,7 @@ export default function PlayerProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   center: {
     flex: 1,
     alignItems: 'center',

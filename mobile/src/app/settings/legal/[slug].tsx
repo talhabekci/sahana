@@ -1,8 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Type, space, useTheme } from '@/shared/ui/theme';
 
 const TITLES: Record<string, string> = {
   privacy: 'Gizlilik Politikası',
@@ -11,6 +12,8 @@ const TITLES: Record<string, string> = {
 };
 
 export default function LegalDocument() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const Title = TITLES[slug] ?? 'Belge';
@@ -36,7 +39,7 @@ export default function LegalDocument() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   back: {
     paddingHorizontal: space(6),
     paddingTop: space(4),

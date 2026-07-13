@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listConversations } from '@/features/chat/api';
@@ -9,7 +9,7 @@ import { badgeIonicon } from '@/features/team/constants';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 function formatWhen(iso: string | null): string {
   if (iso == null) {
@@ -25,6 +25,8 @@ function formatWhen(iso: string | null): string {
 }
 
 export default function Conversations() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
 
   const List = useQuery({
@@ -93,7 +95,7 @@ export default function Conversations() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   header: {
     paddingHorizontal: space(6),
     paddingTop: space(4),

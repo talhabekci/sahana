@@ -976,6 +976,32 @@
   limon pill), etiketler görseldeki gibi kaldırılıyor (erişilebilirlik için
   accessibilityLabel korunuyor).
 
+### 60. Açık/Koyu tema desteği (sistem varsayılan + Ayarlar'dan geçiş) ✅
+- **Tamamlandı:** 2026-07-13 — detaylar `docs/PROGRESS.md` 2026-07-13 (2)
+  kaydında. 58 dosyanın tamamı tema-duyarlı hale getirildi, `tsc`/`lint`
+  temiz. Açık palet renkleri cihazda görülmeden seçildi.
+- **Talep tarihi:** 2026-07-13
+- Kullanıcı: Ayarlar'a açık/koyu tema seçici istiyor, varsayılan "sistem"
+  (telefonun modunu takip eder), kullanıcı isterse açık ya da koyuyu
+  sabitleyebilir. **Karar (kullanıcı onayıyla): tüm uygulama tek seferde
+  tema-duyarlı hale getirilecek** (59 dosyadaki tüm ekranlar), yarım kalan
+  ekran bırakılmayacak.
+- **Bağlı modül:** cross-cutting (mobil tasarım sistemi) — bkz.
+  [architecture.md](architecture.md) "Tema (Açık/Koyu)" bölümü.
+- Mimari: `shared/ui/theme.ts` tek bir statik `Palette` yerine
+  `DarkPalette`/`LightPalette` (aynı anahtar adları, farklı değerler) +
+  `useTheme()` hook'u (react-native `useColorScheme()` + kalıcı tercih)
+  export ediyor. Kalıcı tercih `expo-secure-store` ile saklanıyor (proje
+  zaten auth token için bunu kullanıyor, yeni bağımlılık eklenmedi).
+  Her ekranda `StyleSheet.create` modül seviyesinden `createStyles(Palette)`
+  fabrikasına taşındı, bileşen içinde `useMemo` ile çağrılıyor.
+- Açık palet tasarımı: `lime` (projektör limonu) gündüzde koyulaştırıldı
+  (`#C9F24E` → `#5B7A17` civarı) çünkü kullanım noktalarının çoğu (174
+  kullanımdan 133'ü) beyaz zemin üzerinde doğrudan metin/ikon rengi olarak
+  kullanılıyor — orijinal neon değer beyazda düşük kontrast veriyordu.
+  Bu değerler cihazda görülmeden seçildi, kullanıcı geri bildirimiyle
+  ayarlanabilir.
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

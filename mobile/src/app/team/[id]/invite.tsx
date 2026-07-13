@@ -2,7 +2,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -10,9 +10,11 @@ import { generateInvite, getTeam } from '@/features/team/api';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 export default function TeamInvite() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const Router = useRouter();
   const Team = useQuery({ queryKey: ['teams', id], queryFn: () => getTeam(id) });
@@ -78,7 +80,7 @@ export default function TeamInvite() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   back: {
     fontFamily: Type.bodyMedium,
     fontSize: 16,

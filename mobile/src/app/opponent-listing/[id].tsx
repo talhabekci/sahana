@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { useAuthStore } from '@/features/auth/store';
@@ -9,10 +9,12 @@ import { OpponentListingCard } from '@/features/match/ListingCards';
 import { useListingActions } from '@/features/match/useListingActions';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Type, space, useTheme } from '@/shared/ui/theme';
 
 /** Paylaşılan rakip-arıyor ilan linkinin (BACKLOG #33) hedef ekranı. */
 export default function SharedOpponentListing() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const Router = useRouter();
   const Token = useAuthStore((State) => State.token);
@@ -57,7 +59,7 @@ export default function SharedOpponentListing() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   back: {
     fontFamily: Type.bodyMedium,
     fontSize: 16,

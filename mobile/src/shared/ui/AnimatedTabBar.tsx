@@ -1,10 +1,10 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { LayoutChangeEvent, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 import { GlassView } from '@/shared/ui/GlassView';
-import { Palette, Radius, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, space, useTheme } from '@/shared/ui/theme';
 
 const TAB_HEIGHT = 54;
 /** İkonun sıradaki sabit dikey merkezi — hem ikon hem delik/düğme buna göre hizalanır, ikon ASLA yer değiştirmez. */
@@ -28,6 +28,8 @@ const SPRING_CONFIG = { damping: 24, stiffness: 260, mass: 0.7, overshootClampin
  * parametresi belirler).
  */
 export function AnimatedTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const [TabCenters, setTabCenters] = useState<Record<number, number>>({});
   const CenterX = useSharedValue(0);
   const IndicatorOpacity = useSharedValue(0);
@@ -99,7 +101,7 @@ export function AnimatedTabBar({ state, descriptors, navigation, insets }: Botto
               style={styles.tab}>
               {options.tabBarIcon?.({
                 focused: IsFocused,
-                color: IsFocused ? Palette.limeInk : Palette.moss,
+                color: IsFocused ? Palette.turf : Palette.moss,
                 size: IsFocused ? 24 : 22,
               })}
             </Pressable>
@@ -110,7 +112,8 @@ export function AnimatedTabBar({ state, descriptors, navigation, insets }: Botto
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) =>
+  StyleSheet.create({
   wrap: {
     position: 'absolute',
     left: 0,
@@ -155,4 +158,4 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     elevation: 8,
   },
-});
+  });

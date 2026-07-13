@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 
-import { Palette, Type, space } from './theme';
+import { PaletteTokens, Type, space, useTheme } from './theme';
 
 type Props = TextInputProps & {
   label: string;
@@ -9,6 +9,8 @@ type Props = TextInputProps & {
 };
 
 export function TextField({ label, error, ...InputProps }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const [Focused, setFocused] = useState(false);
 
   return (
@@ -37,7 +39,7 @@ export function TextField({ label, error, ...InputProps }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   label: {
     fontFamily: Type.bodyMedium,
     fontSize: 12,

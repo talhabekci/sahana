@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import Animated, {
   Easing,
@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import SplashMark from '@/assets/images/splash-icon.png';
-import { Palette } from './theme';
+import { PaletteTokens, useTheme } from './theme';
 
 type Props = {
   /** Fontlar + auth hydration bitince true olur — animasyon en az bir miktar
@@ -27,6 +27,8 @@ type Props = {
  * solarak asıl uygulamayı açığa çıkarır. Bkz. BACKLOG.md #22.
  */
 export function AnimatedSplash({ ready, onFinish }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const MarkScale = useSharedValue(0.7);
   const MarkOpacity = useSharedValue(0);
   const RingScale = useSharedValue(0.9);
@@ -81,24 +83,25 @@ export function AnimatedSplash({ ready, onFinish }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: Palette.pitchNight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 100,
-  },
-  ring: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    borderWidth: 2,
-    borderColor: Palette.lime,
-  },
-  mark: {
-    width: 140,
-    height: 140,
-  },
-});
+const createStyles = (Palette: PaletteTokens) =>
+  StyleSheet.create({
+    container: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: Palette.pitchNight,
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 100,
+    },
+    ring: {
+      position: 'absolute',
+      width: 180,
+      height: 180,
+      borderRadius: 90,
+      borderWidth: 2,
+      borderColor: Palette.lime,
+    },
+    mark: {
+      width: 140,
+      height: 140,
+    },
+  });

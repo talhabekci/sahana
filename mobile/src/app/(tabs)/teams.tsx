@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listTeams, Team } from '@/features/team/api';
@@ -10,9 +10,12 @@ import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 function TeamRow({ team, onPress }: { team: Team; onPress: () => void }) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
       {team.logo_url != null ? (
@@ -36,6 +39,8 @@ function TeamRow({ team, onPress }: { team: Team; onPress: () => void }) {
 }
 
 export default function Teams() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
   const Teams = useQuery({ queryKey: ['teams'], queryFn: listTeams });
 
@@ -84,7 +89,7 @@ export default function Teams() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   header: {
     paddingTop: space(4),
     marginBottom: space(5),

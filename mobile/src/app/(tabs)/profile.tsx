@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -23,7 +23,7 @@ import { StatsCard } from '@/features/stats/StatsCard';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 function positionLabel(Key: string): string {
   return POSITIONS.find((Position) => Position.key === Key)?.label ?? Key;
@@ -42,6 +42,8 @@ function initials(name: string | null | undefined): string {
 }
 
 export default function Profile() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
   const QueryClient = useQueryClient();
   const Me = useQuery({ queryKey: ['me'], queryFn: getMe });
@@ -231,7 +233,7 @@ export default function Profile() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

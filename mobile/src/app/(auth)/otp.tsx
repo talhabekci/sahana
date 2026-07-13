@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { requestOtp, verifyOtp } from '@/features/auth/api';
@@ -10,7 +10,7 @@ import { usePendingInviteStore } from '@/features/team/pendingInviteStore';
 import { toApiFailure } from '@/shared/api/client';
 import { OtpInput } from '@/shared/ui/OtpInput';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Type, space, useTheme } from '@/shared/ui/theme';
 
 const RESEND_SECONDS = 120;
 
@@ -22,6 +22,8 @@ function formatCountdown(Total: number): string {
 }
 
 export default function Otp() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
   const { identifier } = useLocalSearchParams<{ identifier: string }>();
   const setToken = useAuthStore((State) => State.setToken);
@@ -136,7 +138,7 @@ export default function Otp() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   back: {
     fontFamily: Type.bodyMedium,
     fontSize: 16,

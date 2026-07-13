@@ -1,11 +1,14 @@
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Type, space, useTheme } from '@/shared/ui/theme';
 
 export default function Welcome() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
 
   return (
@@ -29,7 +32,7 @@ export default function Welcome() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   body: {
     flex: 1,
     justifyContent: 'flex-end',

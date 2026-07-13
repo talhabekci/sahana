@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { PublicPlayer, searchPlayers, searchTeams, TeamSearchResult } from '@/features/social/api';
@@ -9,11 +9,13 @@ import { badgeIonicon } from '@/features/team/constants';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 type Tab = 'player' | 'team';
 
 export default function Search() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
 
   const [Query, setQuery] = useState('');
@@ -107,6 +109,9 @@ export default function Search() {
 }
 
 function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: () => void }) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
       <View style={styles.avatarPlaceholder}>
@@ -125,6 +130,9 @@ function PlayerRow({ player, onPress }: { player: PublicPlayer; onPress: () => v
 }
 
 function TeamRow({ team, onPress }: { team: TeamSearchResult; onPress: () => void }) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.row}>
       <View style={styles.avatarPlaceholder}>
@@ -135,7 +143,7 @@ function TeamRow({ team, onPress }: { team: TeamSearchResult; onPress: () => voi
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   topBar: {
     paddingHorizontal: space(6),
     paddingTop: space(4),

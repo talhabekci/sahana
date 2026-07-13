@@ -3,6 +3,53 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-13 (2) — Backlog #60: Açık/Koyu tema desteği
+
+- Kullanıcı Ayarlar'a açık/koyu tema seçici istedi, varsayılan "sistem"
+  (telefon modunu takip eder), kullanıcı isterse açık/koyu sabitleyebilir.
+  Kapsam kararı (kullanıcı onayıyla): **tüm uygulama tek seferde**
+  tema-duyarlı hale getirildi (59 dosya) — yarım kalan ekran bırakılmadı.
+- `mobile/src/shared/ui/theme.ts`: tek statik `Palette` yerine
+  `DarkPalette`/`LightPalette` (`PaletteTokens` tipi, aynı anahtar adları)
+  + `useIsDarkTheme()`/`useTheme()` hook'ları — `useColorScheme()` (sistem)
+  ve `useThemeStore` (kullanıcı override) birleştiriliyor.
+- `mobile/src/features/settings/themeStore.ts` (yeni): zustand store,
+  `mode: 'system'|'light'|'dark'`, `expo-secure-store` ile kalıcı (auth
+  store'daki yerleşik desenle aynı — `AsyncStorage` kullanılmadı).
+- `mobile/src/app/_layout.tsx`: tema store'u da `hydrate()` ediliyor,
+  `StatusBar` ve `Stack` arka planı artık `useTheme()`/`useIsDarkTheme()`
+  ile dinamik.
+- `mobile/src/app/settings/index.tsx`: yeni "GÖRÜNÜM" bölümü — Sistem/
+  Açık/Koyu 3'lü segment seçici, `useThemeStore` ile anında uygulanıyor.
+- **Açık palet tasarım kararı:** `lime` (projektör limonu) ışık modunda
+  koyulaştırıldı (`#C9F24E` → `#5B7A17`) — `Palette.lime` kullanımlarının
+  174'ten 133'ü doğrudan metin/ikon rengi olarak kullanılıyor, orijinal
+  neon değer beyaz zeminde düşük kontrastlı kalıyordu. `clay` (hata) da
+  benzer sebeple koyulaştırıldı. Diğer tüm renkler (`pitchNight`, `turf`,
+  `chalk`, `moss`, `lineFaint`/`line`) için de aydınlık karşılıkları
+  tasarlandı — bkz. `docs/architecture.md` §5.1.
+- **Mekanik dönüşüm (58 tüketici dosya):** her dosyada modül seviyesindeki
+  `const styles = StyleSheet.create({...})` → `const createStyles =
+  (Palette: PaletteTokens) => StyleSheet.create({...})` fabrikasına
+  taşındı, bileşen içinde `const Palette = useTheme(); const styles =
+  useMemo(() => createStyles(Palette), [Palette]);` eklendi. Birden fazla
+  bileşen barındıran dosyalarda (ör. `matches.tsx`+`MatchCard`,
+  `search/index.tsx`+`PlayerRow`/`TeamRow`, `PitchBoard.tsx`+`Puck`+
+  `PitchWatermark`) her bileşen kendi `useTheme()` çağrısını yapıyor.
+- `npx tsc --noEmit` ve `npm run lint` tam ağaç üzerinde temiz (yalnızca
+  önceden var olan ilgisiz axios uyarısı). Statik `Palette` importu
+  kalmadığı grep ile doğrulandı.
+- **Bu oturumdan görsel doğrulama yapılamadı** (RN native uygulama,
+  simülatör bu ortamda yok) — kullanıcının cihazda her iki modu da
+  gezip kontrast/okunabilirlik sorunu olan ekranları bildirmesi bekleniyor,
+  özellikle `lime` metin rengi ışık modunda incelenmeli.
+- **Bağlı modül:** cross-cutting (mobil tasarım sistemi)
+
+### Sonraki adım
+- Kullanıcı cihazda açık modu inceleyip renk/kontrast geri bildirimi
+  verirse ilgili token (`LightPalette` içindeki tek bir değer) veya
+  belirli bir ekranın stili düzeltilebilir.
+
 ## 2026-07-13 (1) — Backlog #59: alt sekme çubuğuna animasyonlu limon pill
 
 - Kullanıcı bir referans görsel paylaştı (TikTok tarzı ikon çubuğu, aktif

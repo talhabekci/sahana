@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Sharing from 'expo-sharing';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import type ViewShot from 'react-native-view-shot';
 
@@ -10,9 +10,11 @@ import { PitchBoard, PitchWatermark } from '@/features/team/PitchBoard';
 import { RosterSheet } from '@/features/team/RosterSheet';
 import { toApiFailure } from '@/shared/api/client';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Type, space, useTheme } from '@/shared/ui/theme';
 
 export default function LineupBoard() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { id: TeamId, lid: LineupId } = useLocalSearchParams<{ id: string; lid: string }>();
   const Router = useRouter();
   const QueryClient = useQueryClient();
@@ -146,7 +148,7 @@ export default function LineupBoard() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   center: {
     flex: 1,
     alignItems: 'center',

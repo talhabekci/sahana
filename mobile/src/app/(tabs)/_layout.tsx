@@ -2,9 +2,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 
 import { AnimatedTabBar } from '@/shared/ui/AnimatedTabBar';
-import { Palette } from '@/shared/ui/theme';
+import { useTheme } from '@/shared/ui/theme';
 
 export default function TabsLayout() {
+  const Palette = useTheme();
+
   return (
     <Tabs
       // Animasyonlu pill sekme çubuğu (BACKLOG #59): varsayılan ikon+etiket

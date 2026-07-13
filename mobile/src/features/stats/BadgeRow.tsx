@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import type { PlayerBadge } from './api';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 type Props = {
   badges: PlayerBadge[];
@@ -10,6 +11,9 @@ type Props = {
 
 /** Kazanılan rozetlerin yatay vitrini (BACKLOG #54) — profil ve oyuncu ekranında. */
 export function BadgeRow({ badges }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   if (badges.length === 0) {
     return null;
   }
@@ -37,7 +41,7 @@ export function BadgeRow({ badges }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   wrap: {
     marginTop: space(5),
   },

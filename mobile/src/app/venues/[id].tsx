@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -21,7 +21,7 @@ import { createVenueReview, getVenue } from '@/features/venue/api';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 const AMENITY_LABELS: Record<string, string> = {
   indoor: 'Kapalı',
@@ -36,6 +36,8 @@ function formatWhen(iso: string): string {
 }
 
 export default function VenueDetail() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const Router = useRouter();
   const QueryClient = useQueryClient();
@@ -222,7 +224,7 @@ export default function VenueDetail() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   flex: {
     flex: 1,
   },

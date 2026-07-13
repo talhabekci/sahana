@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { LineupPosition } from './api';
-import { Palette, Radius, Type } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, useTheme } from '@/shared/ui/theme';
 
 const PUCK_SIZE = 30;
 
@@ -15,6 +16,9 @@ type Props = {
  * Yüzde tabanlı konumlandırma kullanır, onLayout ölçümüne gerek yok.
  */
 export function PitchPreview({ positions }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View style={styles.pitch}>
       <View pointerEvents="none" style={styles.goalTop} />
@@ -47,7 +51,7 @@ export function PitchPreview({ positions }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   pitch: {
     aspectRatio: 0.9,
     backgroundColor: Palette.turf,

@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as WebBrowser from 'expo-web-browser';
+import { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Post } from './api';
@@ -9,7 +10,7 @@ import { OpponentListingCard, PlayerListingCard } from '@/features/match/Listing
 import { useListingActions } from '@/features/match/useListingActions';
 import { badgeIonicon } from '@/features/team/constants';
 import { PitchPreview } from '@/features/team/PitchPreview';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 function formatWhen(iso: string): string {
   const Date_ = new Date(iso);
@@ -39,6 +40,8 @@ type Props = {
 };
 
 export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed = false }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { apply, promptOpponentMatch } = useListingActions();
 
   return (
@@ -205,7 +208,7 @@ export function PostCard({ post, onPress, onToggleLike, onPressAuthor, detailed 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   card: {
     backgroundColor: Palette.turf,
     borderRadius: Radius.l,

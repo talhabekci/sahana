@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -14,7 +14,7 @@ import type { LineupPosition, TeamMember } from './api';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { TextField } from '@/shared/ui/TextField';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 type Props = {
   visible: boolean;
@@ -32,6 +32,8 @@ type Props = {
  * atama; üye olmayan için misafir pulu".
  */
 export function RosterSheet({ visible, slot, members, onAssignMember, onAssignGuest, onClear, onClose }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const [GuestName, setGuestName] = useState('');
 
   if (slot == null) {
@@ -100,7 +102,7 @@ export function RosterSheet({ visible, slot, members, onAssignMember, onAssignGu
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   flex: {
     flex: 1,
   },

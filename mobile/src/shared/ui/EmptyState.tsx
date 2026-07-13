@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useMemo } from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
-import { Palette, Type, space } from './theme';
+import { PaletteTokens, Type, space, useTheme } from './theme';
 
 type Props = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -10,6 +11,9 @@ type Props = {
 };
 
 export function EmptyState({ icon, message, style }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View style={[styles.container, style]}>
       <Ionicons name={icon} size={32} color={Palette.moss} />
@@ -18,7 +22,7 @@ export function EmptyState({ icon, message, style }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',

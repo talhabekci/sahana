@@ -1,9 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PitchLines } from './PitchLines';
-import { Palette, space } from './theme';
+import { PaletteTokens, space, useTheme } from './theme';
 
 type Props = {
   children: ReactNode;
@@ -16,6 +16,9 @@ type Props = {
 };
 
 export function Screen({ children, pitch = false, pitchY, bare = false }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View style={styles.root}>
       {pitch && <PitchLines y={pitchY} />}
@@ -24,7 +27,7 @@ export function Screen({ children, pitch = false, pitchY, bare = false }: Props)
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.pitchNight,

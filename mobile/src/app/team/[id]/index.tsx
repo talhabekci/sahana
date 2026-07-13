@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -31,7 +31,7 @@ import { badgeIonicon, FORMATION_PRESETS } from '@/features/team/constants';
 import { toApiFailure } from '@/shared/api/client';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 const MIN_CUSTOM_SLOTS = 3;
 const MAX_CUSTOM_SLOTS = 14;
@@ -63,6 +63,8 @@ function generateCustomSlots(Count: number): Pick<LineupPosition, 'id' | 'x' | '
 }
 
 export default function TeamDetail() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const Router = useRouter();
   const QueryClient = useQueryClient();
@@ -364,7 +366,7 @@ export default function TeamDetail() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   center: {
     flex: 1,
     alignItems: 'center',

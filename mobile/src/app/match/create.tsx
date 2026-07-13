@@ -24,7 +24,7 @@ import { GlassView } from '@/shared/ui/GlassView';
 import { MonthCalendar } from '@/shared/ui/MonthCalendar';
 import { Screen } from '@/shared/ui/Screen';
 import { TextField } from '@/shared/ui/TextField';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23] as const;
 
@@ -33,6 +33,8 @@ function toDateKey(Date_: Date): string {
 }
 
 export default function CreateMatch() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
   const QueryClient = useQueryClient();
 
@@ -463,7 +465,7 @@ export default function CreateMatch() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   flex: {
     flex: 1,
   },

@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 
 import { hexToHue, hslToHex } from '@/features/team/constants';
-import { Palette, Radius } from './theme';
+import { PaletteTokens, Radius, useTheme } from './theme';
 
 const THUMB_SIZE = 26;
 const SEGMENTS = 48;
@@ -24,6 +24,8 @@ type Props = {
  * ediliyor — mevcut dev-client build'inde çalışır, yeni rebuild gerekmez.
  */
 export function HueColorPicker({ value, onChange }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const [TrackWidth, setTrackWidth] = useState(0);
   const ThumbX = useSharedValue(0);
 
@@ -78,7 +80,7 @@ export function HueColorPicker({ value, onChange }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   track: {
     height: 40,
     borderRadius: Radius.pill,

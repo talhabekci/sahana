@@ -169,6 +169,35 @@ mobilde kullanıcı saat dilimine çevrilir. Detay: [api-conventions.md](api-con
 | staging | Test + TestFlight/Internal track | VPS üzerinde ayrı container seti (MySQL+MongoDB+Redis+Reverb) | EAS preview build |
 | production | Canlı | VPS | Store sürümleri + OTA |
 
+## 5.1 Tema (Açık/Koyu) — BACKLOG #60
+
+Mobil uygulamanın tek bir statik `Palette` sabiti yerine iki paleti var:
+`DarkPalette` ("Gece Maçı", orijinal tasarım) ve `LightPalette` ("Gündüz
+Maçı"). İkisi de **aynı anahtar adlarını** paylaşır (`pitchNight`, `turf`,
+`chalk`, `lime`, ...) — anahat isimleri koyu temanın kökeninden geliyor,
+her iki temada da aynı **rolü** (zemin, yüzey, birincil metin, aksan...)
+temsil eder, ışık modunda "gece" kelimesi artık gerçek renkle eşleşmiyor
+ama anahtarı yeniden adlandırmak 59 dosyayı gereksiz yere etkileyeceği
+için tercih edilmedi.
+
+- `mobile/src/shared/ui/theme.ts`: `useTheme()` hook'u — `useColorScheme()`
+  (react-native) ile sistem tercihini, `useThemeStore` (zustand, tercih
+  `system`/`light`/`dark`) ile kullanıcı override'ını okuyup etkin paleti
+  döndürür.
+- Kalıcı tercih `expo-secure-store` ile saklanır (auth store'daki
+  yerleşik desenle aynı — `AsyncStorage` proje kararınca kullanılmıyor,
+  bkz. tech-stack.md).
+- Her ekranda modül seviyesindeki `StyleSheet.create({...})` bir
+  `createStyles(Palette) => StyleSheet.create({...})` fabrikasına
+  dönüştürülüp bileşen içinde `useMemo(() => createStyles(Palette),
+  [Palette])` ile çağrılıyor — statik importta renkler derleme anında
+  donduğu için canlı tema değişimi ancak stil üretimi render zamanına
+  taşınarak mümkün oluyor.
+- `lime` (projektör limonu) ışık modunda koyulaştırıldı — kullanım
+  noktalarının çoğu (174'ten 133'ü) doğrudan metin/ikon rengi, orijinal
+  neon değer beyaz zeminde düşük kontrastlı kalıyordu.
+- Ayarlar ekranında "GÖRÜNÜM" bölümü: Sistem / Açık / Koyu üç seçenek.
+
 ## 6. Güvenlik Temelleri
 - Tüm trafik TLS; API rate limiting (özellikle `/auth/otp` — SMS maliyet saldırısı!)
 - KVKK: telefon numarası ve konum kişisel veri → açık rıza ekranı, veri silme

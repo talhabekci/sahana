@@ -1,7 +1,7 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Palette, Radius, Type, space } from './theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from './theme';
 
 type Props = {
   value: string;
@@ -14,6 +14,8 @@ type Props = {
  * Skorbord haneleri: 6 hücre, gerçek giriş görünmez tek TextInput'ta.
  */
 export function OtpInput({ value, onChange, length = 6, error = false }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const InputRef = useRef<TextInput>(null);
   const Cells = Array.from({ length }, (_, Index) => value[Index] ?? '');
   const ActiveIndex = Math.min(value.length, length - 1);
@@ -48,7 +50,7 @@ export function OtpInput({ value, onChange, length = 6, error = false }: Props) 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: space(2),

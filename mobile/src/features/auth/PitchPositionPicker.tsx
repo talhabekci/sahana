@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 export const POSITIONS = [
   { key: 'forvet', label: 'Forvet' },
@@ -20,6 +21,9 @@ type Props = {
  * bölge seçilebilir.
  */
 export function PitchPositionPicker({ selected, onToggle }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View style={styles.pitch}>
       <View pointerEvents="none" style={styles.goalBoxTop} />
@@ -46,7 +50,7 @@ export function PitchPositionPicker({ selected, onToggle }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   pitch: {
     borderWidth: 1,
     borderColor: Palette.line,

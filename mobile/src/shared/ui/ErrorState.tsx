@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from './Button';
-import { Palette, Type, space } from './theme';
+import { PaletteTokens, Type, space, useTheme } from './theme';
 
 type Props = {
   message?: string;
@@ -10,6 +11,9 @@ type Props = {
 };
 
 export function ErrorState({ message = 'Bir şeyler ters gitti.', onRetry }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <View style={styles.container}>
       <Ionicons name="cloud-offline-outline" size={36} color={Palette.moss} />
@@ -21,7 +25,7 @@ export function ErrorState({ message = 'Bir şeyler ters gitti.', onRetry }: Pro
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',

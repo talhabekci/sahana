@@ -1,7 +1,7 @@
 import * as Location from 'expo-location';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { discoverListings, discoverOpponentListings } from '@/features/match/api';
@@ -11,11 +11,13 @@ import { useListingActions } from '@/features/match/useListingActions';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 const RADIUS_OPTIONS = [5, 10, 25, 50] as const;
 
 export default function Discover() {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
   const { apply, promptOpponentMatch } = useListingActions();
 
@@ -138,7 +140,7 @@ export default function Discover() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   back: {
     fontFamily: Type.bodyMedium,
     fontSize: 16,

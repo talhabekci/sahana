@@ -14,8 +14,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAuthStore } from '@/features/auth/store';
 import { usePushRegistration } from '@/features/notifications/usePushRegistration';
+import { useThemeStore } from '@/features/settings/themeStore';
 import { AnimatedSplash } from '@/shared/ui/AnimatedSplash';
-import { Palette } from '@/shared/ui/theme';
+import { useIsDarkTheme, useTheme } from '@/shared/ui/theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,14 +35,19 @@ export default function RootLayout() {
   const Token = useAuthStore((State) => State.token);
   const Hydrated = useAuthStore((State) => State.hydrated);
   const Hydrate = useAuthStore((State) => State.hydrate);
+  const ThemeHydrated = useThemeStore((State) => State.hydrated);
+  const HydrateTheme = useThemeStore((State) => State.hydrate);
   const Segments = useSegments();
   const Router = useRouter();
+  const Palette = useTheme();
+  const IsDark = useIsDarkTheme();
 
   useEffect(() => {
     void Hydrate();
-  }, [Hydrate]);
+    void HydrateTheme();
+  }, [Hydrate, HydrateTheme]);
 
-  const Ready = FontsLoaded && Hydrated;
+  const Ready = FontsLoaded && Hydrated && ThemeHydrated;
   const [AnimationDone, setAnimationDone] = useState(false);
 
   usePushRegistration(Ready && Token != null);
@@ -80,7 +86,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={Client}>
-        <StatusBar style="light" />
+        <StatusBar style={IsDark ? 'light' : 'dark'} />
         <Stack
           screenOptions={{
             headerShown: false,

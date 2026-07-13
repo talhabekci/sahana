@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { PlayerStats } from './api';
-import { Palette, Radius, Type, space } from '@/shared/ui/theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 type Props = {
   stats: PlayerStats;
@@ -11,6 +12,9 @@ type Props = {
 };
 
 export function StatsCard({ stats, onPress }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
   return (
     <Pressable
       accessibilityRole={onPress != null ? 'button' : undefined}
@@ -73,7 +77,7 @@ export function StatsCard({ stats, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   kickerRow: {
     flexDirection: 'row',
     alignItems: 'center',

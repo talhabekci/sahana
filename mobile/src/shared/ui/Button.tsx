@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
-import { Palette, Radius, Type, space } from './theme';
+import { PaletteTokens, Radius, Type, space, useTheme } from './theme';
 
 type Props = {
   label: string;
@@ -11,6 +12,8 @@ type Props = {
 };
 
 export function Button({ label, onPress, variant = 'primary', disabled = false, loading = false }: Props) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Inactive = disabled || loading;
 
   return (
@@ -34,7 +37,7 @@ export function Button({ label, onPress, variant = 'primary', disabled = false, 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   base: {
     height: 56,
     borderRadius: Radius.pill,
