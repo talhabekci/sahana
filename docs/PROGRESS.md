@@ -3,6 +3,43 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (4) — Production-readiness madde D: CORS + rate limiting
+
+Kullanıcı "production'a çıkmak için eksik bir şey kaldı mı" diye sordu.
+`docs/PRODUCTION-READINESS.md`'deki 8 açık maddeden 7'si (A/B/C/E/F/G/H)
+VPS/domain/R2/Sentry/store hesabı gibi kullanıcının açması gereken
+kaynaklara bağlı; tek kod-only, bekletmeden ilerlenebilecek madde D
+(güvenlik: CORS + rate limit) idi. Kullanıcı onayıyla kodlandı.
+
+**CORS:** `api/config/cors.php` eklendi — `allowed_origins` artık
+`CORS_ALLOWED_ORIGINS` env değişkeninden (virgülle ayrılmış), varsayılan
+boş liste (hiçbir origin'e izin yok). Mobil istemci Bearer token
+kullandığı için bundan etkilenmiyor (CORS sadece tarayıcı bağlamında
+anlamlı), sadece ileride bir web paneli eklenirse işe yarayacak.
+
+**Rate limiting:** `AppServiceProvider::boot()`'a iki named limiter
+eklendi — `api` (60/dk, tüm `v1` grubuna) ve `write` (20/dk, sadece
+spam/abuse riski yüksek yazma endpoint'lerine: yorum ekleme, DM/takım
+mesajı gönderme, ilan başvurusu). OTP endpoint'lerinin kendi özel
+limiter'ı (AuthController) dokunulmadan kaldı.
+
+**PHPStan false-positive:** İlk yazımda `$Request->user()?->id ?? $Request->ip()`
+kalıbı Larastan'da "nullsafe.neverNull" hatası verdi — ama
+`\PHPStan\dumpType()` ile doğrulandı ki `$Request->user()` gerçekten
+`App\Models\User|null` (nullable); PHPStan'ın önerdiği "?->'ı -> yap"
+düzeltmesini olduğu gibi uygulasaydım misafir isteklerinde (health check,
+OTP gibi aynı throttle grubundaki auth gerektirmeyen route'larda) her
+zaman 500 hatası verecekti. Bu, `?->` hemen ardından `??` gelen özel AST
+kalıbında tetiklenen bilinen bir Larastan/PHPStan uyumsuzluğu — kod
+`$User = $Request->user(); $User !== null ? ... : ...` şeklinde açık
+null kontrolüne çevrilerek (davranış aynı, suppress değil) çözüldü.
+
+**Test:** `tests/Feature/RateLimitTest.php` — 20 yorum isteğinden sonraki
+21.'nin 429 döndüğünü doğruluyor.
+
+**Doğrulama:** Pint temiz, Larastan 0 hata (196 dosya), Pest 284 geçti
+(805 assertion, önceki 283'ten +1 yeni test).
+
 ## 2026-07-14 (3) — Uygulama arka plandan öne gelince otomatik refetch
 
 Kullanıcı: uygulamayı görev yöneticisinden kapatmadan arka plana atıp

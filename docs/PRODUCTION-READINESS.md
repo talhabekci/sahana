@@ -51,20 +51,24 @@
   değerleri, mevcut foto/video upload kodunun (varsa `local` disk'e sabit
   referansı) `Storage::disk(config(...))` üzerinden gitmesinin doğrulanması.
 
-### D. Güvenlik taraması
-- **Durum:** OTP endpoint'i zaten iyi korunuyor (`RateLimiter` ile
+### D. Güvenlik taraması ✅
+- **Durum:** OTP endpoint'i zaten iyi korunuyordu (`RateLimiter` ile
   3/saat/identifier + 10/saat/IP + 5 yanlış denemede kilit — spec'e
-  birebir uygun, ek iş gerekmiyor). Ama:
-  - `config/cors.php` hiç yok → Laravel'in izin veren (`allowed_origins: *`)
-    varsayılanı geçerli. Mobil bearer-token istemci için düşük risk ama
-    sıkılaştırılabilir.
-  - Diğer yazma endpoint'lerinde (yorum, mesaj, ilan başvurusu vb.) rate
-    limit yok — spam/abuse riski.
+  birebir uygun, dokunulmadı). Kalan iki boşluk kapatıldı:
+  - `config/cors.php` eklendi — `allowed_origins` artık `CORS_ALLOWED_ORIGINS`
+    env değişkeninden okunuyor (virgülle ayrılmış liste), varsayılan boş
+    (hiçbir origin'e izin yok). Mobil istemci Bearer token kullandığı için
+    CORS'tan etkilenmiyor; bu sadece ileride eklenebilecek bir web paneli
+    için.
+  - Genel API'ye `throttle:api` (60/dk, kullanıcı ID veya IP'ye göre) tüm
+    `v1` grubuna eklendi. Yorum, DM/takım mesajı, ilan başvurusu
+    endpoint'lerine ayrıca `throttle:write` (20/dk) eklendi
+    (`AppServiceProvider::boot()` + `routes/api.php`).
   - Prod `.env` için `APP_DEBUG=false`, `APP_ENV=production` hatırlatması
-    (repo'da bir "fix" değil, deploy checklist maddesi).
-- **Yapılacaklar:** `config/cors.php` ekle (origin'i mobil şema/prod domain
-  ile sınırla), genel API'ye makul bir varsayılan throttle (`throttle:api`)
-  + yazma-ağırlıklı endpoint'lere özel limit değerlendirmesi.
+    hâlâ geçerli — bu bir deploy checklist maddesi, kod değil (madde A'da
+    izlenebilir).
+- **Test:** `tests/Feature/RateLimitTest.php` — 20 istekten sonraki 21.
+  istek 429 dönüyor.
 
 ### E. Gözlemlenebilirlik — hata takibi
 - **Durum:** Sentry (ya da benzeri) yok, ne API ne mobil. Şu an bir hata

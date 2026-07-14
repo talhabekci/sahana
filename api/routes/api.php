@@ -36,7 +36,7 @@ use App\Http\Controllers\Api\V1\VenueReviewController;
 use App\Http\Controllers\Api\V1\VideoController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware('throttle:api')->group(function () {
     Route::get('/health', fn () => response()->json([
         'data' => ['status' => 'ok'],
     ]));
@@ -78,7 +78,8 @@ Route::prefix('v1')->group(function () {
         // Modül 7 (DM): birebir mesajlaşma — spec: 07-notifications-chat.md.
         Route::get('/conversations', [ConversationController::class, 'index']);
         Route::get('/players/{PublicId}/messages', [DirectMessageController::class, 'index']);
-        Route::post('/players/{PublicId}/messages', [DirectMessageController::class, 'store']);
+        Route::post('/players/{PublicId}/messages', [DirectMessageController::class, 'store'])
+            ->middleware('throttle:write');
 
         Route::get('/teams', [TeamController::class, 'index']);
         Route::post('/teams', [TeamController::class, 'store']);
@@ -99,7 +100,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('/lineups/{Lineup}', [LineupController::class, 'destroy']);
 
         Route::get('/teams/{Team}/messages', [TeamMessageController::class, 'index']);
-        Route::post('/teams/{Team}/messages', [TeamMessageController::class, 'store']);
+        Route::post('/teams/{Team}/messages', [TeamMessageController::class, 'store'])
+            ->middleware('throttle:write');
 
         // Modül 8 (Aşama 1): saha rehberi — spec: 08-venues.md.
         Route::get('/venues', [VenueController::class, 'index']);
@@ -131,7 +133,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/matches/{Match}/listings', [PlayerListingController::class, 'store']);
         Route::get('/listings', [PlayerListingController::class, 'index']);
         Route::get('/listings/{Listing}', [PlayerListingController::class, 'show']);
-        Route::post('/listings/{Listing}/applications', [ListingApplicationController::class, 'store']);
+        Route::post('/listings/{Listing}/applications', [ListingApplicationController::class, 'store'])
+            ->middleware('throttle:write');
         Route::post('/applications/{Application}/approve', [ListingApplicationController::class, 'approve']);
         Route::post('/applications/{Application}/reject', [ListingApplicationController::class, 'reject']);
 
@@ -148,7 +151,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/posts/{Post}/like', [PostLikeController::class, 'store']);
         Route::delete('/posts/{Post}/like', [PostLikeController::class, 'destroy']);
         Route::get('/posts/{Post}/comments', [PostCommentController::class, 'index']);
-        Route::post('/posts/{Post}/comments', [PostCommentController::class, 'store']);
+        Route::post('/posts/{Post}/comments', [PostCommentController::class, 'store'])
+            ->middleware('throttle:write');
         Route::delete('/comments/{Comment}', [CommentController::class, 'destroy']);
 
         Route::post('/reports', [ReportController::class, 'store']);
