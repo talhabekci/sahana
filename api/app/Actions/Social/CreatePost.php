@@ -50,7 +50,7 @@ class CreatePost
         $VideoPath = null;
 
         if (! empty($Data['video'])) {
-            $VideoPath = $Data['video']->store('post-videos', 'public');
+            $VideoPath = $Data['video']->store('post-videos', config('filesystems.media_disk'));
         }
 
         return Post::create([

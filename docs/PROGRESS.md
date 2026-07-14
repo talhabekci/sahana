@@ -3,6 +3,59 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (5) — Production-readiness madde C/F/G: R2 medya diski, konum izni, yasal metin taslakları
+
+Önceki mesajda kullanıcıya kalan 7 açık maddeden hangi kaynakların hazır
+olduğu soruldu. Cevap: R2 (madde C) ve Apple/Google store hesapları
+(madde F) hazır; yasal metinleri (madde G) ben yazmalıydım.
+
+**Madde C — R2 medya diski (kod tarafı tamamlandı):** `league/flysystem-aws-s3-v3`
+kuruldu — Laravel'in `s3` disk driver'ı bu paket olmadan çalışmıyordu,
+daha önce hiç kurulmamıştı. Mevcut generic `s3` disk zaten
+`endpoint`/`use_path_style_endpoint` alanlarını destekliyor (R2 tam S3 API
+uyumlu), o yüzden ayrı bir `r2` disk tanımına gerek kalmadı. Asıl iş,
+doğrulama sırasında ortaya çıkan gerçek boşluktu: `Storage::disk('public')`
+6 farklı yerde (`ImageUploader::store/url`, `MediaController`,
+`VideoController` (store+delete), `DirectMessageController`,
+`TeamMessageController`, `CreatePost`) hardcode edilmişti — sadece env
+değişkenlerini doldurmak medyayı R2'ye taşımaya yetmezdi. Yeni
+`config('filesystems.media_disk')` (env: `MEDIA_DISK`, varsayılan `public`)
+tek kaynak yapıldı, hepsi buradan okuyacak şekilde değiştirildi.
+`ImageUploader::url()` artık `media_disk` local değilse `/media/...` PHP
+proxy'si yerine diskin native genel URL'ini dönüyor (R2/Cloudflare Range'i
+zaten destekliyor). `MediaController::show()`'a guard eklendi:
+`media_disk` public değilken 404 döner (önceden `Storage::path()` uzak
+diskte `RuntimeException` fırlatırdı — sessiz 500 yerine temiz 404).
+`.env.example`'a `MEDIA_DISK` + R2 alanlarının hangi `AWS_*` değerlerine
+karşılık geldiğini açıklayan yorumlar eklendi. Gerçek R2 anahtarları hiç
+istenmedi/paylaşılmadı — bunlar sadece prod sunucusunun kendi `.env`'ine
+(commit edilmeyecek) girilecek. Yeni testler: `tests/Feature/ImageUploaderTest.php`
+(disk'e göre URL değişimi), `MediaRouteTest.php`'ye 404 guard testi.
+
+**Madde F — konum izin metni:** `expo-location` paket olarak kuruluydu
+(`listings/index.tsx`, `match/[id]/listing.tsx`'te yakınımdaki ilanlar için
+kullanılıyor) ama `app.json` plugin listesinde hiç yapılandırılmamıştı —
+prebuild'de İngilizce varsayılan izin metni kullanılırdı. `expo-location`
+plugin girdisi + Türkçe `locationWhenInUsePermission` eklendi. Kamera/
+galeri/mikrofon zaten önceden yapılandırılmıştı, dokunulmadı. Store
+submission'ın kendisi (EAS build + gerçek gönderim, listing metni/
+görselleri) bugün yapılmadı — ayrı bir oturumda ele alınacak.
+
+**Madde G — yasal metin taslakları:** `mobile/src/features/settings/legalContent.ts`
+oluşturuldu — gizlilik politikası, KVKK aydınlatma metni, kullanım şartları,
+her biri gerçek ürün veri modeline göre yazıldı (e-posta girişi, profil
+alanları, medya/mesaj/konum verisi, Cloudflare R2 + FCM/Expo işlemcileri,
+KVKK m.11 hakları, hesap silme akışı). `settings/legal/[slug].tsx`
+placeholder yerine bu içeriği render edecek şekilde güncellendi
+(section-based: heading + body, mevcut ScrollView/Text deseni korunarak).
+İletişim e-postası placeholder olarak bırakıldı. **Bu nihai bir hukuki
+metin değil** — kullanıcının (istenirse bir avukatın) onayı olmadan
+yayına çıkılmamalı; PRODUCTION-READINESS.md'de bu netlikle not edildi.
+
+**Doğrulama:** API tarafında Pint temiz, Larastan 0 hata, Pest 288 geçti
+(809 assertion, +4 yeni test). Mobilde `tsc --noEmit` ve `npm run lint`
+temiz.
+
 ## 2026-07-14 (4) — Production-readiness madde D: CORS + rate limiting
 
 Kullanıcı "production'a çıkmak için eksik bir şey kaldı mı" diye sordu.

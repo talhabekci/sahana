@@ -33,7 +33,7 @@ class VideoController extends Controller
         $Uploader = $Request->user();
 
         if ($Request->hasFile('video')) {
-            $StoragePath = $Request->file('video')->store('match-videos', 'public');
+            $StoragePath = $Request->file('video')->store('match-videos', config('filesystems.media_disk'));
             $Video = $Action->handleUpload($Match, $Uploader, $StoragePath);
         } else {
             $Video = $Action->handle($Match, $Uploader, $Request->validated('url'));
@@ -49,7 +49,7 @@ class VideoController extends Controller
         $this->authorize('delete', $Video);
 
         if ($Video->storage_path !== null) {
-            Storage::disk('public')->delete($Video->storage_path);
+            Storage::disk(config('filesystems.media_disk'))->delete($Video->storage_path);
         }
 
         $Video->delete();

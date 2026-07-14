@@ -46,7 +46,7 @@ class DirectMessageController extends Controller
         }
 
         if ($Request->hasFile('audio')) {
-            $Data['audio_path'] = $Request->file('audio')->store('chat-audio', 'public');
+            $Data['audio_path'] = $Request->file('audio')->store('chat-audio', config('filesystems.media_disk'));
             $Data['audio_duration'] = isset($Data['audio_duration']) ? (int) $Data['audio_duration'] : null;
         }
 

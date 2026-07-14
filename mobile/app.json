@@ -53,6 +53,12 @@
           "microphonePermission": "Takım sohbetine sesli mesaj gönderebilmek için mikrofona erişim gerekiyor."
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Yakınındaki oyuncu ve rakip ilanlarını gösterebilmek için konumuna erişim gerekiyor."
+        }
+      ],
       "expo-asset",
       "expo-video"
     ],

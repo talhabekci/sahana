@@ -43,13 +43,26 @@
 - **Yapılacaklar:** Prod `.env` için `QUEUE_CONNECTION=redis` +
   `horizon` servisinin compose'a eklenmesi (madde A ile birleşebilir).
 
-### C. Medya depolama — Cloudflare R2 bağlantısı
-- **Durum:** `AWS_*` env değişkenleri boş; `FILESYSTEM_DISK=local`.
-  tech-stack.md R2'yi (S3-uyumlu) planlıyor ama hiç bağlanmadı.
-- **Karar bekliyor:** R2 bucket'ı oluşturuldu mu, access key var mı?
-- **Yapılacaklar:** `config/filesystems.php`'e R2 disk tanımı, prod env
-  değerleri, mevcut foto/video upload kodunun (varsa `local` disk'e sabit
-  referansı) `Storage::disk(config(...))` üzerinden gitmesinin doğrulanması.
+### C. Medya depolama — Cloudflare R2 bağlantısı ✅ (kod tarafı)
+- **Durum:** Kullanıcı R2 bucket'ının hazır olduğunu onayladı. Kod tarafı
+  tamamlandı: `league/flysystem-aws-s3-v3` kuruldu (mevcut generic `s3`
+  disk zaten `endpoint`/`use_path_style_endpoint` destekliyor — R2 S3 API
+  uyumlu olduğu için ayrı bir `r2` disk tanımına gerek yoktu). Yeni
+  `config('filesystems.media_disk')` (env: `MEDIA_DISK`, varsayılan
+  `public`) tek kaynak oldu; daha önce 6 farklı yerde (`ImageUploader`,
+  `MediaController`, `VideoController`, `DirectMessageController`,
+  `TeamMessageController`, `CreatePost`) hardcode edilmiş `'public'` disk
+  referansları buradan okuyacak şekilde değiştirildi. `ImageUploader::url()`
+  artık `media_disk` local değilse diskin kendi genel URL'ini dönüyor
+  (`/media/...` PHP proxy'si atlanıyor — R2/Cloudflare Range'i native
+  destekliyor). `/media/{path}` route'u artık `media_disk` public değilken
+  güvenli şekilde 404 dönüyor (önceden `Storage::path()` uzak diskte patlardı).
+- **Kalan:** Prod sunucusunun gerçek `.env`'ine (asla commit edilmeyecek)
+  `MEDIA_DISK=s3` + R2'nin gerçek `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`/
+  `AWS_BUCKET`/`AWS_URL`/`AWS_ENDPOINT` değerlerinin girilmesi — bu madde
+  A/deploy'un parçası, kod tarafında ek iş yok.
+- **Test:** `tests/Feature/ImageUploaderTest.php`, `tests/Feature/MediaRouteTest.php`
+  (yeni 404 guard testi).
 
 ### D. Güvenlik taraması ✅
 - **Durum:** OTP endpoint'i zaten iyi korunuyordu (`RateLimiter` ile
@@ -79,21 +92,31 @@
   (mobil) kurulumu, DSN env değişkenleri, prod'da aktif/dev'de kapalı.
 
 ### F. Store submission (mobil)
-- **Durum:** EAS production build profili var ama hiç submit denenmedi.
-  İkon/splash placeholder olabilir, izin metinleri (konum, kamera/galeri,
-  bildirim) App Store/Play Store'un zorunlu tuttuğu formatta yazılmamış.
-- **Karar bekliyor:** Apple Developer / Google Play Console hesapları
-  hazır mı?
-- **Yapılacaklar:** `app.json` izin açıklamaları (`NSLocationWhenInUseUsageDescription`
-  vb.), store listing metni/görselleri, gizlilik politikası URL'i (madde G'ye bağlı).
+- **Durum:** Kullanıcı Apple Developer / Google Play Console hesaplarının
+  hazır olduğunu onayladı. İkon/splash artık placeholder değil (gerçek marka
+  görselleri — bkz. PROGRESS.md 2026-07-13/14 kayıtları). İzin metinleri
+  taranıp eksik olan tek kalem (konum — `expo-location` kullanılıyor ama
+  plugin'de Türkçe açıklama yoktu) kapatıldı: `app.json`'a
+  `locationWhenInUsePermission` eklendi. Kamera/galeri/mikrofon zaten
+  önceden yapılandırılmıştı.
+- **Kalan:** EAS production build alıp gerçek submit'i denemek, store
+  listing metni/görselleri (ekran görüntüleri, açıklama, kategori) ve
+  gizlilik politikası URL'i (madde G'nin canlıda yayınlanmış hâli) hazırlamak
+  — bunlar kod değişikliği değil, gerçek bir üretim build'i ve store
+  hesabı işlemleri; kullanıcıyla birlikte ayrı bir oturumda ele alınmalı.
 
-### G. Yasal — gizlilik politikası / KVKK / kullanım şartları
-- **Durum:** Mobil UI iskeleti hazır (Backlog #29 — `settings/legal/[slug].tsx`,
-  ayarlar ekranından erişiliyor) ama gerçek metin hâlâ yok, placeholder
-  gösteriyor. Sosyal ağ + konum + push + kullanıcı içeriği barındıran bir
-  uygulama için hem store submission hem KVKK açısından zorunlu.
-- **Karar bekliyor:** Metni kim yazacak/onaylayacak (hukuki içerik — ben
-  taslak önerebilirim ama nihai onay kullanıcıda olmalı).
+### G. Yasal — gizlilik politikası / KVKK / kullanım şartları — taslak yazıldı, onay bekliyor
+- **Durum:** Kullanıcı taslağı yazmamı istedi. `mobile/src/features/settings/legalContent.ts`
+  içinde üç belge (gizlilik politikası, KVKK aydınlatma metni, kullanım
+  şartları) Türkçe taslak olarak yazıldı; `settings/legal/[slug].tsx`
+  artık placeholder yerine bu içeriği gösteriyor. İçerik ürünün gerçek veri
+  modeline dayanıyor (e-posta ile giriş, profil alanları, medya/mesaj/konum
+  verisi, Cloudflare R2 ve FCM/Expo gibi işlemciler, hesap silme akışı).
+- **Kalan:** Bu **nihai bir hukuki metin değil** — kullanıcı (istenirse bir
+  avukat) tarafından gözden geçirilip onaylanmadan yayına çıkılmamalı.
+  İletişim e-postası da placeholder (`[iletişim e-postası buraya eklenecek]`)
+  — gerçek adres belirlenince doldurulmalı. Onaylanınca bu madde ✅ olarak
+  işaretlenecek.
 
 ### H. Veri yedekleme
 - **Durum:** tech-stack.md `mysqldump + mongodump → R2 (günlük, cron)`

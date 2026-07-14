@@ -34,3 +34,11 @@ it('returns 404 for missing files', function () {
 
     $this->get('/media/posts/yok.jpg')->assertNotFound();
 });
+
+it('404s instead of crashing when MEDIA_DISK is not public (PRODUCTION-READINESS.md §C)', function () {
+    config(['filesystems.media_disk' => 's3']);
+    Storage::fake('public');
+    Storage::disk('public')->put('post-videos/clip.mp4', 'abcdefghij');
+
+    $this->get('/media/post-videos/clip.mp4')->assertNotFound();
+});

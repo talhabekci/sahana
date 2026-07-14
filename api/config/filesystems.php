@@ -17,6 +17,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Media Disk
+    |--------------------------------------------------------------------------
+    |
+    | Kullanıcı yüklemeleri (avatar, gönderi görseli/videosu, takım logosu,
+    | sohbet sesi) hep bu diske gider — PRODUCTION-READINESS.md §C. Local'de
+    | 'public' (storage/app/public, /media/{path} route'uyla Range destekli
+    | servis edilir). Prod'da Cloudflare R2'ye geçmek için MEDIA_DISK=s3 +
+    | R2 uyumlu AWS_* değerleri (ENDPOINT, USE_PATH_STYLE_ENDPOINT=true,
+    | REGION=auto) yeterli — ayrı bir 'r2' disk tanımına gerek yok, R2
+    | zaten S3 API uyumlu.
+    |
+    */
+
+    'media_disk' => env('MEDIA_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

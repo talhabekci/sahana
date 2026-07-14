@@ -30,7 +30,7 @@ class ImageUploader
         imagedestroy($Resource);
 
         $Path = $Directory.'/'.Str::uuid().'.jpg';
-        Storage::disk('public')->put($Path, $JpegContents);
+        Storage::disk(config('filesystems.media_disk'))->put($Path, $JpegContents);
 
         return $Path;
     }
@@ -38,12 +38,25 @@ class ImageUploader
     /**
      * Resource'larda depolanan yolu (ör. `avatar_path`) tam bir genel URL'e çevirir.
      *
-     * /storage/... (statik symlink) yerine Range destekli /media/... route'u
-     * kullanılır (BACKLOG #50): PHP'nin dev sunucusu statikte Range desteklemez,
-     * video/ses oynatıcıları (AVPlayer/ExoPlayer) Range olmadan akıtamaz.
+     * Media disk local 'public' ise /storage/... (statik symlink) yerine Range
+     * destekli /media/... route'u kullanılır (BACKLOG #50): PHP'nin dev sunucusu
+     * statikte Range desteklemez, video/ses oynatıcıları (AVPlayer/ExoPlayer)
+     * Range olmadan akıtamaz. Uzak bir disk (R2/S3) ise diskin kendi genel
+     * URL'i döner — Cloudflare/S3 Range'i zaten native destekler, PHP'yi
+     * araya sokmaya gerek yok (PRODUCTION-READINESS.md §C).
      */
     public static function url(?string $Path): ?string
     {
-        return $Path !== null ? url('media/'.ltrim($Path, '/')) : null;
+        if ($Path === null) {
+            return null;
+        }
+
+        $MediaDisk = config('filesystems.media_disk');
+
+        if ($MediaDisk === 'public') {
+            return url('media/'.ltrim($Path, '/'));
+        }
+
+        return Storage::disk($MediaDisk)->url($Path);
     }
 }
