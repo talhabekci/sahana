@@ -19,38 +19,72 @@ node adını görüp burada değiştirmeniz gerekebilir.
    `https://raw.githubusercontent.com/talhabekci/sahana/main/deploy/virtuozzo/manifest.jps`
 2. Kurulum otomatik olarak şunları yapar:
    - 4 node açar: `cp` (PHP-FPM app), `sqldb` (MySQL), `nosqldb` (MongoDB), `cache` (Redis)
-   - `api/` klasörünü public repo'dan klonlar, composer bağımlılıklarını kurar
-   - `.env`'i DB/Mongo/Redis host'larıyla otomatik doldurur, `APP_KEY` üretir, migration çalıştırır
+   - Laravel kodunu `/var/www/webroot/ROOT`'a klonlar, composer install +
+     `.env` üretimi (DB/Mongo/Redis host'ları otomatik) + migration çalıştırır
    - Horizon (queue) ve Reverb (websocket) process'lerini `supervisor` ile arka planda ayakta tutar
 
-## Kurulumdan sonra elle yapılması gerekenler
+## Kurulumdan sonra elle yapılması gerekenler (gerçek bir kurulumdan doğrulandı)
 
-Manifest bilerek şunları **otomatik doldurmuyor** — bunlar üçüncü taraf
-sırları, panelden "Variables" (ya da SSH/File Manager ile `.env`) üzerinden
-eklenmeli, sonra `cp` node'u restart edilmeli:
+**1) Apache'nin doküman kökünü `public/`'e çevir — ZORUNLU, yoksa 404 alırsınız**
 
-- `CORS_ALLOWED_ORIGINS` — gerçek domain(ler)
-- `MEDIA_DISK=s3` + `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_BUCKET` /
-  `AWS_URL` / `AWS_ENDPOINT` / `AWS_USE_PATH_STYLE_ENDPOINT=true` — R2 bilgileri
-  (bkz. PROGRESS.md 2026-07-14 (6) kaydı — bucket zaten `sahana-media` olarak
-  hazır, sadece `AWS_URL`'in gerçek custom domain'e bağlanması lazım, r2.dev
-  production için önerilmiyor)
-- `SENTRY_LARAVEL_DSN` — Laravel Sentry projesinin DSN'i
-- `REVERB_APP_ID` / `REVERB_APP_KEY` / `REVERB_APP_SECRET` / `REVERB_HOST` /
-  `REVERB_PORT=8080` / `REVERB_SCHEME=https` — prod domain'e göre güncellenmeli
+`/var/www/webroot/ROOT` Laravel'in TAMAMINI içerir (`.env`, `composer.json`
+dahil), ama Apache'nin sadece `public/` alt klasörünü servis etmesi lazım.
+`cp` node'unda **root olarak**:
 
-Ayrıca:
+```bash
+grep -rl "webroot/ROOT" /etc/httpd/ /etc/apache2/ 2>/dev/null
+```
 
-- **Domain/DNS:** Cloudflare'da domain'i bu environment'ın public endpoint'ine
-  (CNAME) yönlendirin. SSL zaten manifest'te `ssl: true` ile açık.
-- **Reverb portu:** 8080 dışa açık olmalı — panelde node'un "Ports" ayarından
-  bu portu expose edin (ya da nginx/apache üzerinden `/app` yolunu reverse-proxy
-  yapın).
-- **Mobil `.env`:** `EXPO_PUBLIC_API_URL` ve `EXPO_PUBLIC_REVERB_*` gerçek
-  domain'i gösterecek şekilde güncellenmeli, yeni bir build alınmalı.
-- **`php artisan config:cache` / `route:cache`:** prod'da performans için
-  önerilir, `.env` her değiştiğinde `config:clear` + tekrar `config:cache`
-  gerekir.
+Bulduğun dosya(lar)daki `DocumentRoot /var/www/webroot/ROOT` satırını
+`DocumentRoot /var/www/webroot/ROOT/public` yap (varsa `<Directory>` bloğunu
+da eşleştir), sonra `httpd`/`apache2`'yi restart et. Bu adım otomatikleştirilmedi
+çünkü vhost dosyasının tam yolu/formatı Jelastic sürümüne göre değişebilir.
+
+**2) `.env`'i tamamla** — panelden "Variables" ya da doğrudan `.env` düzenleyerek:
+
+```bash
+cd /var/www/webroot/ROOT
+php artisan key:generate --force        # APP_KEY boş gelir, doldurulmalı
+sed -i "s#^APP_URL=.*#APP_URL=https://<gerçek-domain>#" .env
+sed -i "s/^APP_DEBUG=.*/APP_DEBUG=false/" .env
+sed -i "s/^CORS_ALLOWED_ORIGINS=.*/CORS_ALLOWED_ORIGINS=https:\/\/<gerçek-domain>/" .env
+```
+
+- **Redis parolası:** Jelastic'in Redis node'u parola korumalı ama
+  `skipNodeEmails: true` yüzünden mail gelmez. Redis node'unun SSH'ında:
+  `grep -i requirepass /etc/redis.conf /etc/redis/redis.conf 2>/dev/null`
+  — bulduğun parolayı `cp` node'unda `.env`'deki `REDIS_PASSWORD`'e yaz.
+- **R2 (madde C):** `MEDIA_DISK=s3` + `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` /
+  `AWS_BUCKET=sahana-media` / `AWS_ENDPOINT` / `AWS_USE_PATH_STYLE_ENDPOINT=true`.
+  `AWS_URL`'i R2 bucket'ına Cloudflare'da bağladığınız custom domain'e
+  (`https://media.<domain>`) ayarlayın — r2.dev production için önerilmiyor.
+- **Sentry (madde E):** `SENTRY_LARAVEL_DSN` ekleyin.
+- `php artisan config:clear` her `.env` değişikliğinden sonra çalıştırılmalı.
+
+**3) Domain/DNS (Cloudflare)**
+
+- Domain'i Cloudflare'a zone olarak ekleyip nameserver'ları güncelleyin.
+- `CNAME` kaydı: subdomain (örn. `api`) → bu environment'ın adresi
+  (`<env-adı>.<bölge>.paasgo.net`), **Proxied** (turuncu bulut).
+- **Jelastic'e de bind etmeniz gerekir** — sadece DNS eklemek yetmez!
+  Panelde environment → "..." menü → **Custom Domains** → domain'i ekle.
+  Eklenmezse "An environment could not be found via the specified host"
+  hatası alırsınız.
+- Cloudflare → SSL/TLS → **Full** mod (Flexible değil).
+
+**4) Reverb (websocket) — henüz otomatik değil**
+
+8080 portu Cloudflare'ın ücretsiz planında WSS (güvenli websocket)
+proxy'lemiyor (sadece 443/8443 gibi belirli portlarda). Reverb'i Apache
+üzerinden aynı 443 portundan reverse-proxy etmek gerekiyor — bu adım henüz
+yapılmadı, ayrı bir iş olarak kalıyor.
+
+**5) Mobil `.env.production`**
+
+`mobile/.env.production` (repoda, gitignored) prod domain'ini kullanacak
+şekilde güncellenmeli — `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_REVERB_*`,
+`EXPO_PUBLIC_SENTRY_DSN`. Gerçek cihazda test için yeni bir EAS build
+gerekir.
 
 ## Node topolojisi (elle kurmak isterseniz)
 

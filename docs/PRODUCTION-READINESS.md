@@ -11,23 +11,40 @@
 
 ## Açık Maddeler
 
-### A. Altyapı / Deploy — yol değişti: Hetzner+Docker yerine Virtuozzo Jelastic
-- **Durum (2026-07-14):** Kullanıcı Hetzner VPS + Docker Compose yerine
-  Virtuozzo'nun Jelastic PaaS panelini kullanmaya karar verdi (hâlâ hiç VPS/
-  domain alınmadı). `deploy/virtuozzo/manifest.jps` + `deploy/virtuozzo/README.md`
-  yazıldı — JPS ile tek seferde 4 node açıp (PHP-FPM/apache, MySQL, MongoDB,
-  Redis) Laravel API'yi kurup Horizon+Reverb'i supervisor ile ayakta tutan bir
-  manifest. Virtuozzo'nun kendi resmi örnek manifest'lerinden (Laravel, Ghost,
-  MongoDB replication, Redis cluster) doğrulanmış syntax kullanıldı, YAML
-  geçerliliği kontrol edildi — ama panelin güncel node type kataloğuna karşı
-  gerçek bir kurulumla test edilmedi (README'de bu net şekilde işaretlendi).
-- **Kalan:** Kullanıcının manifest'i kendi panelinde import edip denemesi,
-  sonra R2/Sentry/Reverb sırlarının deploy sonrası elle eklenmesi
-  (README'de adım adım listelendi), domain alınması ve Cloudflare'a bağlanması.
-- **Eski plan (referans için tutuluyor):** tech-stack.md hâlâ Hetzner VPS +
-  Docker Compose (nginx, php-fpm, mysql:8, mongo:7, redis:7, horizon, reverb)
-  + Cloudflare (DNS/CDN/R2) yazıyor — Virtuozzo yolu netleşince tech-stack.md
-  da güncellenmeli (ayrı bir iş, henüz yapılmadı).
+### A. Altyapı / Deploy — Virtuozzo Jelastic'te CANLI ✅ (Reverb hariç)
+- **Durum (2026-07-14):** Hetzner+Docker planı terk edildi, Virtuozzo Jelastic
+  PaaS kullanıldı. `deploy/virtuozzo/manifest.jps` ile 4 node açıldı (PHP-FPM/
+  apache, MySQL, MongoDB, Redis), gerçek bir kurulumla test edildi ve birkaç
+  gerçek hata bulunup düzeltildi:
+  - `setup-supervisor` action'ında `user: root` eksikti + node CentOS/RHEL
+    olduğu için `apt-get` yoktu (yum/dnf fallback eklendi).
+  - Apache'nin doküman kökü Laravel'in TAMAMINI (`.env` dahil) serviş
+    ediyordu → `/api/v1/health` 404 dönüyordu. Kullanıcı `webroot/ROOT`'u
+    gerçek klasör olarak tutmayı tercih etti, Apache'nin `DocumentRoot`'unu
+    elle `webroot/ROOT/public`'e çevirerek çözdü (manifest'e otomatikleştirme
+    eklenmedi — vhost dosyasının tam yolu Jelastic sürümüne göre değişebilir,
+    README'de adım adım anlatıldı).
+  - `APP_KEY` boştu, `php artisan key:generate` elle çalıştırıldı.
+  - Redis `NOAUTH` hatası — Jelastic'in Redis node'u parola korumalı ama
+    `skipNodeEmails: true` yüzünden mail gelmedi; parola Redis node'unun
+    `/etc/redis.conf`'undaki `requirepass` satırından bulundu.
+  - Domain (`sahana-app.com`) alınıp Cloudflare'a bağlandı, `api.sahana-app.com`
+    CNAME ile environment'a yönlendirildi — ama DNS eklemek yetmedi, Jelastic
+    panelinde ayrıca **Custom Domains** altında bind edilmesi gerekti (bind
+    edilmeden "environment could not be found via specified host" hatası
+    veriyordu).
+  - R2 custom domain (`media.sahana-app.com`) bağlandı, gerçek bir dosya
+    yazılıp okunarak uçtan uca doğrulandı (bkz. madde C).
+- **Doğrulanmış canlı durum:** `https://api.sahana-app.com/api/v1/health` →
+  `{"data":{"status":"ok"}}`. DB/Mongo/Redis/R2 hepsi gerçek trafikle test
+  edildi.
+- **Kalan:** Reverb (websocket) — Cloudflare'ın ücretsiz planı 8080 portunda
+  WSS proxy'lemiyor, Apache üzerinden 443'e reverse-proxy edilmesi gerekiyor
+  (henüz yapılmadı, chat/realtime şu an çalışmıyor). Mobil `.env.production`
+  yazıldı ama gerçek cihazda test için yeni bir EAS build gerekiyor.
+- **Eski plan (artık geçersiz):** tech-stack.md hâlâ Hetzner VPS + Docker
+  Compose yazıyor — Virtuozzo'ya geçiş netleşti, tech-stack.md'nin
+  güncellenmesi ayrı bir iş (henüz yapılmadı).
 - **PHP upload limitleri (BACKLOG #40'tan öğrenildi, 2026-07-11):** PHP'nin
   varsayılan `upload_max_filesize=2M` / `post_max_size=8M` değerleri video
   yüklemeyi (100MB'a kadar) ve büyük görselleri kırar. Lokalde `composer serve`
@@ -50,7 +67,7 @@
 - **Yapılacaklar:** Prod `.env` için `QUEUE_CONNECTION=redis` +
   `horizon` servisinin compose'a eklenmesi (madde A ile birleşebilir).
 
-### C. Medya depolama — Cloudflare R2 bağlantısı ✅ (kod tarafı)
+### C. Medya depolama — Cloudflare R2 bağlantısı ✅ (uçtan uca doğrulandı)
 - **Durum:** Kullanıcı R2 bucket'ının hazır olduğunu onayladı. Kod tarafı
   tamamlandı: `league/flysystem-aws-s3-v3` kuruldu (mevcut generic `s3`
   disk zaten `endpoint`/`use_path_style_endpoint` destekliyor — R2 S3 API
@@ -64,10 +81,13 @@
   (`/media/...` PHP proxy'si atlanıyor — R2/Cloudflare Range'i native
   destekliyor). `/media/{path}` route'u artık `media_disk` public değilken
   güvenli şekilde 404 dönüyor (önceden `Storage::path()` uzak diskte patlardı).
-- **Kalan:** Prod sunucusunun gerçek `.env`'ine (asla commit edilmeyecek)
-  `MEDIA_DISK=s3` + R2'nin gerçek `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`/
-  `AWS_BUCKET`/`AWS_URL`/`AWS_ENDPOINT` değerlerinin girilmesi — bu madde
-  A/deploy'un parçası, kod tarafında ek iş yok.
+- **Canlı doğrulama (2026-07-14):** Prod sunucusunda `MEDIA_DISK=s3` +
+  gerçek R2 kimlik bilgileri girildi. Bucket'a (`sahana-media`) Cloudflare'da
+  custom domain (`media.sahana-app.com`) bağlandı — `AWS_URL` buna
+  ayarlandı. `php artisan tinker` ile gerçek bir dosya yazılıp hem API
+  üzerinden hem `https://media.sahana-app.com/...` üzerinden okunarak
+  uçtan uca doğrulandı (r2.dev yerine gerçek custom domain kullanıldı,
+  Cloudflare'ın kendi "production'da kullanma" uyarısına uyuldu).
 - **Test:** `tests/Feature/ImageUploaderTest.php`, `tests/Feature/MediaRouteTest.php`
   (yeni 404 guard testi).
 

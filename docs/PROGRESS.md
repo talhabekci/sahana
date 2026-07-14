@@ -3,6 +3,59 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (9) — Sahana API canlıya alındı: gerçek Jelastic kurulumu + düzeltmeler
+
+Kullanıcı `deploy/virtuozzo/manifest.jps`'i kendi Jelastic panelinde import
+etti — ilk gerçek deploy denemesi. Sırasıyla çıkan gerçek hatalar bulunup
+düzeltildi (hepsi commit'lendi):
+
+1. **`setup-supervisor` "superuser privileges" hatası** — action'da
+   `user: root` yoktu, `apt-get: command not found` (node CentOS/RHEL).
+   Düzeltme: `user: root` eklendi, `yum`/`dnf` fallback zinciri.
+2. **"syntax error near unexpected token yum"** — düzeltmede kullandığım
+   `(...)` subshell parantezleri Jelastic'in `cmd[nodeGroup]` script
+   executor'ında syntax hatası veriyordu. Bare `||` zincirlerine (parantezsiz)
+   geri dönüldü — ilk denemede zaten parantezsiz syntax sorunsuz çalışmıştı.
+3. **`/api/v1/health` 404 (Apache'nin kendi generic 404'ü, Laravel'e hiç
+   ulaşmıyordu)** — sebep: Apache'nin doküman kökü (`webroot/ROOT`)
+   Laravel'in TAMAMINI serviş ediyordu, `public/`'i değil. İlk önerim
+   (uygulamayı docroot dışına taşıyıp `public/`'e symlink) kullanıcı
+   tarafından reddedildi — "webroot/ROOT doküman kökü olarak kalsın"
+   dendi. Kullanıcı bunun yerine Apache'nin `DocumentRoot`'unu elle
+   `webroot/ROOT/public`'e çevirdi. Manifest bu yaklaşıma göre güncellendi
+   (symlink kodu geri alındı), README'ye tam adımlar (vhost dosyasını
+   `grep -rl "webroot/ROOT"` ile bulup `sed` ile değiştirme) eklendi.
+4. **`APP_KEY` boştu** — `.env` bir noktada `cp .env.example .env` ile
+   sıfırdan üretilmiş, `key:generate` hiç çalışmamıştı. Elle çalıştırıldı.
+5. **Redis `NOAUTH Authentication required`** — Jelastic'in Redis node'u
+   parola korumalı, ama manifest'teki `skipNodeEmails: true` yüzünden
+   parola maili hiç gelmedi. Redis node'una SSH ile girip
+   `/etc/redis.conf`'taki `requirepass` satırından parola bulundu, `.env`'e
+   yazıldı.
+6. **Domain bağlama:** `sahana-app.com` alınıp Cloudflare'a eklendi,
+   `api.sahana-app.com` CNAME ile environment'a yönlendirildi — ama sadece
+   DNS eklemek yetmedi, "environment could not be found via specified
+   host" hatası alındı. Jelastic panelinde ayrıca **Custom Domains**
+   altında domain'in bind edilmesi gerektiği ortaya çıktı (SLB routing
+   için). Bind edilince çalıştı.
+7. **R2 custom domain:** Prod `.env`'de R2 kimlik bilgileri hiç girilmemiş
+   olduğu ortaya çıktı (ilk "test" yanıltıcı şekilde geçmişti). Gerçek
+   `AWS_*` değerleri girildi, `media.sahana-app.com` Cloudflare'da R2
+   bucket'ına custom domain olarak bağlandı, `tinker` ile gerçek dosya
+   yazıp hem API hem custom domain üzerinden okunarak doğrulandı.
+8. **Sentry DSN** prod `.env`'e eklendi.
+9. **Mobil:** `mobile/.env.production` oluşturuldu (yerel `.env`'e
+   dokunulmadı) — `EXPO_PUBLIC_API_URL=https://api.sahana-app.com/api/v1`,
+   Reverb ayarları port 443'e hazırlandı (henüz çalışmıyor, aşağı bkz).
+
+**Sonuç:** `https://api.sahana-app.com/api/v1/health` → `{"data":{"status":"ok"}}`.
+DB/Mongo/Redis/R2 hepsi gerçek trafikle doğrulandı.
+
+**Kalan (madde A hâlâ tam ✅ değil):** Reverb (websocket) — Cloudflare'ın
+ücretsiz planı 8080'de WSS proxy'lemiyor, Apache üzerinden 443'e
+reverse-proxy gerekiyor, henüz yapılmadı. Mobil için gerçek bir EAS
+production build'i de henüz alınmadı.
+
 ## 2026-07-14 (8) — Production-readiness madde A: Virtuozzo Jelastic JPS manifest
 
 Kullanıcı madde A için Hetzner VPS + Docker Compose planından vazgeçip

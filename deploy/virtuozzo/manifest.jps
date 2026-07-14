@@ -14,6 +14,11 @@ globals:
   DB_USER: sahana_${fn.random}
   DB_PASS: ${fn.password(16)}
   MONGO_DB: sahana_chat
+  # Jelastic'in apache node'unda Apache'nin doküman kökü budur. NOT: bu
+  # klasör Laravel'in TAMAMINI içerir (public/ dahil) — Apache'nin
+  # DocumentRoot'unu ${APP_DIR}/public'e çevirmek hâlâ elle yapılması
+  # gereken bir adım, bkz. README.md ("Kurulumdan sonra elle yapılması
+  # gerekenler"). Aksi halde .env gibi dosyalar URL'den erişilebilir kalır.
   APP_DIR: /var/www/webroot/ROOT
   # Kendi repo'nu buraya yaz (özel repo ise node'da git credential/SSH deploy
   # key'i elle ayarlaman gerekir — bu manifest onu otomatik yapmaz).
@@ -61,7 +66,8 @@ actions:
   # üzerinden elle eklenmeli (bkz. deploy/virtuozzo/README.md).
   clone-and-install:
     cmd[cp]: |-
-      rm -rf ${globals.APP_DIR}/*
+      rm -rf ${globals.APP_DIR}
+      mkdir -p ${globals.APP_DIR}
       git clone --depth 1 ${globals.REPO_URL} /tmp/sahana-src
       cp -a /tmp/sahana-src/api/. ${globals.APP_DIR}/
       rm -rf /tmp/sahana-src
@@ -84,6 +90,7 @@ actions:
       php artisan migrate --force
       chown -R apache:apache ${globals.APP_DIR}
       chmod -R 755 ${globals.APP_DIR}/storage ${globals.APP_DIR}/bootstrap/cache
+    user: root
 
   # Horizon (queue) ve Reverb (websocket) uzun ömürlü process'ler —
   # php-fpm request-response döngüsünün dışında, supervisor ile ayakta
