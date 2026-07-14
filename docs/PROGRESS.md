@@ -3,6 +3,39 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (8) — Production-readiness madde A: Virtuozzo Jelastic JPS manifest
+
+Kullanıcı madde A için Hetzner VPS + Docker Compose planından vazgeçip
+Virtuozzo'nun Jelastic PaaS panelini kullanmaya karar verdi; ya elle
+kurulacak node listesi ya da otomatik kurulum yapan bir JPS manifest'i
+istedi. Virtuozzo'nun docs sitesi WebFetch'e 403 döndü (bot engeli
+olabilir), o yüzden `jelastic-jps` GitHub organizasyonundaki resmi
+manifest'leri (Laravel, Ghost, mongo-replic, redis-cluster) `curl` ile
+ham hâlleriyle çekip gerçek/doğrulanmış JPS syntax'ı (nodeType, nodeGroup,
+cloudlets, globals, ${fn.password}/${fn.random}, cmd[nodeGroup], onInstall,
+actions) buradan çıkardım — halüsinasyon riskini azaltmak için tahmin
+yerine gerçek örneklere dayandım.
+
+`deploy/virtuozzo/manifest.jps` yazıldı: 4 node (cp=PHP-FPM/apache,
+sqldb=MySQL, nosqldb=MongoDB, cache=Redis), otomatik MySQL DB+user
+oluşturma, `api/` klasörünü public repo'dan (`talhabekci/sahana` — GitHub
+API ile public olduğu doğrulandı, credential gerekmiyor) klonlayıp
+composer install + `.env` üretme (DB/Mongo/Redis host'ları node
+topolojisinden otomatik dolduruluyor) + migration, Horizon+Reverb'i
+supervisor ile arka planda ayakta tutma. R2/Sentry/Reverb gibi üçüncü
+taraf sırları BİLEREK manifest'e yazılmadı — deploy sonrası panelden elle
+eklenmesi gerekiyor, bu adımlar `deploy/virtuozzo/README.md`'de listelendi
+(ayrıca elle kurulum isteyenler için düz node tablosu da var).
+
+**Dürüstçe belirtilen sınır:** Manifest'in `nodeType` değerleri (apache/
+mysql/mongodb/redis) Virtuozzo'nun resmi örneklerinden doğru ama
+kullanıcının kendi panelindeki güncel kataloğa karşı gerçek bir kurulumla
+test edilmedi — README'de bu açıkça not edildi, import önizlemesinde
+kontrol edilmesi istendi.
+
+**Doğrulama:** `python3 -c "import yaml; yaml.safe_load(...)"` ile YAML
+geçerliliği kontrol edildi (kod çalıştırılabilirliği değil, sadece syntax).
+
 ## 2026-07-14 (7) — Sentry RN wizard ile sourcemap/debug-symbol yüklemesi
 
 Laravel tarafında `php artisan sentry:test` başta "ProjectId" hatasıyla

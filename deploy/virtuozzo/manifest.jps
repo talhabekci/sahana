@@ -1,0 +1,118 @@
+type: install
+jpsVersion: '1.7'
+id: sahana-stack
+name: Sahana Production Stack
+logo: /images/logo.png
+description:
+  short: Laravel API (nginx/apache + PHP), MySQL, MongoDB, Redis, Horizon queue, Reverb websocket
+
+skipNodeEmails: true
+ssl: true
+
+globals:
+  DB_NAME: sahana
+  DB_USER: sahana_${fn.random}
+  DB_PASS: ${fn.password(16)}
+  MONGO_DB: sahana_chat
+  APP_DIR: /var/www/webroot/ROOT
+  # Kendi repo'nu buraya yaz (özel repo ise node'da git credential/SSH deploy
+  # key'i elle ayarlaman gerekir — bu manifest onu otomatik yapmaz).
+  REPO_URL: https://github.com/talhabekci/sahana.git
+
+nodes:
+  - nodeType: apache
+    displayName: sahana-api (PHP-FPM)
+    nodeGroup: cp
+    cloudlets: 16
+
+  - nodeType: mysql
+    displayName: sahana-mysql
+    nodeGroup: sqldb
+    cloudlets: 8
+
+  - nodeType: mongodb
+    displayName: sahana-mongo
+    nodeGroup: nosqldb
+    cloudlets: 8
+
+  - nodeType: redis
+    displayName: sahana-redis
+    nodeGroup: cache
+    cloudlets: 4
+
+onInstall:
+  - create-mysql-db
+  - clone-and-install
+  - setup-supervisor
+  - restartNodes:
+      nodeGroup: [cp]
+
+actions:
+  create-mysql-db:
+    cmd[sqldb]: |-
+      MYSQL_PWD=${nodes.sqldb.password} mysql -uroot -e "CREATE DATABASE IF NOT EXISTS ${globals.DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+      MYSQL_PWD=${nodes.sqldb.password} mysql -uroot -e "CREATE USER IF NOT EXISTS '${globals.DB_USER}'@'%' IDENTIFIED BY '${globals.DB_PASS}';"
+      MYSQL_PWD=${nodes.sqldb.password} mysql -uroot -e "GRANT ALL PRIVILEGES ON ${globals.DB_NAME}.* TO '${globals.DB_USER}'@'%'; FLUSH PRIVILEGES;"
+
+  # api/ alt klasörünü webroot'a klonlar, composer bağımlılıklarını kurar,
+  # .env'i node topolojisine göre üretir (DB/Mongo/Redis host'ları otomatik
+  # dolduruluyor). AWS_*/SENTRY_*/REVERB_APP_* gibi harici sırlar bilerek
+  # buraya YAZILMADI — deploy sonrası Jelastic panelinden Variables/`.env`
+  # üzerinden elle eklenmeli (bkz. deploy/virtuozzo/README.md).
+  clone-and-install:
+    cmd[cp]: |-
+      rm -rf ${globals.APP_DIR}/*
+      git clone --depth 1 ${globals.REPO_URL} /tmp/sahana-src
+      cp -a /tmp/sahana-src/api/. ${globals.APP_DIR}/
+      rm -rf /tmp/sahana-src
+      cd ${globals.APP_DIR}
+      curl -sS https://getcomposer.org/installer | php
+      php composer.phar install --no-dev --optimize-autoloader --no-interaction
+      cp .env.example .env
+      php artisan key:generate --force
+      sed -i "s/^APP_ENV=.*/APP_ENV=production/" .env
+      sed -i "s/^APP_DEBUG=.*/APP_DEBUG=false/" .env
+      sed -i "s/^DB_HOST=.*/DB_HOST=${nodes.sqldb.master.intIP}/" .env
+      sed -i "s/^DB_DATABASE=.*/DB_DATABASE=${globals.DB_NAME}/" .env
+      sed -i "s/^DB_USERNAME=.*/DB_USERNAME=${globals.DB_USER}/" .env
+      sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${globals.DB_PASS}/" .env
+      sed -i "s/^MONGO_HOST=.*/MONGO_HOST=${nodes.nosqldb.master.intIP}/" .env
+      sed -i "s/^MONGO_DATABASE=.*/MONGO_DATABASE=${globals.MONGO_DB}/" .env
+      sed -i "s/^REDIS_HOST=.*/REDIS_HOST=${nodes.cache.master.intIP}/" .env
+      sed -i "s/^CACHE_STORE=.*/CACHE_STORE=redis/" .env
+      sed -i "s/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/" .env
+      php artisan migrate --force
+      chown -R apache:apache ${globals.APP_DIR}
+      chmod -R 755 ${globals.APP_DIR}/storage ${globals.APP_DIR}/bootstrap/cache
+
+  # Horizon (queue) ve Reverb (websocket) uzun ömürlü process'ler —
+  # php-fpm request-response döngüsünün dışında, supervisor ile ayakta
+  # tutuluyor (Laravel'in resmi önerdiği desen).
+  setup-supervisor:
+    cmd[cp]: |-
+      yum install -y supervisor || apt-get install -y supervisor
+      cat > /etc/supervisord.d/sahana-horizon.ini <<'EOF'
+      [program:sahana-horizon]
+      process_name=%(program_name)s
+      command=php ${globals.APP_DIR}/artisan horizon
+      autostart=true
+      autorestart=true
+      user=apache
+      redirect_stderr=true
+      stdout_logfile=${globals.APP_DIR}/storage/logs/horizon.log
+      stopwaitsecs=3600
+      EOF
+      cat > /etc/supervisord.d/sahana-reverb.ini <<'EOF'
+      [program:sahana-reverb]
+      process_name=%(program_name)s
+      command=php ${globals.APP_DIR}/artisan reverb:start --host=0.0.0.0 --port=8080
+      autostart=true
+      autorestart=true
+      user=apache
+      redirect_stderr=true
+      stdout_logfile=${globals.APP_DIR}/storage/logs/reverb.log
+      EOF
+      supervisorctl reread
+      supervisorctl update
+
+startPage: /

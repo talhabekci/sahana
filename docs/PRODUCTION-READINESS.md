@@ -11,16 +11,23 @@
 
 ## Açık Maddeler
 
-### A. Altyapı / Deploy
-- **Durum:** Repoda `docker-compose.yml`/`Dockerfile` yok. tech-stack.md
-  hedefi: Hetzner VPS + Docker Compose (nginx, php-fpm, mysql:8, mongo:7,
-  redis:7, horizon, reverb) + Cloudflare (DNS/CDN/R2).
-- **Karar bekliyor:** VPS zaten kiralandı mı (Hetzner hesabı/sunucu var mı),
-  domain hazır mı? Bunlar olmadan deploy pipeline'ı yazılabilir ama test
-  edilemez.
-- **Yapılacaklar:** `Dockerfile` (php-fpm), `docker-compose.yml`,
-  nginx config + TLS (Let's Encrypt/Certbot), `.env.production` şablonu,
-  GitHub Actions deploy workflow (mevcut `api-ci.yml`/`mobile-ci.yml`'e ek).
+### A. Altyapı / Deploy — yol değişti: Hetzner+Docker yerine Virtuozzo Jelastic
+- **Durum (2026-07-14):** Kullanıcı Hetzner VPS + Docker Compose yerine
+  Virtuozzo'nun Jelastic PaaS panelini kullanmaya karar verdi (hâlâ hiç VPS/
+  domain alınmadı). `deploy/virtuozzo/manifest.jps` + `deploy/virtuozzo/README.md`
+  yazıldı — JPS ile tek seferde 4 node açıp (PHP-FPM/apache, MySQL, MongoDB,
+  Redis) Laravel API'yi kurup Horizon+Reverb'i supervisor ile ayakta tutan bir
+  manifest. Virtuozzo'nun kendi resmi örnek manifest'lerinden (Laravel, Ghost,
+  MongoDB replication, Redis cluster) doğrulanmış syntax kullanıldı, YAML
+  geçerliliği kontrol edildi — ama panelin güncel node type kataloğuna karşı
+  gerçek bir kurulumla test edilmedi (README'de bu net şekilde işaretlendi).
+- **Kalan:** Kullanıcının manifest'i kendi panelinde import edip denemesi,
+  sonra R2/Sentry/Reverb sırlarının deploy sonrası elle eklenmesi
+  (README'de adım adım listelendi), domain alınması ve Cloudflare'a bağlanması.
+- **Eski plan (referans için tutuluyor):** tech-stack.md hâlâ Hetzner VPS +
+  Docker Compose (nginx, php-fpm, mysql:8, mongo:7, redis:7, horizon, reverb)
+  + Cloudflare (DNS/CDN/R2) yazıyor — Virtuozzo yolu netleşince tech-stack.md
+  da güncellenmeli (ayrı bir iş, henüz yapılmadı).
 - **PHP upload limitleri (BACKLOG #40'tan öğrenildi, 2026-07-11):** PHP'nin
   varsayılan `upload_max_filesize=2M` / `post_max_size=8M` değerleri video
   yüklemeyi (100MB'a kadar) ve büyük görselleri kırar. Lokalde `composer serve`
