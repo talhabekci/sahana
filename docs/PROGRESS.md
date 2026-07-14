@@ -3,6 +3,63 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 — Backlog #64: splash sekansı koddan videoya geçti; yeni uygulama ikonu
+
+Kullanıcı iki ayrı takip isteği verdi: (1) uygulama ikonunu, kendisinin
+başka bir araçla ürettiği bir "S" logosuyla değiştirmek, (2) splash gol
+sekansını da yine başka bir araçla ürettiği bir video ile değiştirmek.
+
+**Uygulama ikonu:** `~/Downloads/Gemini_Generated_Image_v4yty3v4yty3v4yt.png`
+(2048×2048, lime `#C9F24E` zigzag "S", koyu yeşil zemin) kaynak alındı.
+Sağ alttaki gri sparkle/filigran ikonu (bbox ~1760-1855px) arka plan
+rengiyle (`(10,36,21)`, düz zemin olduğu için sorunsuz) boyanarak
+temizlendi. Python/Pillow ile 6 varyant üretildi:
+- `icon.png` (1024×1024) / `favicon.png` (48×48) — temizlenmiş kaynağın
+  doğrudan ölçeklenmiş hâli (full-bleed, iOS'un kendi squircle maskesi
+  yeterince toleranslı).
+- `android-icon-foreground.png` / `android-icon-monochrome.png` (512/432) —
+  şekil şeffaf zemine alınıp (arka plan rengiyle renk-mesafesi eşiklemesi)
+  %70'e küçültüldü; orijinal tasarımda S'nin sivri uçları merkeze göre
+  %82.6 yarıçapta idi, Android'in dairesel adaptive-icon güvenli
+  bölgesi (~%61 yarıçap) bunu keserdi.
+- `android-icon-background.png` (512×512) — app.json'daki
+  `backgroundColor` (`#0B1F14`) ile birebir düz dolgu.
+Dairesel maske simülasyonu ve 48px favicon önizlemesiyle görsel doğrulama
+yapıldı (uç kesilmesi yok, küçük boyutta okunaklı).
+
+**Splash videosu:** `~/Documents/SahanSplash.mp4` — 1280×720 kapta,
+gerçek içerik 404×720 pillarboxed (sol/sağ siyah bar), 4.5sn, sesli
+(AAC). `ffprobe`/`cropdetect` ile gerçek içerik alanı tespit edildi
+(x=437, genişlik≈405 — üst/alt siyah bar YOK, sadece yanlarda).
+`ffmpeg` ile kırpılıp 810×1440'a Lanczos ile ölçeklendi, ses tamamen
+kaldırıldı, H.264/yuv420p/faststart ile yeniden sıkıştırıldı
+(2.3MB → 1.4MB) → `mobile/assets/videos/splash-intro.mp4`. Video zaten
+kendi içinde eksiksiz bir sekans: oyuncu şut çeker, top lime izle
+kaleye gider, kaleci yetişemez, top file'a çarpar, sahne parlayan bir
+"S" logosuna sönerek biter — bu yüzden ayrı bir logo-reveal adımına
+gerek kalmadı.
+
+`AnimatedSplash.tsx` yeniden yazıldı: kod-tabanlı `GoalIntro` SVG
+sekansı yerine `expo-video` (`useVideoPlayer` + `VideoView`, proje
+zaten `PostVideoPlayer.tsx`'te aynı API'yi kullanıyordu) ile bu video
+oynatılıyor. `playToEnd` event'inde video duraklatılıp son karede
+(logo) donuyor, `IntroDone` set ediliyor; `ready` de gelince (font/auth
+hazır) tüm ekran 380ms'de solarak `onFinish` çağırıyor. `statusChange`
+event'i `error` dönerse (video hiç yüklenemezse) splash hiç takılı
+kalmasın diye statik `splash-icon.png`'e düşülüyor. `src/types/images.d.ts`'e
+`declare module '*.mp4'` eklendi (mevcut `*.png` deklarasyonuyla aynı
+desen) — Metro'nun kendisi mp4'ü zaten asset olarak tanıyor, sadece TS
+tip hatası veriyordu.
+
+Kullanıcıya eski SVG tabanlı sekans dosyalarını (`mobile/src/shared/ui/splash/`
+altındaki 8 dosya, artık hiçbir yerden import edilmiyor) silmek isteyip
+istemediği soruldu — **kullanıcı kalsın dedi**, kod repoda duruyor ama
+kullanılmıyor.
+
+**Doğrulama:** `npx tsc --noEmit` temiz, `npm run lint` temiz (var olan
+1 axios uyarısı hariç). Video oynatımının cihazdaki gerçek zamanlama/
+performansı bu ortamda test edilemedi.
+
 ## 2026-07-13 (4) — Backlog #64: premium açılış animasyonu (gol sekansı)
 
 Kullanıcı detaylı bir prompt verdi: minimalist silüet bir oyuncu şut çeker,

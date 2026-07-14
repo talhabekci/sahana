@@ -1053,14 +1053,22 @@
   sonra Sahana logosuna geçiş. Stil: sadece silüet/vektör, karikatür değil,
   gereksiz efekt/parçacık yok, 60fps, responsive, yeniden kullanılabilir
   bileşenler.
-- **Uygulama:** `react-native-svg` (zaten kurulu) + Reanimated ile
-  `mobile/src/shared/ui/splash/` altında yeni bileşenler (`PlayerFigure`,
+- **İlk uygulama:** `react-native-svg` + Reanimated ile kod-tabanlı bir gol
+  sekansı (`mobile/src/shared/ui/splash/` — `PlayerFigure`,
   `GoalkeeperFigure`, `Ball`, `GoalNet`, `ImpactFlash`, `GoalIntro`
-  orkestratör + `bezier`/`geometry` yardımcıları) — Olimpiyat piktogramı
-  tarzı kalın çizgi silüetler (dolgu şekil değil), tek aksan lime top izi/
-  çarpma flaşı. `AnimatedSplash.tsx` önce bu sekansı oynatıyor, bitince
-  mevcut logo/halka animasyonuna geçiyor — `ready` kapısı artık hem auth/
-  font/tema hazır olmasını HEM sekansın bitmesini bekliyor.
+  orkestratör + `bezier`/`geometry` yardımcıları). Bu dosyalar repoda
+  duruyor ama kullanılmıyor (kullanıcı kararıyla silinmedi).
+- **Son hâli (2026-07-14):** Kullanıcı sekansı başka bir araçla video
+  olarak (`SahanSplash.mp4`, orijinali 1280×720 pillarboxed, 4.5sn, sesli)
+  hazırlayıp verdi. Video işlendi: gerçek içerik alanı (404×720,
+  pillarbox'lar hariç) `ffmpeg` ile kırpıldı, 810×1440'a ölçeklendi, ses
+  kaldırıldı, H.264/yuv420p olarak yeniden sıkıştırıldı (~1.4MB) →
+  `mobile/assets/videos/splash-intro.mp4`. `AnimatedSplash.tsx` artık
+  `expo-video` (`useVideoPlayer` + `VideoView`) ile bu videoyu oynatıyor;
+  `playToEnd` olayında son karede (parlayan S logosu) durup `IntroDone`
+  set ediyor, `ready` de gelince tüm ekran solarak uygulamayı açıyor.
+  Video yüklenemezse (`statusChange` → `error`) statik `splash-icon.png`'e
+  düşülüyor — splash hiçbir senaryoda takılı kalmıyor.
 - **Bağlı modül:** cross-cutting (mobil marka/açılış deneyimi, BACKLOG #22
   üzerine inşa edildi)
 
