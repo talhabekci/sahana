@@ -3,6 +3,33 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (7) — Sentry RN wizard ile sourcemap/debug-symbol yüklemesi
+
+Laravel tarafında `php artisan sentry:test` başta "ProjectId" hatasıyla
+reddediliyordu (proje muhtemelen kullanıcı tarafından yeniden
+oluşturuldu); kullanıcı düzeltince tekrar test edildi, çalıştı.
+
+Mobil tarafında kullanıcı Sentry'nin resmi wizard'ını
+(`npx @sentry/wizard@latest -i reactNative --saas --org sahana-zg --project react-native`)
+kendi terminalinde çalıştırdı — ben çalıştıramadım (etkileşimli/tarayıcı
+girişi gerektiriyor, sandbox'ta TTY hatası verdi). Çıktıyı bana yapıştırdı,
+ben de sonucu koda işledim: `metro.config.js` (yeni, `getSentryExpoConfig`
+ile debug-id enjeksiyonu) ve `app.json`'a eklenen
+`@sentry/react-native/expo` config plugin'i (org/project/url) olduğu gibi
+bırakıldı — bunlar build-zamanı sourcemap/debug-symbol yükleme için
+gerekliydi ve önceki oturumda "kalan iş" olarak not edilmişti. Wizard bu
+projenin Expo Router (`_layout.tsx`) kullandığını, klasik `App.js` olmadığını
+anlayamadı, o yüzden `Sentry.init()`/`Sentry.wrap()` kodunu otomatik
+uygulayamadı — zaten elle yazılmış olan koda yeni DSN'i işledim
+(`enableLogs: true` de eklendi, kullanıcı wizard'da logs'u açık seçmişti).
+Wizard'ın seçtiği proje ID'si ilk verilen DSN'den farklıydı (muhtemelen
+proje yeniden oluşturulduğu için) — güncel/doğrulanmış DSN kullanıldı.
+`SENTRY_AUTH_TOKEN` `.env.local`'e yazıldı, `.gitignore`'a otomatik
+eklendi (commit edilmiyor, sadece build-zamanı sourcemap yükleme için).
+
+**Doğrulama:** `npx tsc --noEmit` ve `npm run lint` temiz. Laravel tarafı
+`sentry:test` ile tekrar doğrulandı.
+
 ## 2026-07-14 (6) — R2 bağlantı doğrulaması + Production-readiness madde E: Sentry
 
 **R2 bağlantı testi:** Kullanıcı R2 hesabını açtı, önce API token/Access

@@ -102,11 +102,22 @@
   `SENTRY_LARAVEL_DSN` override eklenmediği için Pest test suite'i gerçek
   Sentry'ye network isteği atıyor, süre 2.4sn'den 70sn'ye çıkıyordu — boş
   DSN override'ı eklenip düzeltildi.
-- **Kalan:** Kaynak harita (sourcemap) yükleme kurulmadı — bu sadece
-  minify edilmiş prod JS'te okunaklı stack trace almak için, hata
-  raporlamanın kendisini etkilemiyor; EAS build sürecine `SENTRY_AUTH_TOKEN`
-  ile bağlanınca (`npx sentry-wizard` ya da EAS'ın kendi Sentry entegrasyonu)
-  eklenebilir, ayrı bir iş.
+- **Kaynak harita (sourcemap) yükleme:** Kullanıcı resmi
+  `npx @sentry/wizard@latest -i reactNative --saas --org sahana-zg --project react-native`
+  komutunu kendi terminalinde çalıştırdı (ben çalıştıramadım — etkileşimli,
+  tarayıcı girişi gerektiriyor). Wizard: `metro.config.js` oluşturdu
+  (`getSentryExpoConfig` ile debug-id enjeksiyonu), `app.json`'a
+  `@sentry/react-native/expo` config plugin'ini (org/project/url ile)
+  ekledi, build-zamanı yükleme için `SENTRY_AUTH_TOKEN`'ı `.env.local`'e
+  yazdı (`.gitignore`'a otomatik eklendi, commit edilmiyor). Wizard bu
+  projede `App.js` bulamadığı için (Expo Router `_layout.tsx` kullanıyoruz)
+  `Sentry.init()`/`Sentry.wrap()` snippet'lerini otomatik uygulayamadı —
+  elle zaten mevcut olan koda (bkz. yukarıdaki madde) yeni DSN'i işledim,
+  `enableLogs: true` eklendi (kullanıcı wizard akışında logs'u açık seçti).
+  Not: wizard'ın seçtiği proje ID'si (`4511733650882640`), kullanıcının
+  ilk verdiği DSN'deki proje ID'sinden (`4511733636989008`) farklı —
+  muhtemelen ilk proje "ProjectId" hatasından sonra yeniden oluşturuldu;
+  şu an geçerli/doğrulanmış olan bu yeni DSN kullanılıyor.
 
 ### F. Store submission (mobil)
 - **Durum:** Kullanıcı Apple Developer / Google Play Console hesaplarının

@@ -61,7 +61,15 @@
       ],
       "expo-asset",
       "expo-video",
-      "@sentry/react-native"
+      "@sentry/react-native",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "sahana-zg"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

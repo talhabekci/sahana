@@ -30,6 +30,7 @@ Sentry.init({
   enabled: SentryDsn != null && SentryDsn !== '',
   sendDefaultPii: false,
   tracesSampleRate: 1.0,
+  enableLogs: true,
 });
 
 const Client = new QueryClient();
