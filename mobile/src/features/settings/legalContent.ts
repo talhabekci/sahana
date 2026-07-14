@@ -32,7 +32,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
       },
       {
         heading: 'Verilerini kimlerle paylaşıyoruz',
-        body: 'Fotoğraf/video/ses dosyaların bulut depolama sağlayıcımızda (Cloudflare R2) barındırılır. Push bildirimler Expo/Firebase Cloud Messaging altyapısı üzerinden gönderilir. Hata izleme için (varsa) Sentry kullanılabilir — bu araçlar veriyi sadece bize hizmet sağlamak amacıyla işler, kendi adlarına kullanmaz. Yasal bir zorunluluk olmadıkça verilerini üçüncü taraflarla paylaşmıyoruz.',
+        body: 'Fotoğraf/video/ses dosyaların bulut depolama sağlayıcımızda barındırılır. Hata izleme için (varsa) kullanılabilir — bu araçlar veriyi sadece bize hizmet sağlamak amacıyla işler, kendi adlarına kullanmaz. Yasal bir zorunluluk olmadıkça verilerini üçüncü taraflarla paylaşmıyoruz.',
       },
       {
         heading: 'Ne kadar süre saklıyoruz',
@@ -48,7 +48,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
       },
       {
         heading: 'İletişim',
-        body: 'Gizlilikle ilgili sorularını [iletişim e-postası buraya eklenecek] adresine gönderebilirsin.',
+        body: 'Gizlilikle ilgili sorularını support@sahanaapp.com adresine gönderebilirsin.',
       },
     ],
   },
@@ -73,7 +73,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
       },
       {
         heading: 'Aktarım',
-        body: 'Verilerin, hizmet aldığımız bulut depolama (Cloudflare R2) ve bildirim (Firebase Cloud Messaging/Expo) sağlayıcılarına, sadece hizmetin sunulabilmesi için gerekli ölçüde aktarılabilir. Bu sağlayıcıların sunucuları yurt dışında olabilir; bu durumda KVKK\'nın yurt dışına aktarıma ilişkin hükümlerine uyulur.',
+        body: 'Verilerin, hizmet aldığımız bulut depolama ve bildirim sağlayıcılarına, sadece hizmetin sunulabilmesi için gerekli ölçüde aktarılabilir. Bu sağlayıcıların sunucuları yurt dışında olabilir; bu durumda KVKK\'nın yurt dışına aktarıma ilişkin hükümlerine uyulur.',
       },
       {
         heading: 'KVKK m.11 kapsamındaki hakların',
@@ -81,7 +81,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
       },
       {
         heading: 'Başvuru yolu',
-        body: 'Bu haklarını kullanmak için [iletişim e-postası buraya eklenecek] adresine, kimliğini tevsik edici bilgilerle birlikte yazılı başvuruda bulunabilirsin. Başvurun KVKK\'da öngörülen süre içinde ücretsiz olarak sonuçlandırılır.',
+        body: 'Bu haklarını kullanmak için support@sahanaapp.com adresine, kimliğini tevsik edici bilgilerle birlikte yazılı başvuruda bulunabilirsin. Başvurun KVKK\'da öngörülen süre içinde ücretsiz olarak sonuçlandırılır.',
       },
     ],
   },
@@ -122,7 +122,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
       },
       {
         heading: 'İletişim',
-        body: 'Sorularını [iletişim e-postası buraya eklenecek] adresine gönderebilirsin.',
+        body: 'Sorularını support@sahanaapp.com adresine gönderebilirsin.',
       },
     ],
   },

@@ -83,13 +83,30 @@
 - **Test:** `tests/Feature/RateLimitTest.php` — 20 istekten sonraki 21.
   istek 429 dönüyor.
 
-### E. Gözlemlenebilirlik — hata takibi
-- **Durum:** Sentry (ya da benzeri) yok, ne API ne mobil. Şu an bir hata
-  sadece `storage/logs`'a düşüyor.
-- **Karar bekliyor:** Sentry hesabı (ücretsiz tier yeterli olabilir) — DSN
-  kullanıcı tarafından oluşturulmalı, ben hesap açamam.
-- **Yapılacaklar:** `sentry/sentry-laravel` (API) + `@sentry/react-native`
-  (mobil) kurulumu, DSN env değişkenleri, prod'da aktif/dev'de kapalı.
+### E. Gözlemlenebilirlik — hata takibi ✅
+- **Durum:** Kullanıcı iki ayrı Sentry projesi açtı (API + mobil) ve DSN'leri
+  verdi. `sentry/sentry-laravel` kuruldu; `sentry:publish` ile
+  `config/sentry.php` yayınlandı ve test event/transaction gerçek Sentry'ye
+  gönderildiği doğrulandı — ama `bootstrap/app.php`'e istisna raporlamayı
+  bağlayan `Integration::handles($Exceptions)` çağrısı otomatik
+  eklenmiyordu (Laravel 11+'ın yeni `withExceptions()` yapısı için elle
+  eklenmesi gerekiyor), o satır eklendi. `SENTRY_LARAVEL_DSN` boşsa SDK
+  sessizce devre dışı kalıyor. `send_default_pii` varsayılan `false`
+  (KVKK'ya uygun — IP/header otomatik gönderilmiyor).
+- Mobilde `@sentry/react-native` (`npx expo install`, config plugin
+  `app.json`'a otomatik eklendi) kuruldu. `_layout.tsx`'te modül
+  seviyesinde `Sentry.init()` çağrılıyor (`EXPO_PUBLIC_SENTRY_DSN` boşsa
+  `enabled: false`), kök bileşen resmi Expo Router deseniyle
+  `Sentry.wrap(RootLayout)` ile export ediliyor.
+- **Test ortamı düzeltmesi:** İlk kurulumda `phpunit.xml`'e
+  `SENTRY_LARAVEL_DSN` override eklenmediği için Pest test suite'i gerçek
+  Sentry'ye network isteği atıyor, süre 2.4sn'den 70sn'ye çıkıyordu — boş
+  DSN override'ı eklenip düzeltildi.
+- **Kalan:** Kaynak harita (sourcemap) yükleme kurulmadı — bu sadece
+  minify edilmiş prod JS'te okunaklı stack trace almak için, hata
+  raporlamanın kendisini etkilemiyor; EAS build sürecine `SENTRY_AUTH_TOKEN`
+  ile bağlanınca (`npx sentry-wizard` ya da EAS'ın kendi Sentry entegrasyonu)
+  eklenebilir, ayrı bir iş.
 
 ### F. Store submission (mobil)
 - **Durum:** Kullanıcı Apple Developer / Google Play Console hesaplarının

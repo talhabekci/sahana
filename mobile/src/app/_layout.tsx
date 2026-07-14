@@ -4,6 +4,7 @@ import {
 } from '@expo-google-fonts/barlow-condensed';
 import { Manrope_400Regular, Manrope_500Medium, Manrope_700Bold } from '@expo-google-fonts/manrope';
 import { SpaceMono_700Bold } from '@expo-google-fonts/space-mono';
+import * as Sentry from '@sentry/react-native';
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -21,6 +22,16 @@ import { useIsDarkTheme, useTheme } from '@/shared/ui/theme';
 
 SplashScreen.preventAutoHideAsync();
 
+// PRODUCTION-READINESS.md §E — DSN yoksa SDK sessizce devre dışı kalır
+// (dev'de EXPO_PUBLIC_SENTRY_DSN .env'e eklenmediği sürece kapalı).
+const SentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
+Sentry.init({
+  dsn: SentryDsn != null && SentryDsn !== '' ? SentryDsn : undefined,
+  enabled: SentryDsn != null && SentryDsn !== '',
+  sendDefaultPii: false,
+  tracesSampleRate: 1.0,
+});
+
 const Client = new QueryClient();
 
 /**
@@ -33,7 +44,7 @@ function handleAppStateChange(Status: AppStateStatus): void {
   focusManager.setFocused(Status === 'active');
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [FontsLoaded] = useFonts({
     BarlowCondensed_600SemiBold,
     BarlowCondensed_700Bold,
@@ -114,3 +125,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default Sentry.wrap(RootLayout);

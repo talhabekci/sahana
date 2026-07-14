@@ -3,6 +3,49 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (6) — R2 bağlantı doğrulaması + Production-readiness madde E: Sentry
+
+**R2 bağlantı testi:** Kullanıcı R2 hesabını açtı, önce API token/Access
+Key/Secret/Account ID verdi (lokal `.env`'e yazıldı, chat'e yapıştırıldığı
+için token'ı rotate etmesi önerildi), sonra bucket'ı (`sahana-media`)
+oluşturup Public Development URL'i etkinleştirdi. `php artisan tinker`
+ile gerçek bucket'a yazma/okuma doğrulandı (çalıştı). Public
+`pub-xxxx.r2.dev` URL'i hem benim sandbox'ımdan hem kullanıcının
+tarayıcısından TLS handshake sırasında resetleniyordu — kullanıcı doğru
+noktaya değindi: bu URL zaten Cloudflare'ın kendi uyarısında "production'da
+kullanma, rate-limited" diyor. Domain henüz alınmadığı için custom domain
+bağlanamadı; `MEDIA_DISK=s3` kullanıcının isteğiyle aktif bırakıldı (geri
+almak istedim, "bugün canlıya alıcaz herşeyi" dendi) ama `AWS_URL` boş
+kaldı — domain alınıp custom domain bağlanana kadar `ImageUploader::url()`
+üzerinden üretilen linkler çalışmayacak, bu bilinen/beklenen bir ara durum.
+
+**Madde E — Sentry:** Kullanıcı iki proje açtı (API için Laravel, mobil
+için React Native), DSN'leri verdi. API: `sentry/sentry-laravel` kuruldu,
+`php artisan sentry:publish --dsn=...` ile `config/sentry.php` yayınlandı
+ve gerçek bir test event/transaction Sentry'ye gönderildi (doğrulandı).
+Ancak `sentry:publish` `bootstrap/app.php`'i değiştirmiyor —
+`SentryIntegration::handles($Exceptions)` çağrısını `withExceptions()`
+içine elle eklemem gerekti (Laravel 11+'ın yeni exception handling
+mimarisinde resmi entegrasyon adımı budur). `send_default_pii` varsayılan
+`false` bırakıldı. **Test suite regresyonu:** ilk `pest` çalıştırmasında
+süre 2.4sn'den 70sn'ye çıktı — `phpunit.xml`'de `SENTRY_LARAVEL_DSN`
+override edilmediği için testler gerçek Sentry'ye network isteği
+atıyordu; boş DSN override eklenip düzeltildi (288 test, 2.7sn'ye döndü).
+
+Mobil: `npx expo install @sentry/react-native` (config plugin `app.json`'a
+otomatik eklendi). `_layout.tsx`'te modül seviyesinde `Sentry.init()`
+çağrılıyor (`EXPO_PUBLIC_SENTRY_DSN` boşsa `enabled:false`), kök bileşen
+resmi Expo Router deseniyle `Sentry.wrap(RootLayout)` ile export ediliyor.
+DSN `mobile/.env`'e eklendi (gitignored, kök `.gitignore`'daki `.env`
+kuralıyla — mobile'ın kendi `.gitignore`'u sadece `.env*.local`'ı
+yakalıyordu, kontrol edilip doğrulandı). Sourcemap yükleme (okunaklı prod
+stack trace için) kurulmadı, ayrı bir iş olarak not edildi.
+
+**Doğrulama:** API'de Pint temiz, Larastan 0 hata (`bootstrap/app.php`
+Larastan'ın taradığı `app/` dışında olduğu için `php -l` ile ayrıca
+syntax kontrolü yapıldı), Pest 288 geçti. Mobilde `tsc --noEmit` ve
+`npm run lint` temiz.
+
 ## 2026-07-14 (5) — Production-readiness madde C/F/G: R2 medya diski, konum izni, yasal metin taslakları
 
 Önceki mesajda kullanıcıya kalan 7 açık maddeden hangi kaynakların hazır

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Sentry\Laravel\Integration as SentryIntegration;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -28,6 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $Exceptions): void {
+        // PRODUCTION-READINESS.md §E — istisnalar Sentry'ye raporlanır
+        // (SENTRY_LARAVEL_DSN boşsa SDK sessizce devre dışı kalır).
+        SentryIntegration::handles($Exceptions);
+
         // api-conventions.md §4 — hata zarfı: {message, code, errors?}
         $Exceptions->render(function (ApiError $Error, Request $Request) {
             return response()->json([
