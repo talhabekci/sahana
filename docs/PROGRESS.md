@@ -3,6 +3,26 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (3) — Uygulama arka plandan öne gelince otomatik refetch
+
+Kullanıcı: uygulamayı görev yöneticisinden kapatmadan arka plana atıp
+tekrar öne getirince açık ekranlardaki veri yeniden çekilsin istedi.
+React Native'de web'deki `window focus` olayı native olarak yok — bu
+yüzden TanStack Query'nin `refetchOnWindowFocus` (varsayılan `true`,
+projede hiçbir yerde override edilmemiş) davranışı RN'de kendiliğinden
+hiç tetiklenmiyordu.
+
+`src/app/_layout.tsx`'e `AppState` dinleyicisi eklendi: `change` event'inde
+`focusManager.setFocused(status === 'active')` çağrılıyor (TanStack
+Query'nin resmi React Native entegrasyon deseni). Bu tek noktadan yapılan
+bağlantı sayesinde `refetchOnWindowFocus`'u override etmeyen (yani
+projedeki tüm) query'ler, uygulama arka plandan öne her geldiğinde
+otomatik yeniden fetch ediliyor — ayrıca her ekrana tek tek kod
+eklemeye gerek kalmadı.
+
+**Doğrulama:** `npx tsc --noEmit` temiz, `npm run lint` temiz (var olan
+1 axios uyarısı hariç).
+
 ## 2026-07-14 (2) — Backlog #64: splash en sade hâline döndü (video/SVK gol sekansı yerine logo+halka)
 
 Kullanıcı bir önceki oturumda entegre edilen video-tabanlı gol sekansından

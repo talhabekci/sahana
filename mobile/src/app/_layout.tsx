@@ -4,12 +4,13 @@ import {
 } from '@expo-google-fonts/barlow-condensed';
 import { Manrope_400Regular, Manrope_500Medium, Manrope_700Bold } from '@expo-google-fonts/manrope';
 import { SpaceMono_700Bold } from '@expo-google-fonts/space-mono';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAuthStore } from '@/features/auth/store';
@@ -21,6 +22,16 @@ import { useIsDarkTheme, useTheme } from '@/shared/ui/theme';
 SplashScreen.preventAutoHideAsync();
 
 const Client = new QueryClient();
+
+/**
+ * React Native'de web'deki gibi otomatik "window focus" olayı yok — uygulama
+ * arka plandan (görev yöneticisinden kapatılmadan) öne gelince TanStack
+ * Query'nin varsayılan `refetchOnWindowFocus` davranışının tetiklenmesi için
+ * `AppState`'i `focusManager`'a bağlamak gerekiyor.
+ */
+function handleAppStateChange(Status: AppStateStatus): void {
+  focusManager.setFocused(Status === 'active');
+}
 
 export default function RootLayout() {
   const [FontsLoaded] = useFonts({
@@ -46,6 +57,12 @@ export default function RootLayout() {
     void Hydrate();
     void HydrateTheme();
   }, [Hydrate, HydrateTheme]);
+
+  useEffect(() => {
+    const Subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => Subscription.remove();
+  }, []);
 
   const Ready = FontsLoaded && Hydrated && ThemeHydrated;
   const [AnimationDone, setAnimationDone] = useState(false);
