@@ -90,7 +90,9 @@ actions:
   # tutuluyor (Laravel'in resmi önerdiği desen).
   setup-supervisor:
     cmd[cp]: |-
-      yum install -y supervisor || apt-get install -y supervisor
+      (yum install -y epel-release || dnf install -y epel-release || true)
+      (yum install -y supervisor || dnf install -y supervisor || apt-get install -y supervisor)
+      mkdir -p /etc/supervisord.d
       cat > /etc/supervisord.d/sahana-horizon.ini <<'EOF'
       [program:sahana-horizon]
       process_name=%(program_name)s
@@ -112,7 +114,9 @@ actions:
       redirect_stderr=true
       stdout_logfile=${globals.APP_DIR}/storage/logs/reverb.log
       EOF
+      (systemctl enable --now supervisord || service supervisord start || supervisord -c /etc/supervisord.conf)
       supervisorctl reread
       supervisorctl update
+    user: root
 
 startPage: /
