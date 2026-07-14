@@ -11,7 +11,7 @@
 
 ## Açık Maddeler
 
-### A. Altyapı / Deploy — Virtuozzo Jelastic'te CANLI ✅ (Reverb hariç)
+### A. Altyapı / Deploy — Virtuozzo Jelastic'te CANLI ✅ (Reverb dahil, tamamı)
 - **Durum (2026-07-14):** Hetzner+Docker planı terk edildi, Virtuozzo Jelastic
   PaaS kullanıldı. `deploy/virtuozzo/manifest.jps` ile 4 node açıldı (PHP-FPM/
   apache, MySQL, MongoDB, Redis), gerçek bir kurulumla test edildi ve birkaç
@@ -38,10 +38,26 @@
 - **Doğrulanmış canlı durum:** `https://api.sahana-app.com/api/v1/health` →
   `{"data":{"status":"ok"}}`. DB/Mongo/Redis/R2 hepsi gerçek trafikle test
   edildi.
-- **Kalan:** Reverb (websocket) — Cloudflare'ın ücretsiz planı 8080 portunda
-  WSS proxy'lemiyor, Apache üzerinden 443'e reverse-proxy edilmesi gerekiyor
-  (henüz yapılmadı, chat/realtime şu an çalışmıyor). Mobil `.env.production`
-  yazıldı ama gerçek cihazda test için yeni bir EAS build gerekiyor.
+- **Reverb (websocket) çözüldü:** Jelastic'in Shared Load Balancer'ı 443'ü
+  kendi sertifikasıyla karşılayıp Apache'ye **80** portundan düz HTTP olarak
+  iletiyor (`apachectl -S` `*:443` hiç göstermiyor, sadece `*:80`) — bu
+  yüzden proxy kuralı `ssl.conf`'a değil `httpd.conf`'taki `<VirtualHost *:80>`
+  bloğuna eklendi: `ProxyPass /app ws://127.0.0.1:8080/app` +
+  `ProxyPassReverse`. `mod_proxy_wstunnel` zaten yüklüydü. Dışarıdan
+  `curl` ile websocket upgrade doğrulandı (`101 Switching Protocols`,
+  `X-Powered-By: Laravel Reverb`).
+- **Kırılganlık (önemli):** "Redeploy Containers" paneldeki işlemi
+  `httpd.conf`'u VE `supervisor` paketini (OS-seviyesi, kalıcı volume'da
+  değil) sıfırlıyor — `.env`/kod (webroot altında) kalıcı kalıyor. Bu
+  yüzden DocumentRoot + ProxyPass düzeltmeleri her "Redeploy Containers"
+  sonrası TEKRAR yapılmalı. `supervisor` paketi de (`yum`) siliniyordu ve
+  `pip3`/`supervisord` PATH'te bulunamadı; şu an Reverb+Horizon `nohup` ile
+  arka planda çalışıyor (`disown`'lı) — **node yeniden başlarsa ya da
+  process ölürse otomatik geri gelmez**, elle tekrar başlatılması gerekir.
+  Kalıcı bir çözüm (cron `@reboot`, ya da Jelastic'in "Deployment Manager"ı
+  üzerinden supervisor kurulumunu yeniden tetiklemek) henüz kurulmadı.
+- Mobil `.env.production` yazıldı ama gerçek cihazda test için yeni bir
+  EAS build gerekiyor.
 - **Eski plan (artık geçersiz):** tech-stack.md hâlâ Hetzner VPS + Docker
   Compose yazıyor — Virtuozzo'ya geçiş netleşti, tech-stack.md'nin
   güncellenmesi ayrı bir iş (henüz yapılmadı).

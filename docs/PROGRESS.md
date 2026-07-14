@@ -3,6 +3,57 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (10) — Reverb websocket proxy çözüldü + kritik "Redeploy Containers" kırılganlığı
+
+Reverb'i Apache üzerinden proxy'lemeye çalışırken uzun bir teşhis süreci
+oldu, sonunda tamamen çalışır hale getirildi:
+
+1. İlk deneme `ssl.conf`'taki `<VirtualHost *:443>`'e `ProxyPass /app
+   ws://127.0.0.1:8080/app` eklemekti — hiç etki etmedi (websocket upgrade
+   isteği Laravel'in kendi 404'üne düşmeye devam etti).
+2. `apachectl -S` çalıştırılınca sebep ortaya çıktı: **`*:443` hiç
+   listede yok**, sadece `*:80`. Jelastic'in Shared Load Balancer'ı dış
+   HTTPS trafiğini kendi sertifikasıyla karşılayıp Apache'ye düz HTTP
+   olarak **80 portundan** iletiyormuş. `httpd.conf`'taki `<VirtualHost
+   *:80>` bloğunda zaten Jelastic'in kendi yorum satırı halinde bir
+   websocket şablonu vardı — doğru yer buymuş. ProxyPass kuralı oraya
+   taşınınca `curl` ile dışarıdan test edilen websocket upgrade isteği
+   Apache'nin mod_proxy 503'üne düştü (doğru yönlendiriyor ama backend
+   yok) — bu da proxy'nin çalıştığını, sadece Reverb'in ayakta olmadığını
+   kanıtladı.
+3. Reverb'i elle ön planda çalıştırınca sorunsuz başladı — `supervisor`un
+   `.ini` dosyaları doğruydu ama çalışan `supervisord` süreci (kurulumdan
+   beri aynı PID) onları hiç "reread" etmemiş. `supervisorctl` `apache`
+   kullanıcısıyla (root olmayan SSH oturumu — Jelastic'in kısıtlaması)
+   çalıştırılamadı (`PermissionError`). Panelden birkaç kez "restart"
+   denendi, `supervisord`'un PID'i hiç değişmedi (gerçek bir süreç
+   restart'ı olmadı).
+4. Kullanıcı "Redeploy Containers" denedi — bu APAYRI, çok daha önemli bir
+   şey ortaya çıkardı: bu işlem `httpd.conf`'u (DocumentRoot + ProxyPass
+   düzeltmeleri dahil) VE `yum`'la kurulan `supervisor` paketini
+   **tamamen sıfırlıyor** (OS-seviyesi state kalıcı değil), ama
+   `/var/www/webroot/ROOT` (kod + `.env`, kalıcı volume) sağlam kalıyor.
+   DocumentRoot + ProxyPass'ı ikinci kez elle düzelttik.
+5. `supervisor` paketi tekrar kurulamadı (`yum`/`pip3` PATH'te yoktu bu
+   sefer). Kullanıcının kendi kullanıcısıyla (`apache`, root gerekmeden)
+   ayrı bir `supervisord` instance'ı kurmayı denedik ama `supervisord`
+   binary'si de bulunamadı. Son çare: `nohup php artisan reverb:start ...
+   &` + `nohup php artisan horizon &` + `disown -a` — root gerektirmez,
+   hemen çalışır, ama **kalıcı değil** (node restart'ında ya da process
+   ölürse elle tekrar başlatılması lazım).
+
+**Sonuç:** `curl -i -N --http1.1 -H "Connection: Upgrade" ...` ile dışarıdan
+`https://api.sahana-app.com/app/{key}` → `101 Switching Protocols` +
+`X-Powered-By: Laravel Reverb` doğrulandı. Chat/realtime artık çalışıyor.
+
+**Açık kalan gerçek risk:** Supervisor'ın kalıcı bir şekilde kurulamaması
++ "Redeploy Containers"ın config'i sıfırlaması, bu ortamı kırılgan
+yapıyor — bir sonraki redeploy/restart'ta hem Apache config'i hem
+Reverb/Horizon'un arka planda çalışması yeniden elden geçirilmeli.
+Kalıcı bir çözüm (cron `@reboot`, Jelastic "Deployment Manager" ile
+`setup-supervisor` action'ını yeniden tetikleme, ya da supervisor'ı hiç
+kullanmayan bir systemd unit dosyası yazma) ayrı bir iş olarak kaldı.
+
 ## 2026-07-14 (9) — Sahana API canlıya alındı: gerçek Jelastic kurulumu + düzeltmeler
 
 Kullanıcı `deploy/virtuozzo/manifest.jps`'i kendi Jelastic panelinde import

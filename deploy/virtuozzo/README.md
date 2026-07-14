@@ -72,14 +72,57 @@ sed -i "s/^CORS_ALLOWED_ORIGINS=.*/CORS_ALLOWED_ORIGINS=https:\/\/<gerçek-domai
   hatası alırsınız.
 - Cloudflare → SSL/TLS → **Full** mod (Flexible değil).
 
-**4) Reverb (websocket) — henüz otomatik değil**
+**4) Reverb (websocket) — çözüldü, ama proxy kuralı 80'e gider (443'e değil!)**
 
-8080 portu Cloudflare'ın ücretsiz planında WSS (güvenli websocket)
-proxy'lemiyor (sadece 443/8443 gibi belirli portlarda). Reverb'i Apache
-üzerinden aynı 443 portundan reverse-proxy etmek gerekiyor — bu adım henüz
-yapılmadı, ayrı bir iş olarak kalıyor.
+8080 portu Cloudflare'ın ücretsiz planında WSS proxy'lemiyor (sadece
+443/8443 gibi belirli portlarda), bu yüzden Reverb'i Apache üzerinden
+proxy'lemek gerekiyor. **Kritik nokta:** `apachectl -S` çalıştırınca
+`*:443` hiç görünmüyor, sadece `*:80` — çünkü Jelastic'in Shared Load
+Balancer'ı dış HTTPS trafiğini kendi sertifikasıyla karşılayıp Apache'ye
+**düz HTTP olarak 80 portundan** iletiyor. Yani proxy kuralı `ssl.conf`'a
+değil, `httpd.conf`'taki `<VirtualHost *:80>` bloğuna eklenmeli (Jelastic
+zaten orada yorum satırı halinde bir websocket şablonu bırakıyor):
 
-**5) Mobil `.env.production`**
+```bash
+sed -i '/<\/VirtualHost>/i\
+    ProxyPass /app ws://127.0.0.1:8080/app\
+    ProxyPassReverse /app ws://127.0.0.1:8080/app' /etc/httpd/conf/httpd.conf
+apachectl configtest && systemctl restart httpd
+```
+
+Doğrulama (dışarıdan, HTTP/1.1 zorlanarak — HTTP/2'de upgrade header'ları
+işe yaramaz):
+```bash
+curl -i -N --http1.1 -H "Connection: Upgrade" -H "Upgrade: websocket" \
+  -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+  "https://<domain>/app/<REVERB_APP_KEY>"
+```
+`101 Switching Protocols` + `X-Powered-By: Laravel Reverb` dönmeli.
+
+**5) ⚠️ "Redeploy Containers" OS-seviyesi her şeyi sıfırlıyor**
+
+Panelden "Redeploy Containers" yaptığınızda `httpd.conf` (DocumentRoot +
+ProxyPass düzeltmeleri dahil) VE `yum`/`dnf` ile kurulan `supervisor`
+paketi **tamamen sıfırlanıyor** — sadece `/var/www/webroot/ROOT` (kod +
+`.env`) kalıcı volume'da kalıp hayatta kalıyor. Her redeploy sonrası
+madde 1 ve bu maddedeki adımların TEKRAR yapılması gerekir.
+
+`supervisor` paketi tekrar `yum install` ile kurulamıyorsa (`pip3` de
+PATH'te yoksa), en basit geçici çözüm — **root gerektirmez, ama otomatik
+yeniden başlama YOK, node restart'ında elle tekrar çalıştırılmalı**:
+
+```bash
+cd /var/www/webroot/ROOT
+nohup php artisan reverb:start --host=0.0.0.0 --port=8080 > storage/logs/reverb-bg.log 2>&1 &
+nohup php artisan horizon > storage/logs/horizon-bg.log 2>&1 &
+disown -a
+```
+
+Kalıcı bir çözüm (örn. cron `@reboot` girdisi, ya da Jelastic'in
+"Deployment Manager"ı üzerinden `setup-supervisor` action'ını yeniden
+tetiklemek) henüz kurulmadı — ayrı bir iş.
+
+**6) Mobil `.env.production`**
 
 `mobile/.env.production` (repoda, gitignored) prod domain'ini kullanacak
 şekilde güncellenmeli — `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_REVERB_*`,
