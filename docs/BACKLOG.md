@@ -1058,17 +1058,21 @@
   `GoalkeeperFigure`, `Ball`, `GoalNet`, `ImpactFlash`, `GoalIntro`
   orkestratör + `bezier`/`geometry` yardımcıları). Bu dosyalar repoda
   duruyor ama kullanılmıyor (kullanıcı kararıyla silinmedi).
-- **Son hâli (2026-07-14):** Kullanıcı sekansı başka bir araçla video
-  olarak (`SahanSplash.mp4`, orijinali 1280×720 pillarboxed, 4.5sn, sesli)
-  hazırlayıp verdi. Video işlendi: gerçek içerik alanı (404×720,
-  pillarbox'lar hariç) `ffmpeg` ile kırpıldı, 810×1440'a ölçeklendi, ses
-  kaldırıldı, H.264/yuv420p olarak yeniden sıkıştırıldı (~1.4MB) →
-  `mobile/assets/videos/splash-intro.mp4`. `AnimatedSplash.tsx` artık
-  `expo-video` (`useVideoPlayer` + `VideoView`) ile bu videoyu oynatıyor;
-  `playToEnd` olayında son karede (parlayan S logosu) durup `IntroDone`
-  set ediyor, `ready` de gelince tüm ekran solarak uygulamayı açıyor.
-  Video yüklenemezse (`statusChange` → `error`) statik `splash-icon.png`'e
-  düşülüyor — splash hiçbir senaryoda takılı kalmıyor.
+- **Ara adım (2026-07-14):** Kullanıcı sekansı başka bir araçla video olarak
+  (`SahanSplash.mp4`, 1280×720 pillarboxed, 4.5sn) hazırlayıp verdi;
+  `ffmpeg` ile pillarbox kırpılıp 810×1440'a ölçeklendi, sesi kaldırıldı,
+  `expo-video` ile `AnimatedSplash.tsx`'te oynatıldı. Kullanıcı sonra bu
+  yaklaşımdan vazgeçti (aşağıya bkz.).
+- **Son hâli (2026-07-14):** Kullanıcı hem video hem SVG gol sekansından
+  vazgeçip en sade hâle döndü: logomuzun yeni "S" harfi (BACKLOG'daki
+  uygulama ikonu güncellemesiyle aynı kaynak — `splash-icon.png`, artık
+  bu S logosu) sıçrayarak büyüyen bir amblem + genişleyip kaybolan
+  floodlight halka ("dalga") animasyonuyla ortada beliriyor, sonra tüm
+  ekran solup uygulamayı açıyor (BACKLOG #22'deki orijinal tasarımın
+  aynısı, sadece marka görseli artık yeni logo). Video dosyası
+  (`splash-intro.mp4`) kullanıcı onayıyla silindi. SVG gol sekansı
+  dosyaları (`mobile/src/shared/ui/splash/`) kullanılmıyor ama kullanıcı
+  isteğiyle repoda duruyor.
 - **Bağlı modül:** cross-cutting (mobil marka/açılış deneyimi, BACKLOG #22
   üzerine inşa edildi)
 

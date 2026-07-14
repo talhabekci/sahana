@@ -3,6 +3,37 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-14 (2) — Backlog #64: splash en sade hâline döndü (video/SVK gol sekansı yerine logo+halka)
+
+Kullanıcı bir önceki oturumda entegre edilen video-tabanlı gol sekansından
+vazgeçti: "eski haline geri getir, kaleceli olan değil sadece etrafında
+dalga animasyonu olanu, ortadaki S harfini logomuz olan S harfi yap."
+
+`AnimatedSplash.tsx` BACKLOG #22'deki orijinal haline döndürüldü: `expo-video`
+oynatımı ve tüm `IntroDone`/`VideoFailed` state'leri kaldırıldı, yerine
+sıçrayarak büyüyen amblem (`MarkScale`/`MarkOpacity`) + genişleyip
+kaybolan floodlight halka (`RingScale`/`RingOpacity` — kullanıcının
+"dalga animasyonu" dediği kısım) geri getirildi. Marka görseli
+(`splash-icon.png`) zaten bir önceki oturumda yeni "S" logosuyla
+güncellenmişti, değişiklik gerekmedi.
+
+Kod taraması yapıldı: `AnimatedSplash.tsx` dışında hiçbir dosya bir marka
+logosu kullanmıyor (diğer tüm "logo" eşleşmeleri takım logosu upload akışı
+— `team/create.tsx`, `features/team/api.ts` vb. — ile ilgili, alakasız).
+`app.json`'daki `icon`/`favicon`/native splash `image` referansları zaten
+aynı güncel S logosu asset'lerini gösteriyor, o yüzden "her yerde S
+logosu kullanılsın" isteği ek değişiklik gerektirmedi.
+
+Kullanıcı onayıyla artık kullanılmayan `mobile/assets/videos/splash-intro.mp4`
+silindi (`git rm`), boş `videos/` klasörü kaldırıldı. `src/types/images.d.ts`'e
+bir önceki oturumda eklenen `declare module '*.mp4'` de artık gereksiz
+olduğu için kaldırıldı. SVG gol sekansı dosyaları (`mobile/src/shared/ui/splash/`)
+hâlâ kullanılmıyor ama kullanıcı isteğiyle repoda duruyor (BACKLOG #64'te
+not edildi).
+
+**Doğrulama:** `npx tsc --noEmit` temiz, `npm run lint` temiz (var olan
+1 axios uyarısı hariç).
+
 ## 2026-07-14 — Backlog #64: splash sekansı koddan videoya geçti; yeni uygulama ikonu
 
 Kullanıcı iki ayrı takip isteği verdi: (1) uygulama ikonunu, kendisinin
