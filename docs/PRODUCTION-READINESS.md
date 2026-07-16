@@ -104,10 +104,12 @@
   aynı kök sorun).
 - **Mail servisi (2026-07-16):** Kullanıcı Resend'i seçti. `resend/resend-php`
   kuruldu (`config/mail.php`'de `resend` mailer zaten Laravel'in stock
-  scaffold'unda hazırdı, sadece paket eksikti). `.env.example`'a
-  `RESEND_KEY` eklendi. **Kalan:** resend.com'da hesap açılıp domain
+  scaffold'unda hazırdı, sadece paket eksikti). `config/services.php`'nin
+  `resend.key`'i `env('RESEND_API_KEY')` okuduğu doğrulandı (ilk denemede
+  yanlışlıkla `RESEND_KEY` denmişti — düzeltildi, `.env.example`'a doğru
+  isimle eklendi). **Kalan:** resend.com'da hesap açılıp domain
   doğrulanmalı (Cloudflare'da DNS kaydı), API key alınıp prod `.env`'e
-  `MAIL_MAILER=resend` + `RESEND_KEY=...` + gerçek `MAIL_FROM_ADDRESS`
+  `MAIL_MAILER=resend` + `RESEND_API_KEY=...` + gerçek `MAIL_FROM_ADDRESS`
   (doğrulanmış domain'den) yazılmalı — kullanıcı hesap işlemlerini kendisi
   yapacak.
 
