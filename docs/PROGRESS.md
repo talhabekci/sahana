@@ -3,6 +3,64 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-16 — EAS'tan Xcode'a geçiş (TestFlight bug'ı) + deploy/release pipeline kararı
+
+Kullanıcı EAS ile production build alıp TestFlight'a yükledi, ama uygulama
+açılınca hiçbir şey yüklenmedi — API'ye hiç istek gitmiyordu (HTTP proxy'yle
+doğrulandı). Kök neden: `eas build` (cloud) gitignored `mobile/.env.production`'ı
+göremiyor, sadece git'e commit'li dosyaları görüyor. Basit çözüm
+(`eas.json`'a `env` alanı eklemek) önerildi ama kullanıcı bilerek daha
+büyük bir değişikliği seçti: **"Yine de Xcode'a geçelim"** — artık iOS
+build'leri EAS yerine Xcode'dan alınacak.
+
+**Xcode archive'ında sırayla çıkan gerçek hatalar:**
+1. `.env.local` (gitignored) stale LAN-IP dev override'ları içeriyordu —
+   Expo'nun env öncelik sırasında `.env.local`, `.env.production`'dan bile
+   önce okunuyor, muhtemelen orijinal TestFlight bug'ının bir parçasıydı.
+   LAN-IP değerleri yeni `mobile/.env.development.local`'e taşındı,
+   `.env.local` artık sadece Sentry auth/org/project (build-zamanı) içeriyor.
+2. "An organization ID or slug is required" — `app.json`'ın `plugins`
+   dizisinde HEM bare `"@sentry/react-native"` HEM yapılandırılmış
+   `["@sentry/react-native/expo", {org/project}]` vardı. `node_modules`
+   kaynağı okunarak doğrulandı: ikisi aynı plugin (`app.plugin.js` =
+   `require('./expo')`), Expo'nun `createRunOncePlugin` de-dup'ı yüzünden
+   sadece dizideki İLK'i (bare, config'siz olan) çalışıyordu →
+   `ios/sentry.properties` org/project'siz üretiliyordu. Bare girdi
+   silindi, `--clean` prebuild ile `sentry.properties` artık doğru
+   (kalıcı, çünkü `app.json`'dan geliyor, git'e commit'li).
+3. "Auth token is required... run sentry-cli login" — Xcode'un build
+   phase script'i Expo'nun `.env*` dosyalarını hiç okumuyor (kendi shell
+   ortamında çalışıyor), `SENTRY_AUTH_TOKEN` `.env.local`'de olsa da
+   görünmüyordu. Çözüm: `~/.sentryclirc` (proje dışı, geliştiricinin kendi
+   makinesi) içine `[auth]\ntoken=...` yazıldı — sentry-cli'nin kendi
+   global config konumu, hangi ortamdan çağrılırsa çağrılsın bulunuyor.
+4. Archive başarılı oldu, App Store Connect'e yüklendi ("Uploaded to
+   Apple") ama TestFlight'ta güncelleme görünmedi — sebep: yeni build
+   `1.0.0 (1)`, cihazda zaten `1.0.0 (7)` kuruluydu (önceki EAS build'leri).
+   TestFlight build numarasına göre karşılaştırıyor, 1 < 7 olduğu için
+   sessizce yok sayıyordu. `app.json`'a `ios.buildNumber: "8"` eklendi,
+   `--clean` prebuild ile `Info.plist`'in `CFBundleVersion`'ı (literal
+   değer, `pbxproj`'daki `CURRENT_PROJECT_VERSION` değil) 8'e güncellendi.
+   Yeniden archive/upload → TestFlight'ta görüldü.
+
+**Deploy/release pipeline kararı (kullanıcıyla netleşti, dokümante edildi):**
+- **API:** staging yok, CI/CD otomasyonu YOK — kullanıcı bilinçli olarak
+  basit akışı seçti: lokalde geliştir/test et → `git push` → Jelastic `cp`
+  node'una SSH ile bağlan → `git pull` (+ gerekirse migrate/composer
+  install/config:clear, gerekirse Horizon/Reverb nohup süreçlerini
+  yeniden başlat). Tam adımlar `deploy/virtuozzo/README.md`'ye eklendi.
+- **Mobil iOS:** her release'de `app.json`'daki `ios.buildNumber`'ı elle
+  artırıp yukarıdaki Xcode akışını tekrar etmek gerekiyor (otomatik
+  artmıyor). Tam adımlar + Sentry gotcha'ları `mobile/README.md`'ye
+  "Release (production build)" bölümü olarak eklendi.
+- **Android:** şimdilik ele alınmadı, kullanıcı muhtemelen Android
+  Studio'dan manuel build alacak — ayrı bir oturumda ele alınacak.
+
+**Henüz commit'lenmedi (bu oturumun sonunda commit'lenecek):**
+`app.json` (Sentry plugin dedup fix + `ios.buildNumber`), `.env.production`
+yorum güncellemesi, `deploy/virtuozzo/README.md` + `mobile/README.md`'deki
+yeni pipeline bölümleri.
+
 ## 2026-07-14 (10) — Reverb websocket proxy çözüldü + kritik "Redeploy Containers" kırılganlığı
 
 Reverb'i Apache üzerinden proxy'lemeye çalışırken uzun bir teşhis süreci

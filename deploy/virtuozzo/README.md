@@ -129,6 +129,36 @@ tetiklemek) henüz kurulmadı — ayrı bir iş.
 `EXPO_PUBLIC_SENTRY_DSN`. Gerçek cihazda test için yeni bir EAS build
 gerekir.
 
+## Güncelleme akışı (her API değişikliğinde)
+
+Staging ortamı yok, CI/CD otomasyonu kurulmadı — kullanıcı bilinçli olarak
+basit/manuel bir akış tercih etti (migration'ı gözle görüp onaylamak,
+otomatik git-push-tetikler-deploy'dan daha güvenli görüldü):
+
+1. **Lokalde:** kod değişikliği + ilgili Pest testleri yaz/çalıştır
+   (`php artisan test`), Pint + Larastan temiz olsun.
+2. `git commit` + `git push` (main).
+3. `cp` node'una SSH ile bağlan (panel → environment → SSH).
+4. ```bash
+   cd /var/www/webroot/ROOT
+   git pull
+   ```
+5. Sadece gerekliyse (her deploy'da değil):
+   - `composer.json` değiştiyse: `composer install --no-dev --optimize-autoloader`
+   - Yeni migration varsa: `php artisan migrate --force`
+   - `.env` değiştiyse: `php artisan config:clear`
+6. Değişiklik Horizon job'larını veya Reverb/broadcasting event'lerini
+   etkiliyorsa, madde 5'teki (yukarıdaki, Reverb bölümü) `nohup` süreçlerini
+   yeniden başlat (eski PID'leri `pkill -f "artisan reverb:start"` /
+   `pkill -f "artisan horizon"` ile durdurup aynı `nohup` komutlarını tekrar
+   çalıştır) — kod `git pull` ile güncellense de PHP süreçleri eski kodu
+   bellekte tutmaya devam eder.
+
+**Not:** `/var/www/webroot/ROOT` kalıcı volume'da olduğu için "Redeploy
+Containers"tan etkilenmez, `git pull` sorunsuz çalışmaya devam eder — ama
+Apache config'i (DocumentRoot/ProxyPass) yine elle düzeltilmesi gerekir
+(yukarıdaki madde 5).
+
 ## Node topolojisi (elle kurmak isterseniz)
 
 Manifest kullanmadan panelden elle de kurabilirsiniz — aynı 4 node:

@@ -9,6 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.sahanaapp.app",
+      "buildNumber": "8",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleDisplayName": "Sahana"
@@ -68,7 +69,6 @@
       ],
       "expo-asset",
       "expo-video",
-      "@sentry/react-native",
       [
         "@sentry/react-native/expo",
         {

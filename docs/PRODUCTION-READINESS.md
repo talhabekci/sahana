@@ -170,11 +170,19 @@
   plugin'de Türkçe açıklama yoktu) kapatıldı: `app.json`'a
   `locationWhenInUsePermission` eklendi. Kamera/galeri/mikrofon zaten
   önceden yapılandırılmıştı.
-- **Kalan:** EAS production build alıp gerçek submit'i denemek, store
+- **iOS (2026-07-16):** İlk EAS production build TestFlight'a yüklendi ama
+  API'ye hiç istek gitmiyordu (gitignored `.env.production` EAS cloud
+  build'de görünmüyor) — kullanıcı bu yüzden iOS build sürecini tamamen
+  Xcode'a taşıdı (bkz. PROGRESS.md 2026-07-16). Xcode'dan alınan build
+  (1.0.0/8) başarıyla TestFlight'a yüklendi ve cihazda güncelleme olarak
+  göründü; gerçek cihazda API isteklerinin ulaştığı doğrulanmadı (kullanıcı
+  henüz test etmedi). Release akışı `mobile/README.md`'ye yazıldı.
+- **Android:** Ele alınmadı, kullanıcı muhtemelen Android Studio'dan manuel
+  build alacak (ayrı bir oturum).
+- **Kalan:** Cihazda gerçek API trafiğinin çalıştığını doğrulamak, store
   listing metni/görselleri (ekran görüntüleri, açıklama, kategori) ve
-  gizlilik politikası URL'i (madde G'nin canlıda yayınlanmış hâli) hazırlamak
-  — bunlar kod değişikliği değil, gerçek bir üretim build'i ve store
-  hesabı işlemleri; kullanıcıyla birlikte ayrı bir oturumda ele alınmalı.
+  gizlilik politikası URL'i (madde G'nin canlıda yayınlanmış hâli)
+  hazırlamak, Android submission.
 
 ### G. Yasal — gizlilik politikası / KVKK / kullanım şartları — taslak yazıldı, onay bekliyor
 - **Durum:** Kullanıcı taslağı yazmamı istedi. `mobile/src/features/settings/legalContent.ts`

@@ -14,7 +14,11 @@
     "production": {
       "autoIncrement": true,
         "env": {
-            "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+            "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+            "EXPO_PUBLIC_API_URL": "https://api.sahana-app.com/api/v1",
+            "EXPO_PUBLIC_REVERB_HOST": "api.sahana-app.com",
+            "EXPO_PUBLIC_REVERB_PORT": "443",
+            "EXPO_PUBLIC_REVERB_SCHEME": "https"
         }
     }
   },

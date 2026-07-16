@@ -48,6 +48,48 @@ To learn more about developing your project with Expo, look at the following res
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
+## Release (production build)
+
+**iOS — Xcode üzerinden manuel (EAS cloud build kullanılmıyor):** EAS cloud
+build'in gitignored `.env.production`'ı görememesi yüzünden TestFlight'a
+giden ilk build API'ye hiç istek atmıyordu; bu yüzden production build
+akışı tamamen Xcode'a taşındı.
+
+1. `mobile/app.json`'da `ios.buildNumber`'ı bir artır — App Store Connect'te
+   şu ana kadar yüklenmiş en yüksek build numarasından büyük olmalı,
+   yoksa TestFlight yeni build'i "güncelleme" olarak görmez ve sessizce
+   yok sayar (`ios/`'daki `CURRENT_PROJECT_VERSION` değil, Expo'nun
+   `Info.plist`'e yazdığı literal `CFBundleVersion` esas alınır).
+2. ```bash
+   npx expo prebuild --platform ios --clean
+   open ios/Sahana.xcworkspace
+   ```
+3. Xcode'da signing team'i kontrol et (fresh prebuild sonrası bazen
+   sıfırlanır), **Product → Archive**.
+4. Archive bitince Organizer → **Distribute App** → **App Store Connect**
+   (önerilen ayarlarla) → **Upload**.
+5. App Store Connect → TestFlight sekmesinde build "Processing"den
+   "Ready to Submit"e geçince (birkaç dakika sürebilir) cihazdan
+   TestFlight uygulamasıyla güncelle.
+
+**Sentry sourcemap upload (Xcode archive'ında gerekli):**
+- `app.json`'ın `plugins` dizisinde **sadece** yapılandırılmış
+  `["@sentry/react-native/expo", {...}]` girdisi olmalı — yanına bir de
+  bare `"@sentry/react-native"` eklenirse (örn. `expo install` bir sonraki
+  paket güncellemesinde otomatik ekleyebilir), Expo'nun
+  `createRunOncePlugin` de-duplication'ı yüzünden ikisi AYNI plugin kabul
+  edilip sadece dizideki İLK'i çalışır — bare olan önce gelirse
+  `ios/sentry.properties` org/project'siz (kırık) üretilir.
+- `sentry-cli`'nin auth token'ı Xcode'un build phase'i Expo'nun `.env*`
+  dosyalarını okumadığı için `~/.sentryclirc`'ten (geliştiricinin kendi
+  makinesinde, `[auth]\ntoken=...`) gelir — proje dışı, gitignore'a bile
+  gerek yok, her yeni Mac'te bir kere elle oluşturulmalı.
+
+**Android:** Şimdilik ele alınmadı, Android Studio üzerinden manuel build
+planlanıyor (ayrı bir oturumda ele alınacak). `eas.json`'daki `production`
+profili (env değerleriyle) hâlâ duruyor, Android için EAS cloud build
+kullanılmak istenirse bu profil zaten hazır.
+
 ## Join the community
 
 Join our community of developers creating universal apps.
