@@ -70,6 +70,11 @@ return [
             'driver' => 'mongodb',
             'dsn' => env('MONGO_DSN', 'mongodb://'.env('MONGO_HOST', '127.0.0.1').':'.env('MONGO_PORT', '27017')),
             'database' => env('MONGO_DATABASE', 'sahana_chat'),
+            'username' => env('MONGO_USERNAME'),
+            'password' => env('MONGO_PASSWORD'),
+            'options' => [
+                'authSource' => env('MONGO_AUTH_SOURCE', 'admin'),
+            ],
         ],
 
         'mariadb' => [
