@@ -76,12 +76,25 @@
   APP_URL'den üretir — prod `.env`'de gerçek alan adı olmalı, yoksa hiçbir
   yüklenen medya istemcide görüntülenmez.
 
-### B. Queue — `sync`'ten çıkış
-- **Durum:** `.env.example`'da `QUEUE_CONNECTION=sync` — bildirim/video
-  gibi işler prod'da request içinde senkron çalışır, Horizon zaten kurulu
-  (composer.json) ama hiç kullanılmıyor.
-- **Yapılacaklar:** Prod `.env` için `QUEUE_CONNECTION=redis` +
-  `horizon` servisinin compose'a eklenmesi (madde A ile birleşebilir).
+### B. Queue — `sync`'ten çıkış ✅ (2026-07-16)
+- **Durum:** Prod `.env`'de `QUEUE_CONNECTION=redis` zaten ayarlıydı, ama
+  `laravel/horizon` **hiçbir zaman `composer.json`'a eklenmemişti** (daha
+  önceki bir kayıt "Horizon zaten kurulu" diyordu — bu yanlıştı, hiç
+  doğrulanmamıştı). Kullanıcı prod'da `nohup php artisan horizon`
+  denediğinde `Command "horizon" is not defined` hatası aldı — bu yüzden
+  kuyruğa düşen tek e-posta (`OtpCodeMail`, `ShouldQueue`) worker
+  çalışmadığı için Redis'te sonsuza kadar bekliyordu, hiç işlenmiyordu.
+  `composer require laravel/horizon` + `horizon:install` ile düzgünce
+  kuruldu, `config/horizon.php`'deki production `maxProcesses` (stock
+  varsayılan 10) gerçek kuyruk hacmine (OTP maili + push bildirimi, düşük
+  hacim) göre 2'ye düşürüldü — küçük Jelastic node'unda gereksiz kaynak
+  tüketmesin diye. Larastan/Pint/Pest (288 test) temiz.
+- **Kalan:** Production'da `git pull` + **`composer install`** (sadece
+  kod değil, `vendor/laravel/horizon` gelmesi için) çalıştırılıp
+  `nohup php artisan horizon ...` yeniden başlatılmalı — bkz.
+  `deploy/virtuozzo/README.md` madde 5'teki not. Kalıcı (crash-safe)
+  worker süreci hâlâ açık bir iş (madde A'daki supervisor kırılganlığıyla
+  aynı kök sorun).
 
 ### C. Medya depolama — Cloudflare R2 bağlantısı ✅ (uçtan uca doğrulandı)
 - **Durum:** Kullanıcı R2 bucket'ının hazır olduğunu onayladı. Kod tarafı

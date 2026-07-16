@@ -3,6 +3,44 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-16 (3) — Horizon hiç kurulu değilmiş: kuyruğa düşen mailler sonsuza dek bekliyordu
+
+Kullanıcı prod'da `QUEUE_CONNECTION=redis` + `MAIL_MAILER=log` iken,
+`php artisan queue:work --tries=1` çalıştırmadan mailin log'a hiç
+yazılmadığını fark etti — doğru teşhis: kuyruğa düşen iş, sürekli çalışan
+bir worker olmadan asla işlenmez. Kod incelemesi (subagent ile) doğruladı:
+uygulamada gerçek e-posta gönderen tek yer `OtpCodeMail` (`ShouldQueue`),
+`app/Actions/Auth/SendOtpCode.php:28`'de `->queue()` ile gönderiliyor.
+
+Daha büyük bir sorun ortaya çıktı: **`laravel/horizon` hiçbir zaman
+`composer.json`'a eklenmemişti** — ne yerelde ne production'da. Önceki bir
+oturumun kaydı ("Horizon zaten kurulu") yanlıştı, hiç doğrulanmamıştı;
+`deploy/virtuozzo/manifest.jps`'in supervisor `.ini`'si `php artisan
+horizon` komutunu varsayıyordu ama bu komut hiç var olmamıştı. Kullanıcı
+prod'da denediğinde `Command "horizon" is not defined` hatası aldı — bu da
+Redis'e düşen OTP mail job'unun neden asla işlenmediğini (ve worker
+kurulana kadar gerçek mail sağlayıcısı bağlansa bile mail gitmeyeceğini)
+açıklıyordu.
+
+**Fix:** `composer require laravel/horizon` + `php artisan horizon:install`
+ile paket düzgünce kuruldu ve commit'lendi (`bootstrap/providers.php`'ye
+`HorizonServiceProvider` otomatik eklendi). `config/horizon.php`'deki
+production `maxProcesses` (stock varsayılan 10) gerçek kuyruk hacmine göre
+2'ye düşürüldü. `HorizonServiceProvider::gate()` varsayılan (boş dizi —
+non-local ortamda dashboard'a kimse erişemez) bırakıldı, dokunulmadı.
+
+**Doğrulama:** Pint temiz (bootstrap/providers.php otomatik format
+düzeltildi), Larastan 0 hata (ilk denemede 128M memory limit yetmedi,
+`--memory-limit=1G` ile temiz çıktı — Horizon'un vendor ağacı taramayı
+büyütmüş olabilir, kod hatası değil), Pest 288/288 geçti (regresyon yok).
+
+**Kalan:** Production'da bu fix'in işe yaraması için `git pull` sonrası
+mutlaka `composer install` çalıştırılmalı (sadece kod değil,
+`vendor/laravel/horizon` da gelmeli), sonra `nohup php artisan horizon ...`
+yeniden başlatılmalı. Kalıcı/crash-safe worker süreci hâlâ açık (madde
+A'daki supervisor kırılganlığıyla aynı kök sorun) — `docs/PRODUCTION-READINESS.md`
+madde B ve `deploy/virtuozzo/README.md`'ye not düşüldü.
+
 ## 2026-07-16 (2) — TestFlight'ta 401 sonrası kalıcı hata ekranı + çift-slash istekler
 
 Bir önceki kaydın (EAS→Xcode geçişi) build'i TestFlight'ta gerçek cihazda

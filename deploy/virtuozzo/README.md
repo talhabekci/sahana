@@ -122,6 +122,15 @@ Kalıcı bir çözüm (örn. cron `@reboot` girdisi, ya da Jelastic'in
 "Deployment Manager"ı üzerinden `setup-supervisor` action'ını yeniden
 tetiklemek) henüz kurulmadı — ayrı bir iş.
 
+**Not (2026-07-16):** Yukarıdaki `horizon` komutu daha önce
+`Command "horizon" is not defined` hatası veriyordu — `laravel/horizon`
+paketi hiçbir zaman `composer.json`'a eklenmemişti (yerelde de yoktu),
+sadece manifest'in supervisor `.ini`'si onu varsayıyordu. Artık
+`composer.json`'a eklendi ve commit'lendi; production'da bu komutun
+çalışması için `git pull`'un ardından **`composer install --no-dev
+--optimize-autoloader`** çalıştırılması ŞART (sadece kod dosyaları değil,
+`vendor/laravel/horizon` da gelmeli).
+
 **6) Mobil `.env.production`**
 
 `mobile/.env.production` (repoda, gitignored) prod domain'ini kullanacak
