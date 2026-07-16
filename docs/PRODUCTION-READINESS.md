@@ -102,6 +102,14 @@
   `deploy/virtuozzo/README.md` madde 5'teki not. Kalıcı (crash-safe)
   worker süreci hâlâ açık bir iş (madde A'daki supervisor kırılganlığıyla
   aynı kök sorun).
+- **Mail servisi (2026-07-16):** Kullanıcı Resend'i seçti. `resend/resend-php`
+  kuruldu (`config/mail.php`'de `resend` mailer zaten Laravel'in stock
+  scaffold'unda hazırdı, sadece paket eksikti). `.env.example`'a
+  `RESEND_KEY` eklendi. **Kalan:** resend.com'da hesap açılıp domain
+  doğrulanmalı (Cloudflare'da DNS kaydı), API key alınıp prod `.env`'e
+  `MAIL_MAILER=resend` + `RESEND_KEY=...` + gerçek `MAIL_FROM_ADDRESS`
+  (doğrulanmış domain'den) yazılmalı — kullanıcı hesap işlemlerini kendisi
+  yapacak.
 
 ### C. Medya depolama — Cloudflare R2 bağlantısı ✅ (uçtan uca doğrulandı)
 - **Durum:** Kullanıcı R2 bucket'ının hazır olduğunu onayladı. Kod tarafı
