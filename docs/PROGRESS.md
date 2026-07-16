@@ -3,6 +3,44 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-16 (5) — Scheduler cron hiç kurulmamış + Resend/mail düzeltmeleri
+
+Bu kayıt aynı gündeki birkaç küçük ama gerçek düzeltmeyi topluyor:
+
+**Resend kurulum hataları (iki ayrı hata, ikisi de benim):** (1) İlk
+`.env.example` önerimde yanlışlıkla `RESEND_KEY` yazdım — `config/services.php`
+gerçekte `env('RESEND_API_KEY')` okuyor, düzeltildi. (2) `composer require
+resend/resend-php`'yi yanlışlıkla repo KÖKÜNDE çalıştırdım (cwd `api/`
+değildi) — bu, repo köküne hatalı bir `vendor/`, `composer.json`,
+`composer.lock` oluşturdu (untracked, hiç commit'lenmedi) ve gerçek
+`api/composer.json`'a paket hiç eklenmedi. Kullanıcı fark etti ("nerde
+çalıştıdın sen composeri... api'nin de dışına"). Kök dizindeki hatalı
+dosyalar silindi, paket doğru şekilde `api/` içinde kuruldu ve commit'lendi.
+
+**Scheduler cron eksikliği:** Kullanıcı "sosyalhalisaha sahası seçtim, maç
+tarihi geçti ama 'Videonu bul' butonu çıkmadı" dedi. Kod izi:
+`MatchResource::buildVideoSearchUrl()` sadece `status === 'played'` iken
+bir URL üretiyor (`app/Http/Resources/MatchResource.php:118`); durumu
+`confirmed`'den `played`'e çeviren tek yer `matches:sweep` komutu
+(`SweepMatches.php`), `routes/console.php`'de `->hourly()` ile
+zamanlanmış. Ama Laravel'in scheduler'ı yalnızca `php artisan
+schedule:run`'ı her dakika tetikleyen bir OS cron'u varsa çalışır — bu
+cron `manifest.jps`'te VEYA README'de hiç kurulmamıştı. Yani
+`matches:sweep`, `results:auto-confirm`, `users:purge` (KVKK 30 gün),
+bildirim hatırlatmaları, haftalık özet gibi TÜM zamanlanmış işler
+production'da sessizce hiç çalışmamış.
+
+**Fix:** `manifest.jps`'e `setup-cron` action'ı eklendi (`/etc/cron.d/sahana-schedule`
+yazıp `crond`/`cron` servisini etkinleştiriyor) — fresh install'lar için.
+Zaten kurulu environment'a elle ekleme + geriye dönük `matches:sweep`/
+`results:auto-confirm` çalıştırma adımları `deploy/virtuozzo/README.md`
+madde 6'ya eklendi. Ayrıca prod'da `city`/`district`/`venue` tablolarının
+boş olduğu fark edildi — `db:seed` (city/district) ve `sosyalhalisaha:sync`
+(venue) hiç çalıştırılmamıştı, kullanıcıya komutlar verildi.
+
+**Doğrulama:** manifest YAML syntax kontrolü geçti. Cron'un kalıcılığı
+(Redeploy Containers'tan etkilenip etkilenmeyeceği) henüz doğrulanmadı.
+
 ## 2026-07-16 (4) — ROOT hiç git repo değilmiş: manifest yeniden yazıldı
 
 Kullanıcı bir önceki kaydın "git pull ile deploy" akışını denemek için

@@ -19,6 +19,15 @@
   Laravel `ROOT/api` altında, DocumentRoot `ROOT/api/public`. Zaten kurulu
   environment için geçiş adımları `deploy/virtuozzo/README.md`'de —
   **henüz production'da uygulanmadı**, sıradaki iş bu.
+- **Scheduler cron eksikti (2026-07-16):** `php artisan schedule:run`'ı
+  tetikleyen bir cron hiç kurulmamıştı — `matches:sweep`, `results:auto-confirm`,
+  `users:purge`, bildirim hatırlatmaları, haftalık özet gibi TÜM zamanlanmış
+  işler production'da hiç çalışmamış. "Maç tarihi geçti ama 'Videonu bul'
+  butonu çıkmadı" şikayetiyle bulundu (`video_search_url` sadece
+  `status==='played'` iken hesaplanıyor, bunu `matches:sweep` yapıyor).
+  `manifest.jps`'e `setup-cron` action'ı eklendi (fresh install için);
+  zaten kurulu environment'a elle eklenmesi gerekiyor — bkz.
+  `deploy/virtuozzo/README.md` madde 6.
 - **Durum (2026-07-14):** Hetzner+Docker planı terk edildi, Virtuozzo Jelastic
   PaaS kullanıldı. `deploy/virtuozzo/manifest.jps` ile 4 node açıldı (PHP-FPM/
   apache, MySQL, MongoDB, Redis), gerçek bir kurulumla test edildi ve birkaç

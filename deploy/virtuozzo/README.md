@@ -137,7 +137,34 @@ sadece manifest'in supervisor `.ini`'si onu varsayıyordu. Artık
 --optimize-autoloader`** çalıştırılması ŞART (sadece kod dosyaları değil,
 `vendor/laravel/horizon` da gelmeli).
 
-**6) Mobil `.env.production`**
+**6) Scheduler cron'u — ZORUNLU, yoksa zamanlanmış işler hiç çalışmaz**
+
+`routes/console.php`'deki `Schedule::command(...)` satırları (`matches:sweep`,
+`results:auto-confirm`, `users:purge`, bildirim hatırlatmaları, haftalık
+özet) yalnızca `php artisan schedule:run` her dakika tetiklenirse çalışır.
+Bunu yapan bir cron kurulmadan bu işlerin HİÇBİRİ sessizce çalışmaz —
+2026-07-16'da "maç tarihi geçti ama 'Videonu bul' butonu çıkmadı"
+şikayetiyle fark edildi: `matches:sweep` çalışmadığı için maç durumu hiç
+`confirmed`'den `played`'e dönmemiş. `cp` node'unda **root olarak**:
+
+```bash
+echo "* * * * * apache cd /var/www/webroot/ROOT/api && php artisan schedule:run >> /dev/null 2>&1" > /etc/cron.d/sahana-schedule
+chmod 644 /etc/cron.d/sahana-schedule
+systemctl enable --now crond || systemctl enable --now cron || service crond start || service cron start
+```
+
+Geriye dönük birikmiş işleri hemen yakalamak için tek seferlik (apache
+kullanıcısıyla, `ROOT/api` içinde):
+
+```bash
+php artisan matches:sweep
+php artisan results:auto-confirm
+```
+
+Bu cron da madde 5'teki gibi "Redeploy Containers"tan etkilenebilir
+(OS-seviyesi state) — henüz doğrulanmadı, kontrol edilmeli.
+
+**7) Mobil `.env.production`**
 
 `mobile/.env.production` (repoda, gitignored) prod domain'ini kullanacak
 şekilde güncellenmeli — `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_REVERB_*`,

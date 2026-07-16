@@ -52,6 +52,7 @@ onInstall:
   - create-mysql-db
   - clone-and-install
   - setup-supervisor
+  - setup-cron
   - restartNodes:
       nodeGroup: [cp]
 
@@ -128,6 +129,19 @@ actions:
       systemctl enable --now supervisord || service supervisord start || supervisord -c /etc/supervisord.conf
       supervisorctl reread
       supervisorctl update
+    user: root
+
+  # Laravel scheduler (routes/console.php'deki Schedule::command(...) satırları)
+  # sadece `php artisan schedule:run` her dakika tetiklenirse çalışır —
+  # bunu yapan bir cron olmadan matches:sweep/results:auto-confirm/
+  # users:purge gibi TÜM zamanlanmış işler sessizce hiç çalışmaz
+  # (2026-07-16'da fark edildi: maç tarihi geçse de status hiç 'played'e
+  # dönmüyordu, "Videonu bul" butonu bu yüzden hiç çıkmıyordu).
+  setup-cron:
+    cmd[cp]: |-
+      echo "* * * * * apache cd ${globals.APP_DIR}/api && php artisan schedule:run >> /dev/null 2>&1" > /etc/cron.d/sahana-schedule
+      chmod 644 /etc/cron.d/sahana-schedule
+      systemctl enable --now crond || systemctl enable --now cron || service crond start || service cron start
     user: root
 
 startPage: /
