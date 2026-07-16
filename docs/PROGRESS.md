@@ -3,6 +3,36 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-16 (4) — ROOT hiç git repo değilmiş: manifest yeniden yazıldı
+
+Kullanıcı bir önceki kaydın "git pull ile deploy" akışını denemek için
+`cd /var/www/webroot/ROOT && git pull` çalıştırdı: `fatal: not a git
+repository`. Sebep: `manifest.jps`'in `clone-and-install` action'ı hiçbir
+zaman ROOT'u git clone'lamıyordu — `/tmp`'e `--depth 1` klonlayıp sadece
+`api/` alt klasörünün İÇERİĞİNİ `cp -a` ile ROOT'a kopyalıyordu (`.git`
+repo kökünde olduğu için hiç kopyalanmıyordu). Kullanıcının tercihi net:
+".git klasörü direkt ROOT altında olsa olmaz mı, benim diğer projelerimde
+öyle" — yani ROOT'un TAMAMI gerçek bir git working tree olsun istedi
+(symlink tabanlı alternatif sunuldu, reddedildi).
+
+**Fix — `manifest.jps` yeniden yazıldı (gelecekteki sıfırdan kurulumlar
+için):** `clone-and-install` artık `git clone ${REPO_URL} ${APP_DIR}` ile
+TÜM monorepo'yu doğrudan ROOT'a klonluyor (mobile/, docs/, api/ hepsi
+ROOT altında, `.git` de dahil). Laravel uygulaması artık `ROOT/api`
+altında — composer install/`.env`/migrate hep orada çalışıyor,
+supervisor `.ini`'lerindeki `artisan` komut yolları da güncellendi.
+Apache DocumentRoot artık `ROOT/api/public` olmalı (önceden `ROOT/public`).
+
+**Zaten kurulu (mevcut çalışan) environment için ayrı bir geçiş bölümü**
+README.md'ye eklendi: `.env`'i yedekleyip, tam monorepo'yu `/tmp`'e
+klonlayıp ROOT'un yerine taşıma, `.env`'i `ROOT/api/`'ye geri koyma,
+`composer install`'ı `ROOT/api` içinde tekrar çalıştırma adımları. Bu
+henüz kullanıcı tarafından production'da uygulanmadı — bir sonraki adım.
+
+**Doğrulama:** `python3 -c "import yaml; yaml.safe_load(...)"` ile
+manifest'in YAML geçerliliği kontrol edildi (syntax, çalıştırılabilirlik
+değil — gerçek bir kurulumla henüz test edilmedi).
+
 ## 2026-07-16 (3) — Horizon hiç kurulu değilmiş: kuyruğa düşen mailler sonsuza dek bekliyordu
 
 Kullanıcı prod'da `QUEUE_CONNECTION=redis` + `MAIL_MAILER=log` iken,

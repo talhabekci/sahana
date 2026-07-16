@@ -19,26 +19,32 @@ node adını görüp burada değiştirmeniz gerekebilir.
    `https://raw.githubusercontent.com/talhabekci/sahana/main/deploy/virtuozzo/manifest.jps`
 2. Kurulum otomatik olarak şunları yapar:
    - 4 node açar: `cp` (PHP-FPM app), `sqldb` (MySQL), `nosqldb` (MongoDB), `cache` (Redis)
-   - Laravel kodunu `/var/www/webroot/ROOT`'a klonlar, composer install +
-     `.env` üretimi (DB/Mongo/Redis host'ları otomatik) + migration çalıştırır
+   - **TÜM monorepo'yu** `/var/www/webroot/ROOT`'a git clone'lar (ROOT'un
+     kendisi gerçek bir git working tree olsun diye, `.git` doğrudan
+     ROOT'ta — 2026-07-16'dan önceki sürüm sadece `api/` içeriğini
+     `cp -a` ile kopyalıyordu, ROOT hiçbir zaman git repo olmuyordu, bkz.
+     "Güncelleme akışı" bölümü). Laravel uygulaması `ROOT/api` altında;
+     composer install + `.env` üretimi + migration orada çalışır.
    - Horizon (queue) ve Reverb (websocket) process'lerini `supervisor` ile arka planda ayakta tutar
 
 ## Kurulumdan sonra elle yapılması gerekenler (gerçek bir kurulumdan doğrulandı)
 
-**1) Apache'nin doküman kökünü `public/`'e çevir — ZORUNLU, yoksa 404 alırsınız**
+**1) Apache'nin doküman kökünü `api/public/`'e çevir — ZORUNLU, yoksa 404 alırsınız**
 
-`/var/www/webroot/ROOT` Laravel'in TAMAMINI içerir (`.env`, `composer.json`
-dahil), ama Apache'nin sadece `public/` alt klasörünü servis etmesi lazım.
-`cp` node'unda **root olarak**:
+`/var/www/webroot/ROOT` artık TÜM monorepo'yu içerir (`mobile/`, `docs/`,
+`api/` — `api/.env`/`api/composer.json` dahil), Apache'nin sadece
+`api/public/` alt klasörünü servis etmesi lazım. `cp` node'unda **root
+olarak**:
 
 ```bash
 grep -rl "webroot/ROOT" /etc/httpd/ /etc/apache2/ 2>/dev/null
 ```
 
 Bulduğun dosya(lar)daki `DocumentRoot /var/www/webroot/ROOT` satırını
-`DocumentRoot /var/www/webroot/ROOT/public` yap (varsa `<Directory>` bloğunu
-da eşleştir), sonra `httpd`/`apache2`'yi restart et. Bu adım otomatikleştirilmedi
-çünkü vhost dosyasının tam yolu/formatı Jelastic sürümüne göre değişebilir.
+`DocumentRoot /var/www/webroot/ROOT/api/public` yap (varsa `<Directory>`
+bloğunu da eşleştir), sonra `httpd`/`apache2`'yi restart et. Bu adım
+otomatikleştirilmedi çünkü vhost dosyasının tam yolu/formatı Jelastic
+sürümüne göre değişebilir.
 
 **2) `.env`'i tamamla** — panelden "Variables" ya da doğrudan `.env` düzenleyerek:
 
@@ -138,6 +144,36 @@ sadece manifest'in supervisor `.ini`'si onu varsayıyordu. Artık
 `EXPO_PUBLIC_SENTRY_DSN`. Gerçek cihazda test için yeni bir EAS build
 gerekir.
 
+## Zaten kurulu (eski yapıdaki) bir environment'ı git yapısına geçirme
+
+2026-07-16'dan önce kurulmuş environment'larda `ROOT` `git pull` çalıştıramaz
+(`.git` hiç yok — eski manifest sadece dosyaları kopyalıyordu). Tek seferlik
+geçiş, `cp` node'unda:
+
+```bash
+cd /var/www/webroot/ROOT
+cp .env /tmp/sahana-env-backup      # ZORUNLU — aşağıda geri yazılacak
+cd /tmp
+git clone https://github.com/talhabekci/sahana.git sahana-new
+rm -rf /var/www/webroot/ROOT
+mv /tmp/sahana-new /var/www/webroot/ROOT
+cp /tmp/sahana-env-backup /var/www/webroot/ROOT/api/.env
+cd /var/www/webroot/ROOT/api
+curl -sS https://getcomposer.org/installer | php
+php composer.phar install --no-dev --optimize-autoloader --no-interaction
+php artisan config:clear
+```
+
+Sonra madde 1'i (DocumentRoot artık `ROOT/api/public`) ve madde 4'ü (Reverb
+ProxyPass — path değişmedi, dokunmaya gerek yok) tekrar uygula, Horizon/
+Reverb'i yeniden başlat (madde 5). `storage/` klasörü (loglar, R2
+kullanıldığı için yerel medya yok) yeni clone'da boş gelir — sorun değil,
+`storage/logs` ve `bootstrap/cache` yazılabilir olmalı:
+
+```bash
+chmod -R 755 /var/www/webroot/ROOT/api/storage /var/www/webroot/ROOT/api/bootstrap/cache
+```
+
 ## Güncelleme akışı (her API değişikliğinde)
 
 Staging ortamı yok, CI/CD otomasyonu kurulmadı — kullanıcı bilinçli olarak
@@ -152,7 +188,7 @@ otomatik git-push-tetikler-deploy'dan daha güvenli görüldü):
    cd /var/www/webroot/ROOT
    git pull
    ```
-5. Sadece gerekliyse (her deploy'da değil):
+5. Sadece gerekliyse (her deploy'da değil, `cd api` sonrası):
    - `composer.json` değiştiyse: `composer install --no-dev --optimize-autoloader`
    - Yeni migration varsa: `php artisan migrate --force`
    - `.env` değiştiyse: `php artisan config:clear`

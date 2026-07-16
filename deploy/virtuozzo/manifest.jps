@@ -14,11 +14,14 @@ globals:
   DB_USER: sahana_${fn.random}
   DB_PASS: ${fn.password(16)}
   MONGO_DB: sahana_chat
-  # Jelastic'in apache node'unda Apache'nin doküman kökü budur. NOT: bu
-  # klasör Laravel'in TAMAMINI içerir (public/ dahil) — Apache'nin
-  # DocumentRoot'unu ${APP_DIR}/public'e çevirmek hâlâ elle yapılması
-  # gereken bir adım, bkz. README.md ("Kurulumdan sonra elle yapılması
-  # gerekenler"). Aksi halde .env gibi dosyalar URL'den erişilebilir kalır.
+  # Jelastic'in apache node'unda Apache'nin doküman kökü budur. Bu klasöre
+  # TÜM monorepo git clone'lanır (mobile/, docs/, api/ hepsi — ROOT'un
+  # kendisinde `.git` olması için, `git pull` ile deploy edilebilsin diye;
+  # bkz. README.md 2026-07-16 notu). Laravel uygulaması ${APP_DIR}/api
+  # altında. Apache'nin DocumentRoot'unu ${APP_DIR}/api/public'e çevirmek
+  # hâlâ elle yapılması gereken bir adım, bkz. README.md ("Kurulumdan
+  # sonra elle yapılması gerekenler"). Aksi halde .env gibi dosyalar
+  # URL'den erişilebilir kalır.
   APP_DIR: /var/www/webroot/ROOT
   # Kendi repo'nu buraya yaz (özel repo ise node'da git credential/SSH deploy
   # key'i elle ayarlaman gerekir — bu manifest onu otomatik yapmaz).
@@ -59,19 +62,20 @@ actions:
       MYSQL_PWD=${nodes.sqldb.password} mysql -uroot -e "CREATE USER IF NOT EXISTS '${globals.DB_USER}'@'%' IDENTIFIED BY '${globals.DB_PASS}';"
       MYSQL_PWD=${nodes.sqldb.password} mysql -uroot -e "GRANT ALL PRIVILEGES ON ${globals.DB_NAME}.* TO '${globals.DB_USER}'@'%'; FLUSH PRIVILEGES;"
 
-  # api/ alt klasörünü webroot'a klonlar, composer bağımlılıklarını kurar,
-  # .env'i node topolojisine göre üretir (DB/Mongo/Redis host'ları otomatik
+  # TÜM monorepo'yu ${APP_DIR}'a doğrudan git clone'lar (ROOT'un kendisinde
+  # `.git` olsun diye — sonraki deploy'lar `cd ${APP_DIR} && git pull` ile
+  # yapılabilsin, 2026-07-16'da fark edildi: önceki `cp -a` yaklaşımı ROOT'u
+  # hiçbir zaman gerçek bir git working tree yapmıyordu). Laravel uygulaması
+  # ${APP_DIR}/api altında; composer bağımlılıkları kurulur, .env node
+  # topolojisine göre üretilir (DB/Mongo/Redis host'ları otomatik
   # dolduruluyor). AWS_*/SENTRY_*/REVERB_APP_* gibi harici sırlar bilerek
   # buraya YAZILMADI — deploy sonrası Jelastic panelinden Variables/`.env`
   # üzerinden elle eklenmeli (bkz. deploy/virtuozzo/README.md).
   clone-and-install:
     cmd[cp]: |-
       rm -rf ${globals.APP_DIR}
-      mkdir -p ${globals.APP_DIR}
-      git clone --depth 1 ${globals.REPO_URL} /tmp/sahana-src
-      cp -a /tmp/sahana-src/api/. ${globals.APP_DIR}/
-      rm -rf /tmp/sahana-src
-      cd ${globals.APP_DIR}
+      git clone ${globals.REPO_URL} ${globals.APP_DIR}
+      cd ${globals.APP_DIR}/api
       curl -sS https://getcomposer.org/installer | php
       php composer.phar install --no-dev --optimize-autoloader --no-interaction
       cp .env.example .env
@@ -89,7 +93,7 @@ actions:
       sed -i "s/^QUEUE_CONNECTION=.*/QUEUE_CONNECTION=redis/" .env
       php artisan migrate --force
       chown -R apache:apache ${globals.APP_DIR}
-      chmod -R 755 ${globals.APP_DIR}/storage ${globals.APP_DIR}/bootstrap/cache
+      chmod -R 755 ${globals.APP_DIR}/api/storage ${globals.APP_DIR}/api/bootstrap/cache
     user: root
 
   # Horizon (queue) ve Reverb (websocket) uzun ömürlü process'ler —
@@ -103,23 +107,23 @@ actions:
       cat > /etc/supervisord.d/sahana-horizon.ini <<'EOF'
       [program:sahana-horizon]
       process_name=%(program_name)s
-      command=php ${globals.APP_DIR}/artisan horizon
+      command=php ${globals.APP_DIR}/api/artisan horizon
       autostart=true
       autorestart=true
       user=apache
       redirect_stderr=true
-      stdout_logfile=${globals.APP_DIR}/storage/logs/horizon.log
+      stdout_logfile=${globals.APP_DIR}/api/storage/logs/horizon.log
       stopwaitsecs=3600
       EOF
       cat > /etc/supervisord.d/sahana-reverb.ini <<'EOF'
       [program:sahana-reverb]
       process_name=%(program_name)s
-      command=php ${globals.APP_DIR}/artisan reverb:start --host=0.0.0.0 --port=8080
+      command=php ${globals.APP_DIR}/api/artisan reverb:start --host=0.0.0.0 --port=8080
       autostart=true
       autorestart=true
       user=apache
       redirect_stderr=true
-      stdout_logfile=${globals.APP_DIR}/storage/logs/reverb.log
+      stdout_logfile=${globals.APP_DIR}/api/storage/logs/reverb.log
       EOF
       systemctl enable --now supervisord || service supervisord start || supervisord -c /etc/supervisord.conf
       supervisorctl reread

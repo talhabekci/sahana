@@ -12,6 +12,13 @@
 ## Açık Maddeler
 
 ### A. Altyapı / Deploy — Virtuozzo Jelastic'te CANLI ✅ (Reverb dahil, tamamı)
+- **Yapı değişikliği (2026-07-16):** `ROOT` hiçbir zaman gerçek bir git
+  working tree değildi (`cp -a` ile sadece `api/` içeriği kopyalanıyordu,
+  `.git` hiç yoktu) — `git pull` ile deploy denenince fark edildi.
+  `manifest.jps` artık TÜM monorepo'yu doğrudan `ROOT`'a clone'luyor,
+  Laravel `ROOT/api` altında, DocumentRoot `ROOT/api/public`. Zaten kurulu
+  environment için geçiş adımları `deploy/virtuozzo/README.md`'de —
+  **henüz production'da uygulanmadı**, sıradaki iş bu.
 - **Durum (2026-07-14):** Hetzner+Docker planı terk edildi, Virtuozzo Jelastic
   PaaS kullanıldı. `deploy/virtuozzo/manifest.jps` ile 4 node açıldı (PHP-FPM/
   apache, MySQL, MongoDB, Redis), gerçek bir kurulumla test edildi ve birkaç
