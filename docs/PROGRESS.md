@@ -3,6 +3,38 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-16 (2) — TestFlight'ta 401 sonrası kalıcı hata ekranı + çift-slash istekler
+
+Bir önceki kaydın (EAS→Xcode geçişi) build'i TestFlight'ta gerçek cihazda
+denendiğinde spinner'dan sonra "Bir şeyler ters gitti" hatası alındı. HTTP
+proxy ile teşhis edildi: env artık doğru (istekler API'ye ulaşıyor), ama
+iki ayrı bug ortaya çıktı:
+
+1. **Kritik — kalıcı 401 döngüsü:** Cihazda muhtemelen önceki bir build'den
+   kalma geçersiz/eski bir token vardı. `Api` axios client'ında 401 için
+   hiç response interceptor'ı yoktu (`mobile/src/shared/api/client.ts`) —
+   `/me` 401 dönünce token hiç temizlenmiyor, kullanıcı giriş ekranına asla
+   düşmeden aynı geçersiz token'la sonsuza dek 401 almaya devam ediyordu.
+   Fix: 401'de `useAuthStore.getState().setToken(null)` çağıran bir response
+   interceptor eklendi — `_layout.tsx` zaten `token == null` durumunda
+   `(auth)/welcome`'a yönlendiriyor, ek bir şey gerekmedi.
+2. **`/players//stats` gibi çift-slash 404'ler:** `profile.tsx`'teki
+   `refetchAll` (her ekran fokuslandığında `useFocusEffect` ile tetikleniyor)
+   `Me.refetch()` ile birlikte `Stats/Badges/Posts.refetch()`'i de senkron
+   çağırıyordu. TanStack Query'de `refetch()`, sorgunun `enabled` kapısını
+   BİLEREK atlar (kullanıcının açık isteği sayılır) — `Me.data` henüz
+   gelmemişken bu çağrılıyor, `Me.data?.id ?? ''` boş string'e düşüp
+   `/players//stats` gibi URL'ler üretiyordu. Fix: `refetchAll` artık
+   `Stats/Badges/Posts.refetch()`'i yalnızca `Me.data?.id != null` iken
+   çağırıyor.
+
+Bu, subagent ile (kod okuma, dosya değiştirmeden) araştırılıp kesin dosya/
+satır referanslarıyla teşhis edildi, sonra iki minimal fix uygulandı.
+
+**Doğrulama:** `npx tsc --noEmit` temiz, `npm run lint` temiz (önceden var
+olan 1 axios uyarısı hariç). Cihazda gerçek TestFlight testi kullanıcı
+tarafından henüz yapılmadı — bir sonraki build'de doğrulanmalı.
+
 ## 2026-07-16 — EAS'tan Xcode'a geçiş (TestFlight bug'ı) + deploy/release pipeline kararı
 
 Kullanıcı EAS ile production build alıp TestFlight'a yükledi, ama uygulama

@@ -65,11 +65,17 @@ export default function Profile() {
 
   const refetchAll = useCallback(() => {
     void Me.refetch();
-    void Stats.refetch();
-    void Badges.refetch();
-    void Posts.refetch();
+
+    // refetch() `enabled` kapısını atlar (TanStack Query'nin kendi
+    // davranışı) — Me.data henüz yokken bunları çağırmak boş id ile
+    // /players//stats gibi çift-slash'li isteklere yol açar.
+    if (Me.data?.id != null) {
+      void Stats.refetch();
+      void Badges.refetch();
+      void Posts.refetch();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [Me.data?.id]);
 
   // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
   useFocusEffect(refetchAll);
