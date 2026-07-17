@@ -3,6 +3,101 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-17 (2) — Landing page Laravel'e taşındı + geri bildirim düzeltmeleri
+
+Kullanıcı ilk landing taslağını inceledi, üç geri bildirim verdi:
+
+1. **"Şehir şehir açılıyoruz" iddiası yanlış** — bir önceki kayıttaki gerekçe
+   (`market-research.md`'deki soğuk-başlangıç stratejisi) kullanıcının güncel
+   gerçek kararını yansıtmıyormuş. Şehir seçici hem bekleme listesi
+   formlarından (hero + final CTA) hem SSS'ten tamamen kaldırıldı, başarı
+   mesajlarındaki "şehrine sıra gelince" ifadesi de düzeltildi. **Ders:**
+   docs'ta yazan bir strateji notu, güncel/onaylanmış bir iş kararıyla aynı
+   şey değilmiş — kullanıcı düzeltmesi doküman metnine göre önceliklidir.
+2. **Tasarım sıkışık duruyordu** — nav/hero/section/match-card/form
+   içindeki boşluklar genel olarak artırıldı (`.section` 100px→132px,
+   hero 96/110px→132/144px, başlık `line-height` 0.98→1.05, kart iç
+   padding'leri ve satır arası boşluklar ~%30-50 büyütüldü).
+3. **"Bunu ayrıca yapmak yerine Laravel'in içine yapsak?"** — gerçek bir
+   mimari gerilim: `docs/tech-stack.md` API'yi bilinçli "API-only" (Blade
+   yok) diye tanımlıyordu. CLAUDE.md MUTLAK KURAL #2 gereği kod yazmadan
+   önce `AskUserQuestion` ile netleştirildi; kullanıcı **"Laravel içine
+   Blade view olarak taşı"**yı seçti.
+
+**Spec güncellemesi (kod yazmadan önce, kullanıcı teyidiyle):**
+`docs/tech-stack.md` (özet tablo + "API-only" ilkesi artık tek istisnalı +
+Karar Kaydı'na 2026-07-17 satırı), `CLAUDE.md`'nin "Teknik Sabitler" özeti,
+`ROADMAP.md`'nin Backend başlığına açıklayıcı not — üçü de tutarlı şekilde
+güncellendi.
+
+**Uygulama:** `landing/index.html` (self-contained, tek dosya) olduğu gibi
+`api/resources/views/landing.blade.php`'ye taşındı — Blade'e özgü hiçbir
+söz dizimi çakışması yoktu (`grep '{{'` boş döndü). `api/routes/web.php`'deki
+mevcut `GET /` route'u (önceden Laravel'in varsayılan `welcome` view'ını
+döndürüyordu) artık `landing` view'ını döndürüyor; `resources/views/welcome.blade.php`
+silindi (başka hiçbir yerden referans edilmiyordu). Üst seviye `landing/`
+klasörü kaldırıldı — artık tek gerçeklik kaynağı Laravel içindeki view.
+
+**Test:** Laravel'in varsayılan iskelet testi (`tests/Feature/ExampleTest.php`
+— sadece `GET /` → 200 kontrolü) anlamlı hale getirilip
+`LandingPageTest.php`'ye taşındı: artık sayfanın gerçekten "Sahana" ve
+"İlk erişime katıl" içerdiğini doğruluyor.
+
+**Doğrulama:** `./vendor/bin/pest tests/Feature/LandingPageTest.php` geçti
+(3 assertion). Tam paket: 288/288 geçti, regresyon yok. Pint temiz
+(`web.php` + yeni test dosyası). Larastan'a gerek yoktu (Blade view/route
+closure'ı, taranan `app/` dışında; PHP tarafında yeni bir sınıf/metot yok).
+
+**Bilinçli sınır (değişmedi):** Bekleme listesi formu hâlâ sadece istemci
+tarafında — Laravel'e taşınması "nerede serve edildiği" sorusunu çözdü,
+"gerçekten e-posta kaydediyor mu" sorusunu değil. Kullanıcıya bu ayrım
+`AskUserQuestion`'da açıkça belirtildi; istenirse ayrı bir iş olarak
+(`POST /waitlist` + basit bir tablo) ele alınabilir.
+
+## 2026-07-17 — Landing page: `landing/index.html`
+
+Kullanıcı isteği: `docs/` altındaki spec'leri okuyup projeyi anlayarak,
+kurumsal kimliği olan profesyonel bir tanıtım (landing) sayfası oluşturmak
+(`/frontend-design` skill'i ile).
+
+**Kimlik kararı:** Sıfırdan yeni bir kimlik icat edilmedi — mobil uygulamanın
+zaten var olan, doğrulanmış tasarım sistemi (`mobile/src/shared/ui/theme.ts`:
+`DarkPalette` "Gece Maçı", `BarlowCondensed`/`Manrope`/`SpaceMono` font üçlüsü)
+ve `splash-icon.png`'deki zigzag "S" amblemi doğrudan web'e taşındı. Amblem,
+taşınabilirlik için (Artifact önizlemesi + tek dosya paylaşımı) 128px'e
+küçültülüp base64 data URI olarak `index.html` içine gömüldü — dosya tamamen
+self-contained (Google Fonts CDN dışında harici bağımlılık yok).
+
+**İçerik, spec'lerden türetildi (uydurma pazarlama metni değil):**
+- Konumlandırma cümlesi ("WhatsApp'tan sonraki durak") doğrudan
+  `ROADMAP.md`'nin problem tanımından.
+- Bölüm yapısı, "İlk Yarı / İkinci Yarı / Uzatmalar / Düdük" maç-fazı
+  etiketleriyle kurgulandı — jenerik "01/02/03" numaralamak yerine, konunun
+  kendi anlatı yapısını (bir halı saha maçının akışı) kullanan gerekçeli bir
+  yapısal tercih.
+- "Veri döngüsü" bölümündeki istatistikler gerçek: 45 gün reyting yarı ömrü,
+  min. 3 puan eşiği, %90 güvenilirlik eşiği — `docs/features/06-stats-rating.md`
+  kararlarından birebir. Rozet isimleri (`BadgeCatalog`) aynen kullanıldı.
+- CTA, "Uygulamayı İndir" değil **e-posta + şehir bekleme listesi**: önceki
+  oturum kayıtları (2026-07-14/15) store gönderiminin henüz yapılmadığını
+  (TestFlight'ta, ayrı bir oturuma ertelendi) gösteriyor — canlıymış gibi
+  store rozeti koymak yanıltıcı olurdu. Şehir seçimi de uydurma değil:
+  `docs/market-research.md` §5'teki "şehir şehir açılış" soğuk-başlangıç
+  stratejisine bağlı, gerçek bir go-to-market kararını yansıtıyor.
+
+**Bilinçli sınır:** Bekleme listesi formu şu an **sadece istemci tarafında**
+çalışıyor (submit'te başarı mesajı gösteriyor, hiçbir yere veri yazmıyor) —
+gerçek e-posta toplamak için ayrı bir backend/servis bağlanması gerekiyor,
+bu iş bilerek kapsam dışı bırakıldı.
+
+**Doğrulama:** Bu ortamda tarayıcı/ekran görüntüsü aracı yok — sayfa
+Artifact üzerinden önizlemeye alındı (görsel olarak kullanıcı tarafından
+kontrol edilmeli), CSS responsive breakpoint'leri (900px/760px/620px/560px)
+ve `prefers-reduced-motion` desteği kod incelemesiyle doğrulandı. İlk
+denemede logo base64'ü kopyalarken kesilmiş (503/11714 karakter) — fark
+edilip Python script'iyle dosyadan tam okunarak düzeltildi, üç yerleşim
+(favicon + nav + footer) de aynı uzunlukta doğrulandı.
+
 ## 2026-07-16 (5) — Scheduler cron hiç kurulmamış + Resend/mail düzeltmeleri
 
 Bu kayıt aynı gündeki birkaç küçük ama gerçek düzeltmeyi topluyor:

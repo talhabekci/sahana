@@ -24,7 +24,7 @@ Halı saha oyuncuları için sosyal ağ. Monorepo: `api/` (Laravel 12) + `mobile
 
 ## Teknik Sabitler (tech-stack.md'den)
 
-- API: Laravel 12, API-only, Sanctum, Pest testleri, Pint, Larastan
+- API: Laravel 12 (API + tek public landing view'ı, `GET /`), Sanctum, Pest testleri, Pint, Larastan
 - Mobil: Expo + TypeScript strict, expo-router, TanStack Query + Zustand
 - DB: MySQL 8, zamanlar UTC/ISO 8601, JSON alanlar snake_case
 - Controller ince, iş mantığı `app/Actions/<Modül>/` altında

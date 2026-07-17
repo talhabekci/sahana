@@ -34,6 +34,11 @@ oyuncu reytingi → daha iyi maç eşleşmesi.
 ## 2. Teknoloji Seçimi
 
 ### Backend: **Laravel 12 (API-only)**
+
+> Not (2026-07-17): tek istisna — public landing/tanıtım sayfası da aynı
+> Laravel üzerinden `GET /` altında bir Blade view olarak serve ediliyor
+> (kullanıcı tercihi: ayrı bir statik site/hosting yerine tek deploy hedefi).
+> Detay: `docs/tech-stack.md` Karar Kaydı.
 Senin en güçlü olduğun alan; hız kazandırır. Slim yerine Laravel önerme sebebim:
 auth (Sanctum), queue, notification, broadcast, storage soyutlamaları hazır —
 bu projede hepsi lazım olacak.

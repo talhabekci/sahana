@@ -8,7 +8,7 @@
 | Katman | Teknoloji | Neden |
 |---|---|---|
 | Mobil | React Native (Expo, TypeScript) | Web/JS aşinalığı, tek codebase, OTA update |
-| Backend | Laravel 12 (API-only) | Mevcut PHP/Laravel tecrübesi, batteries-included |
+| Backend | Laravel 12 (API + landing) | Mevcut PHP/Laravel tecrübesi, batteries-included |
 | Veritabanı | MySQL 8 | Aşinalık; coğrafi sorgular için yeterli (POINT + SPATIAL INDEX) |
 | Sohbet geçmişi | MongoDB | Yüksek yazma hacmi + esnek şema (Modül 7, 2026-07-07 kararı) |
 | Cache & Queue | Redis 7 + Laravel Horizon | Bildirim fan-out, feed cache, OTP rate limit |
@@ -86,7 +86,12 @@ Bu projede hepsi Modül 1-7 arasında lazım. Laravel'de birinci parti:
 | Code style | Laravel Pint |
 
 ### Mimari kurallar (özet — detay `architecture.md`)
-- API-only: Blade yok, her yanıt JSON.
+- API-first: mobil istemciye giden her yanıt JSON. Tek istisna — kök `/` route'u,
+  public landing/tanıtım sayfasını statik bir Blade view
+  (`resources/views/landing.blade.php`) olarak serve eder: kendi içine gömülü
+  CSS/JS, hiçbir API state'ine/Action'a dokunmuyor, ayrı bir controller
+  katmanı gerektirmiyor (2026-07-17 kararı, kullanıcı tercihi — ayrı bir statik
+  site/hosting kurmak yerine tek deploy hedefi).
 - Controller ince, iş mantığı Action/Service sınıflarında.
 - Form Request ile validasyon; Resource ile response şekillendirme.
 - Tüm endpoint'ler `docs/api-conventions.md` standartlarına uyar.
@@ -133,3 +138,4 @@ worker'ları ayrı makineye alma. Şimdiden mikroservis YOK.
 | 2026-07-03 | Cloudflare R2 | AWS S3 | Egress ücretsiz; video ağırlıklı ürün |
 | 2026-07-07 | Expo Push API | Firebase Admin SDK/FCM (ilk karar) | Expo-managed projede Firebase proje/service-account kurulum yükü gereksiz; Expo zaten APNs/FCM'e arkada yönlendiriyor |
 | 2026-07-07 | MongoDB (sohbet geçmişi) | MySQL (`messages` tablosu) | Yüksek yazma hacmi + esnek şema; ilişkisel sorgu ihtiyacı yok |
+| 2026-07-17 | Landing sayfası Laravel'e taşındı (Blade, `GET /`) | Ayrı statik site/hosting | Kullanıcı tercihi — tek deploy hedefi; sayfa self-contained olduğundan API-only ilkesine pratik bir maliyeti yok |

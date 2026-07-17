@@ -4,7 +4,7 @@ use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('landing');
 });
 
 // Yüklenen medya (avatar/arma/foto/video/ses) — Range destekli servis
