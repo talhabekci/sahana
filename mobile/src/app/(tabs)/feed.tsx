@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -14,6 +14,7 @@ import {
 
 import { getFeed, likePost, Post, unlikePost } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
+import { useRefetchOnForeground } from '@/shared/lib/useRefetchOnForeground';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
@@ -32,13 +33,9 @@ export default function Feed() {
     getNextPageParam: (LastPage) => LastPage.nextCursor ?? undefined,
   });
 
-  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
-  useFocusEffect(
-    useCallback(() => {
-      void Feed_.refetch();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []),
-  );
+  // Sekmeler arası geçişte VE uygulama öne gelirken (sadece bu ekran
+  // görünürse) veri tazelensin (kullanıcı talebi, 2026-07-12 / 2026-07-17).
+  useRefetchOnForeground(() => void Feed_.refetch());
 
   const ToggleLike = useMutation({
     mutationFn: ({ post }: { post: Post }) => (post.i_liked ? unlikePost(post.id) : likePost(post.id)),

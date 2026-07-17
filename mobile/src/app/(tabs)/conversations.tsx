@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listConversations } from '@/features/chat/api';
 import { badgeIonicon } from '@/features/team/constants';
+import { useRefetchOnForeground } from '@/shared/lib/useRefetchOnForeground';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
@@ -34,13 +35,11 @@ export default function Conversations() {
     queryFn: listConversations,
   });
 
-  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
-  useFocusEffect(
-    useCallback(() => {
-      void List.refetch();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []),
-  );
+  // Sekmeler arası geçişte VE uygulama öne gelirken (sadece bu ekran
+  // görünürse) veri tazelensin (kullanıcı talebi, 2026-07-12 / 2026-07-17).
+  useRefetchOnForeground(() => {
+    void List.refetch();
+  });
 
   return (
     <Screen bare>

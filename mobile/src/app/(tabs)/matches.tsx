@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listMatches, Match } from '@/features/match/api';
 import { formatDayLabel, formatTimeLabel, MATCH_STATUS_LABELS } from '@/features/match/constants';
+import { useRefetchOnForeground } from '@/shared/lib/useRefetchOnForeground';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
@@ -63,13 +64,9 @@ export default function Matches() {
     queryFn: () => listMatches(Filter),
   });
 
-  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
-  useFocusEffect(
-    useCallback(() => {
-      void Matches_.refetch();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [Filter]),
-  );
+  // Sekmeler arası geçişte VE uygulama öne gelirken (sadece bu ekran
+  // görünürse) veri tazelensin (kullanıcı talebi, 2026-07-12 / 2026-07-17).
+  useRefetchOnForeground(() => void Matches_.refetch());
 
   const handleOpenMatch = useCallback((Id: string) => Router.push(`/match/${Id}`), [Router]);
 

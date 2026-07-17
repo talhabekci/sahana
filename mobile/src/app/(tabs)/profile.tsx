@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -20,6 +20,7 @@ import { PostCard } from '@/features/social/PostCard';
 import { getPlayerBadges, getPlayerStats } from '@/features/stats/api';
 import { BadgeRow } from '@/features/stats/BadgeRow';
 import { StatsCard } from '@/features/stats/StatsCard';
+import { useRefetchOnForeground } from '@/shared/lib/useRefetchOnForeground';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
@@ -77,8 +78,9 @@ export default function Profile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Me.data?.id]);
 
-  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
-  useFocusEffect(refetchAll);
+  // Sekmeler arası geçişte VE uygulama öne gelirken (sadece bu ekran
+  // görünürse) veri tazelensin (kullanıcı talebi, 2026-07-12 / 2026-07-17).
+  useRefetchOnForeground(refetchAll);
 
   const ToggleLike = useMutation({
     mutationFn: ({ post }: { post: Post }) => (post.i_liked ? unlikePost(post.id) : likePost(post.id)),

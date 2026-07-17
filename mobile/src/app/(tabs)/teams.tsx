@@ -1,11 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { memo, useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { listTeams, Team } from '@/features/team/api';
 import { badgeIonicon } from '@/features/team/constants';
+import { useRefetchOnForeground } from '@/shared/lib/useRefetchOnForeground';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
@@ -45,13 +46,9 @@ export default function Teams() {
   const Router = useRouter();
   const Teams = useQuery({ queryKey: ['teams'], queryFn: listTeams });
 
-  // Sekmeler arası geçişte veri tazelensin (kullanıcı talebi, 2026-07-12).
-  useFocusEffect(
-    useCallback(() => {
-      void Teams.refetch();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []),
-  );
+  // Sekmeler arası geçişte VE uygulama öne gelirken (sadece bu ekran
+  // görünürse) veri tazelensin (kullanıcı talebi, 2026-07-12 / 2026-07-17).
+  useRefetchOnForeground(() => void Teams.refetch());
 
   const handleOpenTeam = useCallback((Id: string) => Router.push(`/team/${Id}`), [Router]);
 

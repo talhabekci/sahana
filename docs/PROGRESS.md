@@ -3,6 +3,59 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-17 (4) — Prod incident'ları: Mongo/Redis kimlik bilgileri, Reverb app key boşmuş, refetch kapsamı daraltıldı
+
+Canlıya çıkış sonrası kullanıcıyla birlikte gerçek zamanlı birkaç prod
+sorunu teşhis edildi/çözüldü:
+
+**MongoDB:** `authorization: enabled` ama hiç kullanıcı yokmuş (`mongo`
+shell "requires authentication" hatası veriyordu, `mongo-express`'in kendi
+config'i de bulunamadı). Kullanıcı localhost exception ile ilk admin
+kullanıcıyı kendi oluşturacak. `config('database.connections.mongodb')`'e
+`username`/`password`/`options.authSource` desteği eklendi (paket zaten
+destekliyormuş, config'te eksikti) — `.env.example`'a `MONGO_USERNAME`/
+`MONGO_PASSWORD`/`MONGO_AUTH_SOURCE` eklendi.
+
+**Redis:** Ne için kullanıldığı netleştirildi (queue: Horizon job'ları,
+cache: genel + rate limiting, ayrı DB index'leriyle). `REDIS_USERNAME`
+boş olması normal (Jelastic'in bu node'u ACL değil klasik `requirepass`
+kullanıyor). Jelastic'in Redis node'undaki `p3x-redis` web UI'sinin Basic
+Auth kimlik bilgisi `/var/lib/redis-ui/p3xrs.json`'da bulundu (`mongo`
+node'undaki gibi SSH+dosya taraması ile).
+
+**Reverb "Application does not exist" (kod 4001) — gerçek bug:** Mobil
+gerçek bir bağlantı denediğinde (önceki curl testi sadece HTTP-seviyesi
+101 handshake'ini doğruluyordu, Pusher protokolü app-key kontrolünü hiç
+test etmiyordu) prod'da `REVERB_APP_KEY` **tamamen boş** çıktı — yani bu
+özellik en baştan beri kırıktı, önceki "çözüldü" kaydı yanıltıcıydı.
+Lokaldeki çalışan `REVERB_APP_ID`/`REVERB_APP_KEY`/`REVERB_APP_SECRET`
+değerleri prod'a da yazılacak (kullanıcı kendisi ekleyecek).
+
+**Mobil — refetch kapsamı daraltıldı (kullanıcı gözlemi + onayı):**
+Kullanıcı uygulamayı arka plana atıp geri getirince 6-7 farklı endpoint'e
+birden istek gittiğini fark etti ("sadece hangi sayfadaysam ona gitmesi
+gerekmez mi"). Kök neden: `_layout.tsx`'teki global `AppState` →
+`focusManager.setFocused()` bağlantısı, TanStack Query'nin
+`refetchOnWindowFocus`'unu tetikliyordu — bu RN'de global bir sinyal,
+Expo Router'ın alt sekmeleri arka planda mount'lu tuttuğu için TÜM
+sekmelerin sorgularını birden yeniliyordu (2026-07-13'te kasıtlı eklenen
+"açık ekranlar yenilensin" özelliğinin, sekme mimarisiyle beklenmeyen bir
+yan etkisi). Kullanıcı "sadece o an görünen sekme" davranışını seçti.
+
+Fix: `_layout.tsx`'teki global `focusManager`/`AppState` wiring'i
+tamamen kaldırıldı. Yeni `shared/lib/useRefetchOnForeground.ts` hook'u
+eklendi — `useFocusEffect` (sekme geçişi) + kendi `AppState` dinleyicisini
+(sadece ekran o an fokusluysa tetiklenen, `useRef` ile "son callback"
+takip edilen — çağıran taraf `useCallback` sarmalamak zorunda kalmasın ve
+`Filter` gibi değişen bağımlılıklar stale kalmasın diye) birleştiriyor.
+`feed.tsx`/`matches.tsx`/`teams.tsx`/`conversations.tsx`/`profile.tsx`'teki
+5 ayrı `useFocusEffect(refetch...)` bloğu bu hook'u kullanacak şekilde
+güncellendi.
+
+**Doğrulama:** `npx tsc --noEmit` ve `npm run lint` temiz (önceden var
+olan 1 axios uyarısı hariç). Cihazda gerçek test kullanıcı tarafından
+henüz yapılmadı.
+
 ## 2026-07-17 (3) — Landing page SEO tamamlandı
 
 Kullanıcı "landing page SEO'su için gerekli işlemleri yaptın mı" diye sordu.
