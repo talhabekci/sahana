@@ -3,6 +3,51 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-17 (3) — Landing page SEO tamamlandı
+
+Kullanıcı "landing page SEO'su için gerekli işlemleri yaptın mı" diye sordu.
+Dürüst cevap: hayır, ilk sürümde sadece `<title>` + temel meta description +
+eksik bir Open Graph seti vardı. Eksikler tamamlandı:
+
+- **Canonical URL** (`https://sahana-app.com/`) + `<meta name="robots"
+  content="index, follow">`.
+- **Tam Open Graph seti:** `og:url`, `og:site_name`, `og:locale`, ve en
+  kritik eksik olan **`og:image`** — WhatsApp/Twitter paylaşım önizlemesi
+  olmadan link WhatsApp'ta çıplak görünürdü, bu da ürünün asıl büyüme
+  kanalına (`market-research.md`: "kadro/maç daveti WhatsApp'a paylaşılır")
+  doğrudan zarar verirdi. Aynı görsel Twitter Card (`summary_large_image`)
+  için de kullanıldı.
+- **`og:image` üretimi:** Bu ortamda tarayıcı/screenshot aracı olmadığından
+  HTML'i render edip resim alamıyorum — bunun yerine Pillow (Python) ile
+  1200×630 marka kartı programatik olarak çizildi: pitch-night zemin +
+  mevcut S amblemi (`mobile/assets/images/splash-icon.png` kaynak) + limon
+  "Halı sahanın sosyal ağı" etiketi. `api/public/images/og-cover.png`.
+- **Ek marka görselleri:** `api/public/images/icon-512.png` (schema.org
+  Organization.logo için kare/opak versiyon), `api/public/apple-touch-icon.png`
+  (180×180, iOS konvansiyonu) — ikisi de `mobile/assets/images/icon.png`
+  kaynağından üretildi. `api/public/favicon.ico` daha önce **0 byte boştu**
+  (fark edildi) — gerçek çok-boyutlu bir ICO ile değiştirildi.
+- **JSON-LD (Organization schema)** eklendi.
+- **`sitemap.xml`** (tek URL) + `robots.txt`'e `Sitemap:` satırı.
+
+**Bulunan gerçek bug (kendi eklediğim koddan):** JSON-LD'deki literal
+`"@context"`/`"@type"` anahtarları, Laravel 12'nin native Blade direktifi
+olan `@context`/`@endcontext` (`CompilesContexts.php`) sanılıp yanlış
+derlendi — `GET /` 500 verdi (`ParseError: ... expecting elseif or else or
+endif`). `LandingPageTest` bunu hemen yakaladı. Fix: Blade'in literal `@`
+kaçış sözdizimi (`@@`) kullanılarak `"@@context"`/`"@@type"` yazıldı;
+render edilen çıktıda doğru şekilde tek `@` olarak çıktığı `tinker` ile
+JSON decode edilerek doğrulandı.
+
+**Doğrulama:** `LandingPageTest` + tam Pest paketi (288/288) geçti, Pint
+temiz. JSON-LD çıktısı gerçek bir HTTP response'undan çekilip
+`json_decode` ile geçerliliği teyit edildi (sadece statik dosya okuması
+değil).
+
+**Bilinçli sınırlar:** `sitemap.xml` tek URL'lik (başka public sayfa yok).
+OG görseli tasarım aracıyla değil programatik olarak üretildi — kullanıcı
+isterse daha sonra profesyonel bir görselle değiştirilebilir.
+
 ## 2026-07-17 (2) — Landing page Laravel'e taşındı + geri bildirim düzeltmeleri
 
 Kullanıcı ilk landing taslağını inceledi, üç geri bildirim verdi:
