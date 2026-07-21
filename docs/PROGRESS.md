@@ -3,6 +3,84 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-21 — Landing page: bekleme listesi DB kaydı + İngilizce dil desteği
+
+> Not: Bu oturumun önceki landing page kayıtları yanlışlıkla 2026-07-17
+> tarihiyle düşülmüş (muhtemelen dosyadaki en son tarihe göre kalıp
+> eşleşmesi yapıp `currentDate` sistem bilgisini kontrol etmemekten) —
+> zaten commit'lenip push'landıkları için geriye dönük düzeltilmedi,
+> sadece burada not düşülüyor. Migration dosya adı da (`2026_07_17_...`)
+> aynı sebeple bu tarihi taşıyor; lokal migration tablosuyla eşleştiği
+> için yeniden adlandırılmadı (kozmetik, sıralamayı etkilemiyor).
+
+Kullanıcının iki isteği: (1) "İlk erişime katıl" formunu gerçekten bir
+DB'ye kaydet, (2) landing page'e İngilizce dil desteği ekle.
+
+**1) Bekleme listesi DB kaydı**
+Önceki oturumda bilinçli sınır olarak bırakılan "form sadece istemci
+tarafında" kısıtı kaldırıldı:
+- `waitlist_entries` tablosu (`email` unique + timestamps) — mobil API'nin
+  bir parçası değil, `tech-stack.md`'deki "tek istisna" landing
+  yaklaşımıyla tutarlı, `/api/v1` zarfına uymuyor (kasıtlı).
+- `App\Actions\Waitlist\JoinWaitlist` — `firstOrCreate` ile idempotent:
+  aynı e-posta ikinci kez gelirse hata değil, var olan kaydı döner
+  (kullanıcıya "zaten kayıtlısın" sızdırmadan sorunsuz bir deneyim).
+  `JoinWaitlistRequest` e-postayı `trim` + küçük harfe çevirip doğruluyor.
+- `RateLimiter::for('waitlist', ...)` — IP başına 5/dk (OTP'den ayrı,
+  girişsiz/herkese açık bir endpoint olduğu için spam'e karşı).
+- `POST /waitlist` (`routes/web.php`, `web` middleware grubunda — CSRF
+  korumalı; sayfaya `<meta name="csrf-token">` eklendi, JS
+  `X-CSRF-TOKEN` header'ıyla gönderiyor, CSRF'i kapatmak yerine doğru
+  şekilde çözüldü).
+- JS: önceki "client-only, her zaman başarı göster" simülasyonu gerçek
+  `fetch()` ile değiştirildi; hata durumunda buton eski haline dönüyor
+  ve satır içi bir hata mesajı gösteriliyor (`alert()` kullanılmadı).
+- Test (`WaitlistTest.php`): happy path, e-posta normalize etme,
+  idempotency, validasyon (422), rate limit (429) — 5/5 geçti.
+
+**2) İngilizce dil desteği**
+- `resources/lang/{tr,en}/landing.php` — sayfadaki ~90 metin dizesi
+  (nav, hero, 4 sorun kartı, 6 özellik kartı, veri döngüsü istatistikleri
+  + rozetler, 4 SSS, final CTA, footer, SEO meta/OG/JSON-LD) nested array
+  olarak iki dilde. İngilizce metin kelime kelime çeviri değil, aynı
+  "maç fazı" anlatı yapısını (İlk Yarı→First Half, Uzatmalar→Extra Time,
+  Düdük→Full Time) koruyarak doğal İngilizce'ye uyarlandı.
+- Route yapısı: `GET /` → `App::setLocale('tr')`, `GET /en` →
+  `App::setLocale('en')`, ikisi de aynı `landing` view'ını render ediyor.
+  Aynı desende `waitlist.tr`/`waitlist.en` route isimleri değil — form
+  submit hedefi (`POST /waitlist`) dilden bağımsız, tek endpoint.
+- Blade şablonu `__('landing....')` çağrılarına dönüştürüldü; problem
+  kartları/veri döngüsü istatistikleri/rozetler/SSS maddeleri gibi
+  yapısal olarak özdeş tekrarlar `@foreach` döngüsüne çevrildi (kod
+  tekrarı azaldı); 6 özellik kartı farklı mini-görsel içerdiğinden
+  (kadro noktaları, RSVP çipleri, radar, bar grafik, video ikonu, sohbet
+  balonu) satır içi bırakıldı, sadece metinleri `__()` ile değiştirildi
+  — riski azaltmak için mevcut DOM yapısına dokunulmadı.
+- SEO: `<html lang>`, canonical + `hreflang` alternate'leri (tr/en/x-default),
+  `og:locale`/`og:url`/`og:image` dile göre dinamik. İngilizce için ayrı
+  bir 1200×630 OG görseli (`og-cover-en.png`) Pillow ile üretildi —
+  Türkçe görseldeki metin baskılı olduğundan tek görseli iki dilde
+  kullanmak yanlış olurdu.
+- Nav'a basit bir "EN"/"TR" dil değiştirici linki eklendi (`route()`
+  değil, doğrudan `/` ve `/en` — ikisi de zaten adlandırılmış route).
+- JS'teki "Gönderiliyor..."/hata metni `@json(__(...))` ile Blade'den
+  JS değişkenine aktarıldı (JSON-LD'deki `@context` hatasının aksine,
+  `@json` gerçek bir Blade direktifi olduğu için kaçış gerekmedi).
+
+**Doğrulama:** `tinker` ile hem `/` hem `/en` gerçekten render edilip
+içerik doğrulandı (TR başlık, EN "Get early access", `lang="tr"`/`lang="en"`,
+doğru OG görseli seçimi, 4 SSS/6 özellik/5 rozet/3 istatistik sayıları
+tam). `LandingPageTest` iki route'u da kapsayacak şekilde güncellendi.
+Tam paket: **294/294 test geçti** (+6 yeni: 5 waitlist, 1 EN landing),
+Pint temiz (bir `single_quote` düzeltmesi otomatik uygulandı), Larastan
+**0 hata** (201 dosya).
+
+**Bilinçli sınırlar:** Bekleme listesi hâlâ tek bir global tabloda,
+dil/kaynak bilgisi kaydedilmiyor (istenirse `locale` kolonu eklenebilir).
+Hero kartındaki takım isimleri/saha adı (`Kaptanlar HS`, `Şükrü Saha`)
+bilinçli olarak çevrilmedi — kurgusal özel isimler, iki dilde de aynı
+bırakıldı.
+
 ## 2026-07-17 (4) — Prod incident'ları: Mongo/Redis kimlik bilgileri, Reverb app key boşmuş, refetch kapsamı daraltıldı
 
 Canlıya çıkış sonrası kullanıcıyla birlikte gerçek zamanlı birkaç prod

@@ -42,6 +42,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('write', function (Request $Request) {
             return Limit::perMinute(20)->by(self::rateLimitKey($Request));
         });
+
+        // Landing page bekleme listesi — girişsiz, herkese açık; spam/bot
+        // denemelerine karşı IP başına sıkı bir limit yeterli.
+        RateLimiter::for('waitlist', function (Request $Request) {
+            return Limit::perMinute(5)->by($Request->ip() ?? 'unknown');
+        });
     }
 
     /**
