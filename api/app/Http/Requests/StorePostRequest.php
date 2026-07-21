@@ -31,6 +31,8 @@ class StorePostRequest extends FormRequest
                 'prohibits:image',
             ],
             'lineup_id' => ['sometimes', 'nullable', 'string', 'exists:lineups,public_id'],
+            'mentioned_user_ids' => ['sometimes', 'array'],
+            'mentioned_user_ids.*' => ['string', 'exists:users,public_id'],
         ];
     }
 }

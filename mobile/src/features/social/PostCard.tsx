@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as WebBrowser from 'expo-web-browser';
-import { memo, useMemo } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { memo, useMemo, useState } from 'react';
+import { Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Post } from './api';
 import VideoDefaultCover from '@/assets/images/video-default-cover.png';
@@ -10,6 +10,7 @@ import { OpponentListingCard, PlayerListingCard } from '@/features/match/Listing
 import { useListingActions } from '@/features/match/useListingActions';
 import { badgeIonicon } from '@/features/team/constants';
 import { PitchPreview } from '@/features/team/PitchPreview';
+import { saveToDevice } from '@/shared/media/saveToDevice';
 import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 function formatWhen(iso: string): string {
@@ -59,6 +60,7 @@ export const PostCard = memo(function PostCard({
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
   const { apply, promptOpponentMatch } = useListingActions();
+  const [ViewerOpen, setViewerOpen] = useState(false);
 
   const handlePress = onPress != null ? () => onPress(post.id) : undefined;
   const handleToggleLike = () => onToggleLike(post);
@@ -107,8 +109,40 @@ export const PostCard = memo(function PostCard({
 
       {post.type === 'text' && post.body != null && <Text style={styles.body}>{post.body}</Text>}
 
-      {post.image_url != null && (
-        <Image source={{ uri: post.image_url }} style={styles.photo} />
+      {post.image_url != null &&
+        (detailed ? (
+          <Pressable accessibilityRole="button" onPress={() => setViewerOpen(true)}>
+            <Image source={{ uri: post.image_url }} style={styles.photo} />
+          </Pressable>
+        ) : (
+          <Pressable
+            onLongPress={() =>
+              Alert.alert('Gönderi görseli', undefined, [
+                { text: 'Vazgeç', style: 'cancel' },
+                { text: 'Cihaza kaydet', onPress: () => void saveToDevice(post.image_url as string) },
+              ])
+            }>
+            <Image source={{ uri: post.image_url }} style={styles.photo} />
+          </Pressable>
+        ))}
+
+      {detailed && post.image_url != null && (
+        <Modal
+          visible={ViewerOpen}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setViewerOpen(false)}>
+          <Pressable style={styles.viewerBackdrop} onPress={() => setViewerOpen(false)}>
+            <Image source={{ uri: post.image_url }} style={styles.viewerImage} resizeMode="contain" />
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => void saveToDevice(post.image_url as string)}
+              style={styles.viewerSaveButton}
+              hitSlop={8}>
+              <Ionicons name="download-outline" size={22} color={Palette.limeInk} />
+            </Pressable>
+          </Pressable>
+        </Modal>
       )}
 
       {post.video_url != null && (
@@ -338,6 +372,24 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
     borderRadius: Radius.m,
     backgroundColor: Palette.turfRaised,
     marginTop: space(3),
+  },
+  viewerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  viewerSaveButton: {
+    position: 'absolute',
+    bottom: space(10),
+    alignSelf: 'center',
+    backgroundColor: Palette.lime,
+    borderRadius: Radius.pill,
+    padding: space(3),
   },
   autoCard: {
     marginTop: space(3),

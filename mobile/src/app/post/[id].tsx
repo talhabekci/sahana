@@ -26,7 +26,9 @@ import {
   unlikePost,
 } from '@/features/social/api';
 import { PostCard } from '@/features/social/PostCard';
+import { useMentionAutocomplete } from '@/features/social/useMentionAutocomplete';
 import { toApiFailure } from '@/shared/api/client';
+import { Avatar } from '@/shared/ui/Avatar';
 import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 import { Screen } from '@/shared/ui/Screen';
 
@@ -38,6 +40,7 @@ export default function PostDetail() {
   const QueryClient = useQueryClient();
 
   const [CommentBody, setCommentBody] = useState('');
+  const Mentions = useMentionAutocomplete(CommentBody, setCommentBody);
 
   const Post_ = useQuery({ queryKey: ['posts', id], queryFn: () => getPost(id) });
   const Comments = useQuery({ queryKey: ['posts', id, 'comments'], queryFn: () => getComments(id) });
@@ -49,7 +52,8 @@ export default function PostDetail() {
   });
 
   const AddComment = useMutation({
-    mutationFn: () => createComment(id, CommentBody.trim()),
+    mutationFn: () =>
+      createComment(id, CommentBody.trim(), Mentions.resolveMentionedUserIds(CommentBody)),
     onSuccess: () => {
       setCommentBody('');
       void QueryClient.invalidateQueries({ queryKey: ['posts', id, 'comments'] });
@@ -143,7 +147,13 @@ export default function PostDetail() {
             <View style={styles.commentList}>
               {(Comments.data as Comment[]).map((Item) => (
                 <View key={Item.id} style={styles.commentRow}>
-                  <Text style={styles.commentAuthor}>{Item.author?.name ?? 'İsimsiz'}</Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={Item.author != null ? () => Router.push(`/player/${Item.author?.id}`) : undefined}
+                    disabled={Item.author == null}
+                    hitSlop={4}>
+                    <Text style={styles.commentAuthor}>{Item.author?.name ?? 'İsimsiz'}</Text>
+                  </Pressable>
                   <Text style={styles.commentBody}>{Item.body}</Text>
                 </View>
               ))}
@@ -151,11 +161,27 @@ export default function PostDetail() {
           )}
         </ScrollView>
 
+        {Mentions.Suggestions.length > 0 && (
+          <View style={styles.mentionList}>
+            {Mentions.Suggestions.map((Player) => (
+              <Pressable
+                key={Player.id}
+                accessibilityRole="button"
+                onPress={() => Mentions.selectSuggestion(Player)}
+                style={styles.mentionRow}>
+                <Avatar uri={Player.avatar_path} name={Player.name} size={28} />
+                <Text style={styles.mentionName}>{Player.name ?? 'İsimsiz'}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
         <View style={styles.composer}>
           <TextInput
             value={CommentBody}
-            onChangeText={setCommentBody}
-            placeholder="Yorum yaz..."
+            onChangeText={Mentions.onChangeText}
+            onSelectionChange={Mentions.onSelectionChange}
+            placeholder="Yorum yaz... @ ile etiketleyebilirsin"
             placeholderTextColor={Palette.moss}
             selectionColor={Palette.lime}
             style={styles.commentInput}
@@ -247,6 +273,26 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
     paddingVertical: space(3),
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Palette.lineFaint,
+  },
+  mentionList: {
+    marginHorizontal: space(6),
+    marginBottom: space(2),
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    backgroundColor: Palette.turf,
+    overflow: 'hidden',
+  },
+  mentionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    padding: space(3),
+  },
+  mentionName: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
+    color: Palette.chalk,
   },
   commentInput: {
     flex: 1,

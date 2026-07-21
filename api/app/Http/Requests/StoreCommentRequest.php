@@ -19,6 +19,8 @@ class StoreCommentRequest extends FormRequest
     {
         return [
             'body' => ['required', 'string', 'max:300', new NoProfanity],
+            'mentioned_user_ids' => ['sometimes', 'array'],
+            'mentioned_user_ids.*' => ['string', 'exists:users,public_id'],
         ];
     }
 }

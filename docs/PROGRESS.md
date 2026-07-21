@@ -3,6 +3,49 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-21 (2) — Backlog #65-74: sohbet/sosyal/bildirim cilası (10 madde)
+
+Kullanıcı bir önceki oturumda yazdığı 10 maddelik backlog'un ("basit
+olanlardan başla, sırayla hepsini yap") tamamının geliştirilmesini
+istedi. Sırayla:
+
+- **#65 (sohbet avatarı):** API zaten `author.avatar_path` döndürüyordu,
+  `ChatConversation.tsx` render etmiyordu. Yeni ortak `shared/ui/Avatar.tsx`
+  (4 ekranda tekrar eden `initials()` kodu buraya taşındı) eklendi, mesaj
+  balonu hizalaması `alignSelf`'ten flex-row `justifyContent`'e geçirildi.
+- **#66 (DM üst bar → profil):** `ChatConversation`'a `onPressTitle` prop'u.
+- **#70 (yorum yazarı → profil), #71 (fotoğraf tam boyut):** `post/[id].tsx`'e
+  eklendi; #71 yeni bağımlılık gerektirmeden düz `Modal` ile çözüldü.
+- **#68/#69 (takip/beğeni/yorum bildirimleri):** `FollowedNotification`,
+  `PostLikedNotification`, `PostCommentedNotification` — hepsi mevcut
+  `OpponentFoundNotification` deseniyle, kendi kendine bildirim guard'ı ile.
+- **#73 (bildirime dokununca ilgili sayfa):** `notifications/index.tsx`'e
+  her tip için hedef route üreten `routeFor()`. `ApplicationDecisionNotification`
+  için veri yetersiz (hedef id yok) — o tek istisna.
+- **#67 (canlı mesaj):** Kod incelemesi yapıldı, ayrı bug bulunamadı — kök
+  neden büyük ihtimalle aynı gün düzeltilen `REVERB_APP_KEY` boşluğu.
+  Cihazda doğrulanmadı (bu ortamda mümkün değil).
+- **#72 (@ etiketleme) — en büyük madde:** Kullanıcıların unique bir
+  "username"'i olmadığı (sadece `name`) fark edildi, bu yüzden metin
+  parse'ı yerine client-tarafı ID-bazlı tasarım seçildi: mevcut
+  `/search?type=player` autocomplete için kullanıldı, seçilen kullanıcının
+  `public_id`'si ayrı `mentioned_user_ids` alanıyla gönderiliyor (ayrı bir
+  `mentions` tablosu YOK, metinde sadece görünen isim var). Yeni
+  `MentionedNotification` + `StorePostRequest`/`StoreCommentRequest`
+  validasyonu + mobilde `useMentionAutocomplete` hook'u (`post/create.tsx`
+  ve yorum composer'ına bağlandı).
+- **#74 (medya indirme):** `expo-media-library` + `expo-file-system`
+  eklendi (**yeni native modüller — yeni build gerekiyor**, `expo-file-system/legacy`
+  alt yolu kullanıldı çünkü yeni `File`/`Directory` API'sinde `downloadAsync`
+  yok). Yeni `shared/media/saveToDevice.ts`.
+
+**Doğrulama:** API tarafında Pint temiz, Larastan 0 hata, Pest 301/301
+geçti (13 yeni test — follow/like/comment/mention bildirimleri). Mobilde
+`npx tsc --noEmit` ve `npm run lint` temiz (önceden var olan 1 axios
+uyarısı hariç). **Cihazda görsel/gerçek-zamanlı doğrulama yapılamadı**
+(bu ortamda simülatör/cihaz erişimi yok) — özellikle #67 ve #74 (yeni
+native modül) için kullanıcının yeni bir build alıp test etmesi gerekiyor.
+
 ## 2026-07-21 — Landing page: bekleme listesi DB kaydı + İngilizce dil desteği
 
 > Not: Bu oturumun önceki landing page kayıtları yanlışlıkla 2026-07-17

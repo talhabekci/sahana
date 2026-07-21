@@ -18,9 +18,11 @@ import {
 } from 'react-native';
 
 import { createPost } from '@/features/social/api';
+import { useMentionAutocomplete } from '@/features/social/useMentionAutocomplete';
 import { listLineups, listTeams } from '@/features/team/api';
 import { toApiFailure } from '@/shared/api/client';
 import { ensureJpeg } from '@/shared/media/ensureJpeg';
+import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { Screen } from '@/shared/ui/Screen';
 import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
@@ -41,6 +43,8 @@ export default function CreatePost() {
   const [Converting, setConverting] = useState(false);
   const [UploadProgress, setUploadProgress] = useState<number | null>(null);
   const [Error_, setError] = useState<string | null>(null);
+
+  const Mentions = useMentionAutocomplete(Body, setBody);
 
   const Lineups = useQuery({
     queryKey: ['teams', TeamId, 'lineups'],
@@ -132,6 +136,7 @@ export default function CreatePost() {
           lineup_id: LineupId,
           image: Image_,
           video: Video_,
+          mentioned_user_ids: Mentions.resolveMentionedUserIds(Body),
         },
         Video_ != null ? setUploadProgress : undefined,
       ),
@@ -162,10 +167,11 @@ export default function CreatePost() {
             <TextInput
               value={Body}
               onChangeText={(Value) => {
-                setBody(Value);
+                Mentions.onChangeText(Value);
                 setError(null);
               }}
-              placeholder="Ne oldu?"
+              onSelectionChange={Mentions.onSelectionChange}
+              placeholder="Ne oldu? @ ile birini etiketleyebilirsin"
               placeholderTextColor={Palette.moss}
               selectionColor={Palette.lime}
               multiline
@@ -176,6 +182,21 @@ export default function CreatePost() {
               style={styles.textArea}
             />
             <Text style={styles.charCount}>{Body.length}/500</Text>
+
+            {Mentions.Suggestions.length > 0 && (
+              <View style={styles.mentionList}>
+                {Mentions.Suggestions.map((Player) => (
+                  <Pressable
+                    key={Player.id}
+                    accessibilityRole="button"
+                    onPress={() => Mentions.selectSuggestion(Player)}
+                    style={styles.mentionRow}>
+                    <Avatar uri={Player.avatar_path} name={Player.name} size={28} />
+                    <Text style={styles.mentionName}>{Player.name ?? 'İsimsiz'}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </View>
 
           {(Teams.data ?? []).length > 0 && (
@@ -386,6 +407,25 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
     fontFamily: Type.body,
     fontSize: 16,
     lineHeight: 22,
+    color: Palette.chalk,
+  },
+  mentionList: {
+    marginTop: space(2),
+    borderRadius: Radius.m,
+    borderWidth: 1,
+    borderColor: Palette.lineFaint,
+    backgroundColor: Palette.turf,
+    overflow: 'hidden',
+  },
+  mentionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    padding: space(3),
+  },
+  mentionName: {
+    fontFamily: Type.bodyMedium,
+    fontSize: 14,
     color: Palette.chalk,
   },
   charCount: {

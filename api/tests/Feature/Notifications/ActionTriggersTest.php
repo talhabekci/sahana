@@ -2,14 +2,19 @@
 
 use App\Models\FootballMatch;
 use App\Models\OpponentListing;
+use App\Models\Post;
 use App\Models\Team;
 use App\Models\User;
 use App\Notifications\ApplicationDecisionNotification;
+use App\Notifications\FollowedNotification;
 use App\Notifications\InviteAcceptedNotification;
 use App\Notifications\ListingApplicationNotification;
 use App\Notifications\MatchConfirmedNotification;
 use App\Notifications\MatchCreatedNotification;
+use App\Notifications\MentionedNotification;
 use App\Notifications\OpponentFoundNotification;
+use App\Notifications\PostCommentedNotification;
+use App\Notifications\PostLikedNotification;
 use Illuminate\Support\Facades\Notification;
 
 it('notifies team members except the creator when a match is created', function () {
@@ -142,4 +147,106 @@ it('notifies the listing owner captain when an opponent is found', function () {
     ])->assertOk();
 
     Notification::assertSentTo($Captain, OpponentFoundNotification::class);
+});
+
+it('notifies the target when a player is followed', function () {
+    Notification::fake();
+
+    $Viewer = User::factory()->create();
+    $Target = User::factory()->create();
+
+    $this->actingAs($Viewer)->postJson("/api/v1/players/{$Target->public_id}/follow")->assertOk();
+
+    Notification::assertSentTo($Target, FollowedNotification::class);
+});
+
+it('does not re-notify when a player follows the same target again', function () {
+    Notification::fake();
+
+    $Viewer = User::factory()->create();
+    $Target = User::factory()->create();
+
+    $this->actingAs($Viewer)->postJson("/api/v1/players/{$Target->public_id}/follow")->assertOk();
+    $this->actingAs($Viewer)->postJson("/api/v1/players/{$Target->public_id}/follow")->assertOk();
+
+    Notification::assertSentToTimes($Target, FollowedNotification::class, 1);
+});
+
+it('notifies the post owner when someone likes their post, but not on self-like', function () {
+    Notification::fake();
+
+    $Owner = User::factory()->create();
+    $Post = Post::factory()->for($Owner)->create();
+    $Liker = User::factory()->create();
+
+    $this->actingAs($Liker)->postJson("/api/v1/posts/{$Post->public_id}/like")->assertOk();
+
+    Notification::assertSentTo($Owner, PostLikedNotification::class);
+
+    $this->actingAs($Owner)->postJson("/api/v1/posts/{$Post->public_id}/like")->assertOk();
+
+    Notification::assertSentToTimes($Owner, PostLikedNotification::class, 1);
+});
+
+it('notifies the post owner when someone comments on their post, but not on self-comment', function () {
+    Notification::fake();
+
+    $Owner = User::factory()->create();
+    $Post = Post::factory()->for($Owner)->create();
+    $Commenter = User::factory()->create();
+
+    $this->actingAs($Commenter)->postJson("/api/v1/posts/{$Post->public_id}/comments", [
+        'body' => 'Harika maçtı!',
+    ])->assertCreated();
+
+    Notification::assertSentTo($Owner, PostCommentedNotification::class);
+
+    $this->actingAs($Owner)->postJson("/api/v1/posts/{$Post->public_id}/comments", [
+        'body' => 'Kendi yorumum',
+    ])->assertCreated();
+
+    Notification::assertSentToTimes($Owner, PostCommentedNotification::class, 1);
+});
+
+it('notifies mentioned users on a post, excluding self-mentions', function () {
+    Notification::fake();
+
+    $Author = User::factory()->create();
+    $Mentioned = User::factory()->create();
+
+    $this->actingAs($Author)->postJson('/api/v1/posts', [
+        'body' => '@'.$Mentioned->name.' harika bir asist yaptı!',
+        'mentioned_user_ids' => [$Mentioned->public_id, $Author->public_id],
+    ])->assertCreated();
+
+    Notification::assertSentTo($Mentioned, MentionedNotification::class);
+    Notification::assertNotSentTo($Author, MentionedNotification::class);
+});
+
+it('notifies mentioned users on a comment, excluding the post owner (already notified) and self', function () {
+    Notification::fake();
+
+    $Owner = User::factory()->create();
+    $Post = Post::factory()->for($Owner)->create();
+    $Commenter = User::factory()->create();
+    $Mentioned = User::factory()->create();
+
+    $this->actingAs($Commenter)->postJson("/api/v1/posts/{$Post->public_id}/comments", [
+        'body' => '@'.$Mentioned->name.' bak bu yorumu',
+        'mentioned_user_ids' => [$Mentioned->public_id, $Commenter->public_id, $Owner->public_id],
+    ])->assertCreated();
+
+    Notification::assertSentTo($Mentioned, MentionedNotification::class);
+    Notification::assertNotSentTo($Commenter, MentionedNotification::class);
+    Notification::assertNotSentTo($Owner, MentionedNotification::class);
+    Notification::assertSentTo($Owner, PostCommentedNotification::class);
+});
+
+it('rejects a mention referencing a non-existent user', function () {
+    $Author = User::factory()->create();
+
+    $this->actingAs($Author)->postJson('/api/v1/posts', [
+        'body' => 'Merhaba',
+        'mentioned_user_ids' => ['not-a-real-public-id'],
+    ])->assertStatus(422);
 });

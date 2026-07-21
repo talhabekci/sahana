@@ -67,6 +67,14 @@
           "locationWhenInUsePermission": "Yakınındaki oyuncu ve rakip ilanlarını gösterebilmek için konumuna erişim gerekiyor."
         }
       ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Fotoğrafları cihazına kaydedebilmek için galerine erişim gerekiyor.",
+          "savePhotosPermission": "Fotoğrafları cihazına kaydedebilmek için galerine erişim gerekiyor.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
       "expo-asset",
       "expo-video",
       [

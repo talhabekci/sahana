@@ -25,7 +25,12 @@ class PostCommentController extends Controller
         /** @var User $Author */
         $Author = $Request->user();
 
-        $Comment = $Action->handle($Post, $Author, $Request->validated('body'));
+        $Comment = $Action->handle(
+            $Post,
+            $Author,
+            $Request->validated('body'),
+            $Request->validated('mentioned_user_ids') ?? [],
+        );
         $Comment->load('user');
 
         return (new CommentResource($Comment))->response()->setStatusCode(201);

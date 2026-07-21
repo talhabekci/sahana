@@ -7,13 +7,15 @@ use App\Models\Lineup;
 use App\Models\Post;
 use App\Models\Team;
 use App\Models\User;
+use App\Notifications\MentionedNotification;
 use App\Support\ImageUploader;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 
 class CreatePost
 {
     /**
-     * @param  array{body: string, team_id?: string|null, image?: UploadedFile|null, video?: UploadedFile|null, lineup_id?: string|null}  $Data
+     * @param  array{body: string, team_id?: string|null, image?: UploadedFile|null, video?: UploadedFile|null, lineup_id?: string|null, mentioned_user_ids?: array<int, string>}  $Data
      */
     public function handle(User $Author, array $Data): Post
     {
@@ -53,7 +55,7 @@ class CreatePost
             $VideoPath = $Data['video']->store('post-videos', config('filesystems.media_disk'));
         }
 
-        return Post::create([
+        $Post = Post::create([
             'user_id' => $Author->id,
             'team_id' => $TeamId,
             'type' => 'text',
@@ -62,5 +64,15 @@ class CreatePost
             'video_path' => $VideoPath,
             'lineup_id' => $LineupId,
         ]);
+
+        $MentionedIds = array_diff($Data['mentioned_user_ids'] ?? [], [$Author->public_id]);
+
+        if ($MentionedIds !== []) {
+            $Mentioned = User::whereIn('public_id', $MentionedIds)->get();
+
+            Notification::send($Mentioned, new MentionedNotification($Post, $Author));
+        }
+
+        return $Post;
     }
 }

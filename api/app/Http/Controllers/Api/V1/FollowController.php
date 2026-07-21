@@ -6,8 +6,10 @@ use App\Exceptions\ApiError;
 use App\Http\Controllers\Controller;
 use App\Models\Follow;
 use App\Models\User;
+use App\Notifications\FollowedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class FollowController extends Controller
 {
@@ -22,7 +24,11 @@ class FollowController extends Controller
             throw new ApiError('Kendini takip edemezsin.', 'cannot_follow_self', 422);
         }
 
-        Follow::firstOrCreate(['follower_id' => $Viewer->id, 'followed_id' => $Target->id]);
+        $Follow = Follow::firstOrCreate(['follower_id' => $Viewer->id, 'followed_id' => $Target->id]);
+
+        if ($Follow->wasRecentlyCreated) {
+            Notification::send($Target, new FollowedNotification($Viewer));
+        }
 
         return response()->json(['data' => ['status' => 'following']]);
     }

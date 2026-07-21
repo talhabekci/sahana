@@ -1076,97 +1076,111 @@
 - **Bağlı modül:** cross-cutting (mobil marka/açılış deneyimi, BACKLOG #22
   üzerine inşa edildi)
 
-### 65. Sohbet — mesaj balonlarında karşı tarafın profil fotoğrafı görünmüyor
+### 65. Sohbet — mesaj balonlarında karşı tarafın profil fotoğrafı görünmüyor ✅
+- **Tamamlandı:** 2026-07-20 — kök neden: API zaten `author.avatar_path`
+  döndürüyordu (BACKLOG #27) ama `ChatConversation.tsx` bunu hiç
+  render etmiyordu. Yeni ortak `shared/ui/Avatar.tsx` (gerçek görsel/baş
+  harf fallback, 4 farklı ekranda tekrar eden `initials()` mantığı
+  buraya taşındı) eklenip mesaj satırına (`!IsMine` iken) bağlandı; balon
+  hizalaması `alignSelf`'ten flex-row `justifyContent`'e geçirildi (avatar
+  yer alabilsin diye).
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-20
-- DM ve/veya takım sohbeti ekranlarında mesaj balonlarının yanında
-  kullanıcının profil fotoğrafı görünmüyor. `avatar_path` API tarafında
-  zaten çözülüyor olabilir (BACKLOG #27'de `MessageResource` bu listeye
-  dahil edilmişti) — önce mobil tarafta `<Image>`'in gerçekten render
-  edilip edilmediği, yoksa backend'den avatar_url hiç gelmediği mi
-  denetlenmeli.
 
-### 66. Sohbet — mesaj ekranının üst kısmında karşı kullanıcının profiline gidilebilmeli
+### 66. Sohbet — mesaj ekranının üst kısmında karşı kullanıcının profiline gidilebilmeli ✅
+- **Tamamlandı:** 2026-07-20 — `ChatConversation`'a opsiyonel
+  `onPressTitle` prop'u eklendi (takım sohbetinde kullanılmıyor, sadece
+  DM'de anlamlı); `dm/[id].tsx` bunu `/player/${id}`'e yönlendiriyor.
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-20
-- DM ekranının üst barında karşı tarafın adı/avatarı gösterilip, buna
-  dokununca `player/[id].tsx` herkese açık profiline gidilebilmeli.
-  Takım sohbetinde bu, "takım bilgisi" gibi farklı bir hedefe gidebilir —
-  kapsam netleşmeli.
 
-### 67. Sohbet — iki taraf da ekrandayken yeni mesaj otomatik düşmüyor
+### 67. Sohbet — iki taraf da ekrandayken yeni mesaj otomatik düşmüyor ✅
+- **Tamamlandı (kod incelemesiyle):** 2026-07-20 — `shared/api/echo.ts`
+  incelendi, ayrı bir frontend bug'ı bulunamadı. Kök neden neredeyse
+  kesin aynı gündeki `REVERB_APP_KEY` boşluğu (bkz. PROGRESS.md
+  2026-07-17) — Echo `EXPO_PUBLIC_REVERB_APP_KEY` ile bağlanıyor, prod'da
+  sunucu tarafı boş olduğu için TÜM private kanal bağlantıları
+  reddediliyordu. **Cihazda gerçek iki-kullanıcı testiyle doğrulanmadı**
+  (bu ortamda mümkün değil) — kullanıcı test etmeli, tekrarlanırsa ayrı
+  bir inceleme gerekir.
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-20
-- İki kullanıcı da aynı anda sohbet ekranındayken karşı taraf mesaj
-  atınca, ekrandan çıkıp tekrar girmeden mesaj görünmüyor — gerçek zamanlı
-  (Echo/Reverb) teslimat çalışmıyor gibi görünüyor. **Not:** Bu oturumda
-  prod'da `REVERB_APP_KEY`'in tamamen boş olduğu bulunup düzeltildi (bkz.
-  PROGRESS.md 2026-07-17) — bu bug'ın bir kısmı ondan kaynaklanıyor
-  olabilir, ama düzeltmeden sonra hâlâ tekrarlanıp tekrarlanmadığı
-  cihazda doğrulanmalı; düzelmezse Echo listener/kanal aboneliği ayrıca
-  incelenmeli (BACKLOG #13'teki DM tekilleştirme fix'iyle ilişkili olabilir).
 
-### 68. Bildirim — biri seni takip edince bildirim gitmeli
+### 68. Bildirim — biri seni takip edince bildirim gitmeli ✅
+- **Tamamlandı:** 2026-07-20 — `FollowedNotification` eklendi (mevcut
+  `OpponentFoundNotification` deseniyle birebir), `FollowController::store()`
+  yeni bir takip oluştuğunda (`wasRecentlyCreated`) gönderiyor — tekrar
+  takip etmede tekrar bildirim gitmiyor. 2 yeni Pest testi.
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (takip özelliği Modül 4 — [04-social-feed.md](features/04-social-feed.md))
 - **Talep tarihi:** 2026-07-20
-- Yeni bir takipçi bildirimi (`FollowedNotification` benzeri, mevcut
-  `OpponentFoundNotification`/`ListingApplicationNotification` deseniyle
-  aynı — DB + Expo push) eklenmeli, takip action'ının (`FollowPlayer` ya
-  da eşdeğeri) sonunda tetiklenmeli.
 
-### 69. Bildirim — gönderi beğenilince ya da yorum yapılınca bildirim gitmeli
+### 69. Bildirim — gönderi beğenilince ya da yorum yapılınca bildirim gitmeli ✅
+- **Tamamlandı:** 2026-07-20 — iki ayrı tip: `PostLikedNotification`
+  (`PostLikeController::store()`), `PostCommentedNotification`
+  (`CreateComment` action). İkisinde de kendi gönderine beğeni/yorum
+  bildirimi gitmiyor (guard). 2 yeni Pest testi.
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
   (Modül 4 — [04-social-feed.md](features/04-social-feed.md))
 - **Talep tarihi:** 2026-07-20
-- Gönderi sahibine, biri gönderisini beğendiğinde/yorum yaptığında
-  bildirim gitmeli (kendi kendini beğenme/yorumlama hariç tutulmalı).
-  İki ayrı bildirim tipi (`PostLikedNotification`, `PostCommentedNotification`)
-  ya da tek bir parametrik tip — kapsam netleşirken karar verilecek.
 
-### 70. Sosyal — yorumlardaki kullanıcı adına tıklayınca profiline gidilebilmeli
+### 70. Sosyal — yorumlardaki kullanıcı adına tıklayınca profiline gidilebilmeli ✅
+- **Tamamlandı:** 2026-07-20 — `post/[id].tsx`'teki yorum satırının yazar
+  adı artık `Pressable`, `/player/${author.id}`'e gidiyor.
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-20
-- Gönderi altındaki yorumlarda kullanıcı adı/avatarı görünüyor ama
-  dokunulabilir değil — `player/[id].tsx`'e gitmeli (feed'deki diğer
-  kullanıcı referansları — post sahibi, beğenenler — ile aynı desen).
 
-### 71. Sosyal — gönderi detayında fotoğrafa dokununca tam boyut açılmalı
+### 71. Sosyal — gönderi detayında fotoğrafa dokununca tam boyut açılmalı ✅
+- **Tamamlandı:** 2026-07-20 — yeni bağımlılık eklenmeden (`Modal` +
+  `resizeMode="contain"`) tam ekran bir görüntüleyici eklendi; sadece
+  `detailed` modda (post/[id].tsx) aktif, feed'deki mevcut "karta dokun →
+  detaya git" davranışı değişmedi.
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-20
-- `post/[id].tsx`'te gönderi görseline dokununca tam ekran/zoom edilebilir
-  bir görüntüleyici (lightbox) açılmalı. Yeni bir bağımlılık gerekebilir
-  (ör. `react-native-image-viewing` gibi) ya da `Modal` + `expo-image`
-  zoom ile elle yazılabilir — kapsam netleşince karar verilecek.
 
-### 72. Sosyal — @ ile kullanıcı etiketleme + bildirim
+### 72. Sosyal — @ ile kullanıcı etiketleme + bildirim ✅
+- **Tamamlandı:** 2026-07-20 — **Tasarım kararı:** kullanıcıların benzersiz
+  bir "username"'i yok (sadece `name`, unique değil), bu yüzden metin
+  parse'ı yerine client-tarafı ID-bazlı etiketleme seçildi: mevcut
+  `/search?type=player` endpoint'i (yeni endpoint gerekmedi) autocomplete
+  için kullanılıyor, seçilen kullanıcının `public_id`'si ayrı bir
+  `mentioned_user_ids` alanında gönderiliyor (metinde sadece görünen isim
+  var, ayrı bir `mentions` tablosu YOK — YAGNI). **Backend:** yeni
+  `MentionedNotification`; `StorePostRequest`/`StoreCommentRequest`'e
+  `mentioned_user_ids.*` (`exists:users,public_id`) validasyonu;
+  `CreatePost`/`CreateComment` kendini ve (yorumda) gönderi sahibini
+  (zaten `PostCommentedNotification` aldığı için) hariç tutup bildirim
+  gönderiyor. 3 yeni Pest testi. **Mobil:** yeni `useMentionAutocomplete`
+  hook'u (imleç `.../@partial` ile bitiyorsa arama tetikler, seçilince
+  `@Ad Soyad ` metne eklenir) `post/create.tsx` (gönderi) ve
+  `post/[id].tsx` (yorum) composer'larına bağlandı.
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
   + Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-20
-- Gönderi/yorum yazarken `@kullanıcıadı` yazınca öneri listesi çıkmalı,
-  seçilen kullanıcı metinde etiketlenmeli, gönderilince o kullanıcıya
-  bildirim gitmeli. En kapsamlı madde — mention parsing/depolama (yeni bir
-  `mentions` tablosu ya da metin içi parse), mobilde otomatik-tamamlama
-  input bileşeni ve yeni bildirim tipi gerektiriyor; kodlanmadan önce
-  ilgili spec dosyalarına (04 + 07) tasarım olarak işlenmeli.
 
-### 73. Bildirim — bildirime dokununca ilgili sayfaya gidilmeli
+### 73. Bildirim — bildirime dokununca ilgili sayfaya gidilmeli ✅
+- **Tamamlandı:** 2026-07-20 — `notifications/index.tsx`'e her bildirim
+  tipini hedef route'a eşleyen `routeFor()` eklendi (maç bildirimleri →
+  `/match/{id}`, ilan → `/listing|opponent-listing/{id}`, davet → `/team/{id}`,
+  takip/beğeni/yorum/etiketleme → `/player|post/{id}`, haftalık özet →
+  kendi profili). `ApplicationDecisionNotification`'ın verisinde hedef
+  bir ilan/maç id'si olmadığı için (sadece `application_id`/`status`) o
+  tip için hâlâ yönlendirme yok — ileride veri genişletilirse eklenebilir.
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-20
-- Bildirimler listesinde bir bildirime dokununca, türüne göre ilgili
-  ekrana (maç detayı, gönderi, ilan, sohbet, profil vb.) yönlendirme
-  yapılmalı. Her bildirim tipinin hedef route'unu belirleyen bir
-  eşleme/deep-link tablosu gerekecek — mevcut bildirim tiplerinin tamamı
-  gözden geçirilip hedefleri netleşmeli.
 
-### 74. Medya — akış/sohbetteki fotoğraflar cihaza indirilebilmeli
+### 74. Medya — akış/sohbetteki fotoğraflar cihaza indirilebilmeli ✅
+- **Tamamlandı:** 2026-07-20 — `expo-media-library` + `expo-file-system`
+  eklendi (yeni native modüller — **yeni bir development/production build
+  gerekiyor**), `app.json`'a Türkçe izin metniyle plugin girdisi eklendi.
+  Yeni `shared/media/saveToDevice.ts` (uzak URL'i cache'e indirip
+  galeriye kaydediyor). Akıştaki/gönderi detayındaki fotoğrafa uzun
+  basınca (feed) ya da tam-boyut görüntüleyicideki indir ikonuna
+  dokununca (detay), sohbetteki görsel mesaja uzun basınca "Cihaza
+  kaydet" seçeneği çıkıyor.
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
   + Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-20
-- Akıştaki ya da sohbetteki bir görsele uzun basınca (ya da bir menüden)
-  "Cihaza kaydet" seçeneği çıkmalı. `expo-media-library` (yeni bağımlılık,
-  galeri yazma izni gerektirir) ile uygulanabilir — izin metni de
-  `app.json`'a eklenmeli.
 
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).

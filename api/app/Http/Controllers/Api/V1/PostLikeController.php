@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Like;
 use App\Models\Post;
 use App\Models\User;
+use App\Notifications\PostLikedNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class PostLikeController extends Controller
 {
@@ -17,7 +19,11 @@ class PostLikeController extends Controller
         /** @var User $User */
         $User = $Request->user();
 
-        Like::firstOrCreate(['post_id' => $Post->id, 'user_id' => $User->id]);
+        $Like = Like::firstOrCreate(['post_id' => $Post->id, 'user_id' => $User->id]);
+
+        if ($Like->wasRecentlyCreated && $Post->user_id !== $User->id) {
+            Notification::send($Post->user, new PostLikedNotification($Post, $User));
+        }
 
         return response()->json(['data' => ['status' => 'liked']]);
     }

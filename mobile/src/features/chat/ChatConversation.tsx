@@ -20,6 +20,8 @@ import { ChatMessage, SendMessagePayload } from '@/features/chat/api';
 import { MAX_VOICE_MESSAGE_SECONDS, useVoiceRecorder } from '@/features/chat/useVoiceRecorder';
 import { formatDuration, VoiceMessageBubble } from '@/features/chat/VoiceMessageBubble';
 import { ensureJpeg } from '@/shared/media/ensureJpeg';
+import { saveToDevice } from '@/shared/media/saveToDevice';
+import { Avatar } from '@/shared/ui/Avatar';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
@@ -44,6 +46,8 @@ type Props = {
   showAuthorName?: boolean;
   /** match_ref/lineup_ref balonlarının rotaları için (sadece takım sohbeti). */
   teamId?: string;
+  /** Verilirse başlık dokunulabilir olur (DM'de karşı tarafın profiline gider). */
+  onPressTitle?: () => void;
 };
 
 /**
@@ -63,6 +67,7 @@ export function ChatConversation({
   myUserId,
   showAuthorName = false,
   teamId,
+  onPressTitle,
 }: Props) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
@@ -178,7 +183,15 @@ export function ChatConversation({
   function renderContent(Item: ChatMessage, IsMine: boolean) {
     if (Item.type === 'image') {
       return Item.image_path != null ? (
-        <Image source={{ uri: Item.image_path }} style={styles.messageImage} />
+        <Pressable
+          onLongPress={() =>
+            Alert.alert('Görsel', undefined, [
+              { text: 'Vazgeç', style: 'cancel' },
+              { text: 'Cihaza kaydet', onPress: () => void saveToDevice(Item.image_path as string) },
+            ])
+          }>
+          <Image source={{ uri: Item.image_path }} style={styles.messageImage} />
+        </Pressable>
       ) : (
         <Text style={[styles.refText, IsMine && styles.textMine]}>🖼️ Görsel</Text>
       );
@@ -221,9 +234,16 @@ export function ChatConversation({
           <Pressable accessibilityRole="button" onPress={() => Router.back()} hitSlop={12}>
             <Text style={styles.back}>‹ Geri</Text>
           </Pressable>
-          <Text style={styles.title} numberOfLines={1}>
-            {title}
-          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onPressTitle}
+            disabled={onPressTitle == null}
+            style={styles.titleWrapper}
+            hitSlop={4}>
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
+          </Pressable>
           <View style={styles.backSpacer} />
         </View>
 
@@ -249,19 +269,29 @@ export function ChatConversation({
 
               return (
                 <View style={styles.messageRow}>
-                  <View
-                    style={[
-                      styles.bubble,
-                      IsMine && !MediaBubble ? styles.bubbleMine : styles.bubbleTheirs,
-                      IsMine && styles.alignMine,
-                    ]}>
-                    {showAuthorName && (
-                      <Text style={styles.bubbleAuthor}>{item.author?.name ?? 'İsimsiz'}</Text>
+                  <View style={[styles.messageRowInner, IsMine && styles.messageRowInnerMine]}>
+                    {!IsMine && (
+                      <Avatar
+                        uri={item.author?.avatar_path}
+                        name={item.author?.name}
+                        size={28}
+                        onPress={
+                          item.author?.id != null
+                            ? () => Router.push(`/player/${item.author!.id}`)
+                            : undefined
+                        }
+                      />
                     )}
-                    {renderContent(item, IsMine && !MediaBubble)}
-                    <Text style={[styles.bubbleWhen, IsMine && !MediaBubble && styles.textMine]}>
-                      {formatWhen(item.created_at)}
-                    </Text>
+                    <View
+                      style={[styles.bubble, IsMine && !MediaBubble ? styles.bubbleMine : styles.bubbleTheirs]}>
+                      {showAuthorName && (
+                        <Text style={styles.bubbleAuthor}>{item.author?.name ?? 'İsimsiz'}</Text>
+                      )}
+                      {renderContent(item, IsMine && !MediaBubble)}
+                      <Text style={[styles.bubbleWhen, IsMine && !MediaBubble && styles.textMine]}>
+                        {formatWhen(item.created_at)}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               );
@@ -397,8 +427,10 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   backSpacer: {
     width: 40,
   },
-  title: {
+  titleWrapper: {
     flex: 1,
+  },
+  title: {
     textAlign: 'center',
     fontFamily: Type.mono,
     fontSize: 12,
@@ -413,12 +445,19 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   messageRow: {
     marginVertical: space(1),
   },
+  messageRowInner: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: space(2),
+  },
+  messageRowInnerMine: {
+    justifyContent: 'flex-end',
+  },
   bubble: {
     borderRadius: Radius.l,
     borderWidth: 1,
     padding: space(3),
     maxWidth: '85%',
-    alignSelf: 'flex-start',
   },
   bubbleMine: {
     backgroundColor: Palette.lime,
@@ -427,9 +466,6 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   bubbleTheirs: {
     backgroundColor: Palette.turf,
     borderColor: Palette.lineFaint,
-  },
-  alignMine: {
-    alignSelf: 'flex-end',
   },
   bubbleAuthor: {
     fontFamily: Type.bodyBold,

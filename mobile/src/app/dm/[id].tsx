@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Alert } from 'react-native';
 
@@ -18,6 +18,7 @@ import { disconnectEcho, getEcho } from '@/shared/api/echo';
 export default function DirectChat() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const QueryClient = useQueryClient();
+  const Router = useRouter();
 
   const Me = useQuery({ queryKey: ['me'], queryFn: getMe });
   const Other = useQuery({ queryKey: ['players', id], queryFn: () => getPlayer(id) });
@@ -92,6 +93,7 @@ export default function DirectChat() {
       sending={Send.isPending}
       onSend={(Payload) => Send.mutate(Payload)}
       myUserId={Me.data?.id}
+      onPressTitle={() => Router.push(`/player/${id}`)}
     />
   );
 }

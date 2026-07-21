@@ -104,6 +104,7 @@ export type CreatePostPayload = {
   lineup_id?: string | null;
   image?: { uri: string; name: string; type: string } | null;
   video?: { uri: string; name: string; type: string } | null;
+  mentioned_user_ids?: string[];
 };
 
 export async function createPost(
@@ -115,6 +116,7 @@ export async function createPost(
       body: payload.body,
       team_id: payload.team_id,
       lineup_id: payload.lineup_id,
+      mentioned_user_ids: payload.mentioned_user_ids,
     });
 
     return data.data;
@@ -129,6 +131,10 @@ export async function createPost(
 
   if (payload.lineup_id != null) {
     Form.append('lineup_id', payload.lineup_id);
+  }
+
+  for (const MentionedId of payload.mentioned_user_ids ?? []) {
+    Form.append('mentioned_user_ids[]', MentionedId);
   }
 
   if (payload.image != null) {
@@ -184,8 +190,15 @@ export async function getComments(postId: string): Promise<Comment[]> {
   return data.data;
 }
 
-export async function createComment(postId: string, body: string): Promise<Comment> {
-  const { data } = await Api.post<{ data: Comment }>(`/posts/${postId}/comments`, { body });
+export async function createComment(
+  postId: string,
+  body: string,
+  mentionedUserIds: string[] = [],
+): Promise<Comment> {
+  const { data } = await Api.post<{ data: Comment }>(`/posts/${postId}/comments`, {
+    body,
+    mentioned_user_ids: mentionedUserIds,
+  });
 
   return data.data;
 }

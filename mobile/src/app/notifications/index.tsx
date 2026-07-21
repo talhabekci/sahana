@@ -25,7 +25,40 @@ const TITLES: Record<string, string> = {
   InviteAcceptedNotification: 'Yeni üye katıldı',
   OpponentFoundNotification: 'Rakip bulundu',
   SocialSummaryNotification: 'Akışında hareket var',
+  FollowedNotification: 'Yeni takipçi',
+  PostLikedNotification: 'Gönderin beğenildi',
+  PostCommentedNotification: 'Yeni yorum',
+  MentionedNotification: 'Etiketlendin',
 };
+
+/** Bildirime dokununca ilgili sayfaya götüren rota, yoksa null. */
+function routeFor(Item: AppNotification): string | null {
+  const Data = Item.data;
+
+  switch (Item.type) {
+    case 'MatchCreatedNotification':
+    case 'MatchConfirmedNotification':
+    case 'RsvpReminderNotification':
+    case 'MatchReminderNotification':
+      return typeof Data.match_id === 'string' ? `/match/${Data.match_id}` : null;
+    case 'ListingApplicationNotification':
+      return typeof Data.listing_id === 'string' ? `/listing/${Data.listing_id}` : null;
+    case 'OpponentFoundNotification':
+      return typeof Data.listing_id === 'string' ? `/opponent-listing/${Data.listing_id}` : null;
+    case 'InviteAcceptedNotification':
+      return typeof Data.team_id === 'string' ? `/team/${Data.team_id}` : null;
+    case 'FollowedNotification':
+      return typeof Data.follower_id === 'string' ? `/player/${Data.follower_id}` : null;
+    case 'PostLikedNotification':
+    case 'PostCommentedNotification':
+    case 'MentionedNotification':
+      return typeof Data.post_id === 'string' ? `/post/${Data.post_id}` : null;
+    case 'SocialSummaryNotification':
+      return '/(tabs)/profile';
+    default:
+      return null;
+  }
+}
 
 function formatWhen(iso: string): string {
   return new Date(iso).toLocaleDateString('tr-TR', {
@@ -56,6 +89,16 @@ function describe(Item: AppNotification): string {
 
       return Parts.join(' · ');
     }
+    case 'FollowedNotification':
+      return typeof Data.follower_name === 'string' ? Data.follower_name : '';
+    case 'PostLikedNotification':
+      return typeof Data.liker_name === 'string' ? Data.liker_name : '';
+    case 'PostCommentedNotification':
+      return typeof Data.commenter_name === 'string' && typeof Data.comment_body === 'string'
+        ? `${Data.commenter_name}: ${Data.comment_body}`
+        : '';
+    case 'MentionedNotification':
+      return typeof Data.mentioner_name === 'string' ? Data.mentioner_name : '';
     default:
       return '';
   }
@@ -130,6 +173,12 @@ export default function Notifications() {
               onPress={() => {
                 if (!item.read) {
                   MarkRead.mutate(item.id);
+                }
+
+                const Route = routeFor(item);
+
+                if (Route != null) {
+                  Router.push(Route as never);
                 }
               }}
               style={[styles.card, !item.read && styles.cardUnread]}>
