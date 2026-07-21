@@ -4,15 +4,23 @@ import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
+import { isViewingChat } from './activeChatContext';
 import { registerDevice } from './api';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (Notification) => {
+    const Data = Notification.request.content.data as Record<string, unknown>;
+    // Sohbet mesajı zaten açık olan ekranda canlı göründüğü için, o ekrandaysak
+    // push'u ayrıca göstermeye gerek yok (BACKLOG #67).
+    const Suppress = Data?.type === 'chat_message' && isViewingChat(Data);
+
+    return {
+      shouldShowBanner: !Suppress,
+      shouldShowList: !Suppress,
+      shouldPlaySound: !Suppress,
+      shouldSetBadge: false,
+    };
+  },
 });
 
 /**

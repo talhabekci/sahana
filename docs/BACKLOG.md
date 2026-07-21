@@ -1095,14 +1095,25 @@
 - **Talep tarihi:** 2026-07-20
 
 ### 67. Sohbet — iki taraf da ekrandayken yeni mesaj otomatik düşmüyor ✅
-- **Tamamlandı (kod incelemesiyle):** 2026-07-20 — `shared/api/echo.ts`
-  incelendi, ayrı bir frontend bug'ı bulunamadı. Kök neden neredeyse
-  kesin aynı gündeki `REVERB_APP_KEY` boşluğu (bkz. PROGRESS.md
-  2026-07-17) — Echo `EXPO_PUBLIC_REVERB_APP_KEY` ile bağlanıyor, prod'da
-  sunucu tarafı boş olduğu için TÜM private kanal bağlantıları
-  reddediliyordu. **Cihazda gerçek iki-kullanıcı testiyle doğrulanmadı**
-  (bu ortamda mümkün değil) — kullanıcı test etmeli, tekrarlanırsa ayrı
-  bir inceleme gerekir.
+- **Tamamlandı:** 2026-07-20/21 — **İlk teşhis (2026-07-20) eksikti:**
+  `REVERB_APP_KEY` boşluğu düzeltildikten sonra kullanıcı prod'da
+  `failed_jobs`'a düşen gerçek hatayı paylaştı: `BroadcastException:
+  Pusher error: <404 HTML>`. **Gerçek kök neden:** Apache'nin ProxyPass
+  kuralı sadece istemcinin websocket bağlandığı `/app` (tekil) yolunu
+  kapsıyordu; sunucu tarafının (Horizon) bir event'i Reverb'e YAYINLAMAK
+  için kullandığı Pusher-uyumlu REST API `/apps/{id}/events` (çoğul) hiç
+  proxy'lenmemişti, Laravel'in kendi 404'üne düşüyordu (Cloudflare'ın HTML'e
+  enjekte ettiği beacon script'i yüzünden ilk bakışta "Cloudflare 404'ü"
+  gibi göründü). `deploy/virtuozzo/README.md`'ye ikinci bir `ProxyPass
+  /apps http://127.0.0.1:8080/apps` kuralı eklendi (madde 4).
+  **Ayrıca fark edilen ayrı bir sorun:** uygulama İÇİNDEYKEN (o sohbet
+  ekranı açıkken) de push bildirimi geliyordu — mesaj zaten canlı
+  göründüğü için gereksizdi. Yeni `features/notifications/activeChatContext.ts`
+  (hangi sohbetin o an açık olduğunu tutan basit bir modül-seviyesi state)
+  + `usePushRegistration.ts`'in `setNotificationHandler`'ı artık
+  `chat_message` tipli bir push, o an açık olan sohbetle eşleşiyorsa
+  göstermiyor. `dm/[id].tsx`/`team/[id]/chat.tsx` `useFocusEffect` ile
+  bunu güncelliyor.
 - **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-20
 

@@ -92,9 +92,22 @@ zaten orada yorum satırı halinde bir websocket şablonu bırakıyor):
 ```bash
 sed -i '/<\/VirtualHost>/i\
     ProxyPass /app ws://127.0.0.1:8080/app\
-    ProxyPassReverse /app ws://127.0.0.1:8080/app' /etc/httpd/conf/httpd.conf
+    ProxyPassReverse /app ws://127.0.0.1:8080/app\
+    ProxyPass /apps http://127.0.0.1:8080/apps\
+    ProxyPassReverse /apps http://127.0.0.1:8080/apps' /etc/httpd/conf/httpd.conf
 apachectl configtest && systemctl restart httpd
 ```
+
+**Not (2026-07-21) — `/apps` (çoğul) REST endpoint'i de proxy'lenmeli:**
+`/app` (tekil) sadece istemcinin websocket bağlantısı için yeterli;
+sunucu tarafının (Horizon/queue) bir event'i Reverb'e YAYINLAMASI için
+kullandığı Pusher-uyumlu REST API `/apps/{app_id}/events` (çoğul) yoluna
+gidiyor — bu proxy'lenmeden `broadcast(...)` çağrıları Laravel'in kendi
+404'üne düşüp `failed_jobs`'a `BroadcastException: Pusher error: <404
+HTML>` olarak yığılıyordu (Cloudflare bu HTML'e kendi beacon script'ini
+enjekte ettiği için ilk bakışta "Cloudflare 404'ü" gibi görünüyordu, ama
+aslında Laravel'in routing 404'üydü). Yukarıdaki `sed` bunu da ekliyor —
+`http://` (websocket değil, düz REST), `ws://` DEĞİL.
 
 Doğrulama (dışarıdan, HTTP/1.1 zorlanarak — HTTP/2'de upgrade header'ları
 işe yaramaz):

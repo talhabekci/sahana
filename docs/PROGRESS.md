@@ -3,6 +3,40 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-21 (3) — #67 gerçek kök nedeni: Apache'de /apps proxy'si eksikmiş + uygulama içi push bastırma
+
+Bir önceki kayıttaki #67 teşhisi ("muhtemelen REVERB_APP_KEY'dendi")
+eksikti — kullanıcı prod'da `failed_jobs` tablosuna düşen gerçek hatayı
+paylaştı: `Illuminate\Broadcasting\BroadcastException: Pusher error:
+<404 HTML>` (Cloudflare'ın enjekte ettiği beacon script'i yüzünden ilk
+bakışta Cloudflare 404'ü sanıldı, aslında Laravel'in kendi routing 404'ü).
+
+**Gerçek kök neden:** Apache'nin ProxyPass kuralı (2026-07-16'da eklenen)
+sadece istemcinin websocket bağlandığı `/app` (tekil) yolunu kapsıyordu.
+Ama `config/broadcasting.php`'deki `reverb` bağlantısı, sunucu tarafının
+(Horizon queue worker) bir event'i Reverb'e YAYINLAMASI için Pusher-uyumlu
+REST API'yi (`/apps/{app_id}/events`, ÇOĞUL) kullanıyor — bu path hiç
+proxy'lenmemişti, her mesajda Laravel'in kendi 404'üne düşüp
+`failed_jobs`'a yığılıyordu. Fix: `deploy/virtuozzo/README.md`'ye ikinci
+bir kural eklendi: `ProxyPass /apps http://127.0.0.1:8080/apps` (`ws://`
+DEĞİL, düz HTTP REST).
+
+**Ayrı bir gerçek bug daha:** kullanıcı, uygulama İÇİNDEYKEN (o sohbet
+ekranı zaten açıkken) de push bildirimi geldiğini bildirdi — mesaj
+zaten Echo/Reverb üzerinden canlı göründüğü için gereksiz/rahatsız edici.
+Kod incelemesi: `usePushRegistration.ts`'in `setNotificationHandler`'ı
+her zaman `shouldShowBanner: true` dönüyordu, hangi ekranın açık olduğunu
+hiç kontrol etmiyordu. Fix: yeni `features/notifications/activeChatContext.ts`
+(basit modül-seviyesi "şu an hangi sohbet açık" state'i) — `dm/[id].tsx`/
+`team/[id]/chat.tsx` `useFocusEffect` ile bunu güncelliyor,
+`setNotificationHandler` gelen push `chat_message` tipindeyse ve o an
+açık sohbetle eşleşiyorsa banner'ı bastırıyor.
+
+**Doğrulama:** Mobilde `npx tsc --noEmit`/`npm run lint` temiz. Apache
+config değişikliği henüz prod'a uygulanmadı — kullanıcının sunucuda
+`sed` komutunu çalıştırıp restart etmesi gerekiyor (README'de tam
+adımlar var).
+
 ## 2026-07-21 (2) — Backlog #65-74: sohbet/sosyal/bildirim cilası (10 madde)
 
 Kullanıcı bir önceki oturumda yazdığı 10 maddelik backlog'un ("basit

@@ -1,16 +1,25 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect } from 'react';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 
 import { ChatMessage, listTeamMessages, sendTeamMessage, SendMessagePayload } from '@/features/chat/api';
 import { ChatConversation } from '@/features/chat/ChatConversation';
+import { setActiveChat } from '@/features/notifications/activeChatContext';
 import { toApiFailure } from '@/shared/api/client';
 import { disconnectEcho, getEcho } from '@/shared/api/echo';
 
 export default function TeamChat() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const QueryClient = useQueryClient();
+
+  useFocusEffect(
+    useCallback(() => {
+      setActiveChat({ teamId: id });
+
+      return () => setActiveChat(null);
+    }, [id]),
+  );
 
   const QueryKey = ['teams', id, 'messages'];
 

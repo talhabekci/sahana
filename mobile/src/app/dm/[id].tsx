@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 
 import { getMe } from '@/features/auth/api';
@@ -11,6 +11,7 @@ import {
   SendMessagePayload,
 } from '@/features/chat/api';
 import { ChatConversation } from '@/features/chat/ChatConversation';
+import { setActiveChat } from '@/features/notifications/activeChatContext';
 import { getPlayer } from '@/features/social/api';
 import { toApiFailure } from '@/shared/api/client';
 import { disconnectEcho, getEcho } from '@/shared/api/echo';
@@ -22,6 +23,14 @@ export default function DirectChat() {
 
   const Me = useQuery({ queryKey: ['me'], queryFn: getMe });
   const Other = useQuery({ queryKey: ['players', id], queryFn: () => getPlayer(id) });
+
+  useFocusEffect(
+    useCallback(() => {
+      setActiveChat({ dmUserId: id });
+
+      return () => setActiveChat(null);
+    }, [id]),
+  );
 
   const QueryKey = ['dm', id, 'messages'];
 
