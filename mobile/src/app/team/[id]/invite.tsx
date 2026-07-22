@@ -1,7 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as Linking from 'expo-linking';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
@@ -27,7 +26,10 @@ export default function TeamInvite() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const InviteUrl = Invite.data != null ? Linking.createURL(`join/${Invite.data.code}`) : null;
+  // Universal Links (iOS)/App Links (Android) — BACKLOG #81: uygulama
+  // yüklüyse bu HTTPS linki doğrudan uygulamayı açar, değilse
+  // api/routes/web.php'deki /join/{code} mağaza yönlendirme sayfasına düşer.
+  const InviteUrl = Invite.data != null ? `https://sahana-app.com/join/${Invite.data.code}` : null;
 
   return (
     <Screen>

@@ -10,6 +10,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from '@/features/notifications/api';
+import { routeFor } from '@/features/notifications/routeFor';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
@@ -30,35 +31,6 @@ const TITLES: Record<string, string> = {
   PostCommentedNotification: 'Yeni yorum',
   MentionedNotification: 'Etiketlendin',
 };
-
-/** Bildirime dokununca ilgili sayfaya götüren rota, yoksa null. */
-function routeFor(Item: AppNotification): string | null {
-  const Data = Item.data;
-
-  switch (Item.type) {
-    case 'MatchCreatedNotification':
-    case 'MatchConfirmedNotification':
-    case 'RsvpReminderNotification':
-    case 'MatchReminderNotification':
-      return typeof Data.match_id === 'string' ? `/match/${Data.match_id}` : null;
-    case 'ListingApplicationNotification':
-      return typeof Data.listing_id === 'string' ? `/listing/${Data.listing_id}` : null;
-    case 'OpponentFoundNotification':
-      return typeof Data.listing_id === 'string' ? `/opponent-listing/${Data.listing_id}` : null;
-    case 'InviteAcceptedNotification':
-      return typeof Data.team_id === 'string' ? `/team/${Data.team_id}` : null;
-    case 'FollowedNotification':
-      return typeof Data.follower_id === 'string' ? `/player/${Data.follower_id}` : null;
-    case 'PostLikedNotification':
-    case 'PostCommentedNotification':
-    case 'MentionedNotification':
-      return typeof Data.post_id === 'string' ? `/post/${Data.post_id}` : null;
-    case 'SocialSummaryNotification':
-      return '/(tabs)/profile';
-    default:
-      return null;
-  }
-}
 
 function formatWhen(iso: string): string {
   return new Date(iso).toLocaleDateString('tr-TR', {
@@ -175,7 +147,7 @@ export default function Notifications() {
                   MarkRead.mutate(item.id);
                 }
 
-                const Route = routeFor(item);
+                const Route = routeFor(item.type, item.data);
 
                 if (Route != null) {
                   Router.push(Route as never);

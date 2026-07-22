@@ -1193,6 +1193,87 @@
   + Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
 - **Talep tarihi:** 2026-07-20
 
+### 75. Sohbet — mesajlardaki görsele tıklayınca da (akıştaki gibi) tam boyut açılmalı ✅
+- **Tamamlandı:** 2026-07-22 — BACKLOG #71'in inline `Modal`'ı ortak
+  `shared/ui/ImageViewerModal.tsx` bileşenine çıkarıldı (PostCard da buna
+  refactor edildi), `ChatConversation.tsx`'teki görsel mesaja bağlandı.
+  Uzun-basma "cihaza kaydet" kalmaya devam ediyor.
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-22
+
+### 76. Sosyal — yorum satırında avatar + ad soyad, ortak bir bileşen olarak ✅
+- **Tamamlandı:** 2026-07-22 — `post/[id].tsx`'e yerel `CommentRow`
+  bileşeni eklendi (`shared/ui/Avatar.tsx` + isim, tıklanınca profile
+  gider — BACKLOG #70 ile aynı).
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-22
+
+### 77. Bug: akışta gönderi fotoğrafına dokununca detaya gitmiyor ✅
+- **Tamamlandı:** 2026-07-22 — feed görselinin `Pressable`'ına
+  `onPress={handlePress}` eklendi (uzun-basma "kaydet" ile birlikte).
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-22
+
+### 78. Sohbet — konuşmalar listesinde avatar (DM karşı taraf / takım) görünmüyor ✅
+- **Tamamlandı:** 2026-07-22 — hem backend hem frontend eksikti:
+  `ListConversations.php` artık takım için `logo_url`
+  (`ImageUploader::url()`), DM için çözülmüş `avatar_path` döndürüyor;
+  `conversations.tsx` satırları `shared/ui/Avatar.tsx` kullanıyor (takım
+  logosu yoksa eski rozet-ikon fallback'i korunuyor).
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-22
+
+### 79. Bildirim — uygulama arka plandayken/kapalıyken bildirime dokununca da ilgili sayfaya gitmeli ✅
+- **Tamamlandı:** 2026-07-22 — `routeFor()` uygulama-içi ekrandan
+  (`notifications/index.tsx`) `features/notifications/routeFor.ts`'e
+  çıkarılıp hem PascalCase (Laravel sınıf adı) hem snake_case
+  (`expoCategory()`) tipleri kabul edecek şekilde genişletildi (ikisi
+  farklıydı — asıl teknik bulgu buydu) + `chat_message` desteği eklendi.
+  Yeni `useNotificationTapNavigation` hook'u `_layout.tsx`'e bağlandı:
+  `addNotificationResponseReceivedListener` (canlı/arka plan) +
+  `getLastNotificationResponseAsync` (soğuk başlangıç).
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-22
+
+### 80. Bug: başka birinin profiline girince profil fotoğrafı görünmüyor ✅
+- **Tamamlandı:** 2026-07-22 — saf frontend bug'ıydı (backend zaten doğru
+  URL'i dönüyordu). `player/[id].tsx` header'ına `Avatar` eklendi.
+- **Bağlı modül:** Modül 1 — [01-auth-profile.md](features/01-auth-profile.md)
+  (Modül 4 — [04-social-feed.md](features/04-social-feed.md))
+- **Talep tarihi:** 2026-07-22
+
+### 81. Takım daveti — deep link yerine gerçek domain linki + mağaza yönlendirmesi ✅
+- **Tamamlandı:** 2026-07-22 — Team ID (`YA2SQ3GQD8`) ve iOS+Android
+  kapsamı kullanıcıyla netleşti; "uygulama yüklü değilse buton" yerine
+  User-Agent'a göre **otomatik** mağaza yönlendirmesi istendiği için web
+  sayfası sadece masaüstünde buton gösteriyor (Universal/App Links doğru
+  kurulduysa uygulama yüklüyken bu sayfa zaten hiç render edilmiyor).
+  `api/routes/web.php`'ye `GET /join/{code}` (iOS/Android UA'ya göre
+  otomatik `redirect()`, masaüstünde `join.blade.php`) + `GET
+  /.well-known/apple-app-site-association` + `/assetlinks.json` (Android
+  imza fingerprint'i placeholder — ilk signed build sonrası doldurulacak)
+  eklendi. `app.json`'a `ios.associatedDomains` + `android.intentFilters`
+  (`prebuild` ile doğrulandı, entitlements/AndroidManifest doğru
+  üretiliyor). `team/[id]/invite.tsx`'teki link üretimi
+  `https://sahana-app.com/join/{code}`'a çevrildi (`Linking.createURL`
+  kaldırıldı). **Yeni native build gerektirir** (associatedDomains
+  entitlement) — App Store/Play Store URL'leri de gerçek yayın olunca
+  `routes/web.php`/`join.blade.php`'deki `TODO` yorumlarından
+  güncellenmeli.
+- **Bağlı modül:** Modül 2 — [02-team-lineup.md](features/02-team-lineup.md)
+- **Talep tarihi:** 2026-07-22
+
+### 82. Sosyal — yorumda etiketlenen kullanıcı tıklanabilir + görsel olarak belirgin olmalı ✅
+- **Tamamlandı:** 2026-07-22 — `comments`'e `mentioned_user_ids` (nullable
+  JSON) migration'ı; `CreateComment` artık ham listeyi (bildirim
+  hariç-tutma mantığından bağımsız) kalıcılaştırıyor; `CommentResource`
+  bunu `mentions: {id,name}[]` olarak güncel isimle çözüyor. Mobilde yeni
+  `renderCommentBody()` yardımcı fonksiyonu metni `mentions`e göre
+  parçalayıp "@Ad Soyad" kısımlarını lime renkli + `Text onPress` ile
+  tıklanabilir gösteriyor. 2 yeni Pest testi.
+- **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
+- **Talep tarihi:** 2026-07-22
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

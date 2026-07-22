@@ -4,6 +4,7 @@ namespace App\Actions\Chat;
 
 use App\Models\Message;
 use App\Models\User;
+use App\Support\ImageUploader;
 
 class ListConversations
 {
@@ -26,6 +27,7 @@ class ListConversations
                 'title' => $Team->name,
                 'badge_icon' => $Team->badge_icon,
                 'color' => $Team->color_home,
+                'logo_url' => ImageUploader::url($Team->logo_path),
                 'last_message' => $Last !== null ? self::preview($Last) : null,
                 'last_message_at' => $Last?->created_at?->toIso8601String(),
                 'sort_key' => $Last === null ? '' : $Last->id,
@@ -63,7 +65,7 @@ class ListConversations
                 'type' => 'dm',
                 'id' => $Other->public_id,
                 'title' => $Other->name,
-                'avatar_path' => $Other->avatar_path,
+                'avatar_path' => ImageUploader::url($Other->avatar_path),
                 'last_message' => self::preview($Last),
                 'last_message_at' => $Last->created_at->toIso8601String(),
                 'sort_key' => $Last->id,

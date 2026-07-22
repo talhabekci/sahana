@@ -13,7 +13,13 @@ class Comment extends Model
     /** @use HasFactory<CommentFactory> */
     use HasFactory;
 
-    protected $fillable = ['post_id', 'user_id', 'body'];
+    protected $fillable = ['post_id', 'user_id', 'body', 'mentioned_user_ids'];
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return ['mentioned_user_ids' => 'array'];
+    }
 
     protected static function booted(): void
     {

@@ -3,6 +3,63 @@
 > Her çalışma seansı buraya tarihli kayıt düşer. Yeni oturum işe başlamadan
 > önce bu dosyayı okur. Format: en yeni kayıt en üstte.
 
+## 2026-07-22 — Backlog #75-82: chat/profil avatar bug'ları, arka plan bildirimi, Universal Links, yorum etiketleme
+
+Kullanıcı bir önceki oturumdaki #65-#74 paketini cihazda test ederken 8
+yeni sorun buldu, hepsi backlog'a yazılıp (plan modunda, 3 paralel
+Explore ajanıyla araştırılıp) sırayla kodlandı:
+
+- **#77 (regresyon bug):** #74'te feed görseline eklenen uzun-basma
+  "kaydet" özelliği, görseli kendi `Pressable`'ına sarmalayıp kartın
+  "dokununca detaya git" davranışını kırmıştı (iç içe `Pressable`'da
+  içteki kazanır) — `onPress={handlePress}` da eklendi.
+- **#75:** Ortak `shared/ui/ImageViewerModal.tsx` çıkarıldı (PostCard'ın
+  inline `Modal`'ı buna refactor edildi), `ChatConversation`'daki görsel
+  mesaja da bağlandı.
+- **#78/#80 (avatar bug'ları):** İkisi de kod okunarak teşhis edildi —
+  #78 hem backend (`ListConversations.php` takım `logo_url`'ü hiç
+  göndermiyordu, DM `avatar_path`'i ham path olarak gönderiyordu) hem
+  frontend (avatar hiç render edilmiyordu) eksikti; #80 saf frontend
+  bug'ıydı (backend zaten doğruydu, `player/[id].tsx` avatar'ı hiç
+  render etmiyordu).
+- **#76:** Yorum satırı `shared/ui/Avatar.tsx` kullanan bir `CommentRow`
+  bileşenine çıkarıldı.
+- **#82 (migration gerekiyordu):** `comments.mentioned_user_ids` (JSON)
+  eklendi, `CreateComment` artık kalıcılaştırıyor, `CommentResource`
+  `mentions: {id,name}[]` olarak çözüyor; mobilde yorum metni parse
+  edilip `@Ad Soyad` kısımları lime renkli+tıklanabilir gösteriliyor.
+- **#79 (gerçek bir isim uyuşmazlığı bulundu):** Uygulama-içi bildirim
+  listesindeki `routeFor()` Laravel sınıf adına (PascalCase) göre switch
+  yapıyordu, ama ham push bildiriminin `data.type`'ı her `toExpo()`'nun
+  `expoCategory()`'sinden gelen **snake_case** bir değerdi — ikisi asla
+  eşleşmiyordu. `routeFor()` `features/notifications/routeFor.ts`'e
+  çıkarılıp her iki biçimi de kabul edecek şekilde genişletildi (+
+  `chat_message` desteği), yeni `useNotificationTapNavigation` hook'u
+  `_layout.tsx`'e `addNotificationResponseReceivedListener` +
+  `getLastNotificationResponseAsync` (soğuk başlangıç) ile bağlandı.
+- **#81 (en büyük madde) — Universal Links/App Links:** Kullanıcıdan
+  Apple Team ID (`YA2SQ3GQD8`) alındı, iOS+Android kapsamı ve "uygulama
+  yüklü değilse buton yerine otomatik mağaza yönlendirmesi" netleşti
+  (kullanıcının kendi önerisi — Universal Links doğru kurulduysa zaten
+  web sayfası sadece uygulama YOKKEN render edilir, bu yüzden eski
+  "custom scheme JS'le dene, olmazsa mağazaya git" hilesine hiç gerek
+  yok). `api/routes/web.php`'ye `GET /join/{code}` (User-Agent'a göre
+  iOS/Android'de otomatik `redirect()`, masaüstünde buton sayfası) +
+  `.well-known/apple-app-site-association` + `/assetlinks.json` (Android
+  imza fingerprint'i henüz yok, placeholder) eklendi. `app.json`'a
+  `associatedDomains`/`intentFilters` eklenip `prebuild` ile
+  entitlements/AndroidManifest'in doğru üretildiği doğrulandı. Davet
+  linki üretimi `Linking.createURL`'den gerçek `https://sahana-app.com/join/{code}`'a
+  çevrildi.
+
+**Doğrulama:** API'de Pint temiz, Larastan 0 hata, Pest 302/302 geçti
+(migration + testler dahil). Mobilde `tsc --noEmit`/`npm run lint` temiz.
+`join.blade.php` `tinker` ile render testi yapıldı. Cihazda gerçek
+Universal Links doğrulaması (App Store Connect ilişkilendirmesi + gerçek
+build) bu ortamda yapılamadı — kullanıcı yeni bir build alıp test etmeli.
+App Store/Play Store URL'leri gerçek yayın olunca `routes/web.php`/
+`join.blade.php`'deki `TODO` placeholder'lardan güncellenmeli.
+
 ## 2026-07-21 (3) — #67 gerçek kök nedeni: Apache'de /apps proxy'si eksikmiş + uygulama içi push bastırma
 
 Bir önceki kayıttaki #67 teşhisi ("muhtemelen REVERB_APP_KEY'dendi")

@@ -24,6 +24,7 @@ import { saveToDevice } from '@/shared/media/saveToDevice';
 import { Avatar } from '@/shared/ui/Avatar';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
+import { ImageViewerModal } from '@/shared/ui/ImageViewerModal';
 import { Screen } from '@/shared/ui/Screen';
 import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
@@ -72,6 +73,7 @@ export function ChatConversation({
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
   const Router = useRouter();
+  const [ViewerUri, setViewerUri] = useState<string | null>(null);
   const [Body, setBody] = useState('');
   const [Converting, setConverting] = useState(false);
   // Seçilen medya hemen GİTMEZ (BACKLOG #48) — önce bekleyen ek olarak
@@ -184,6 +186,8 @@ export function ChatConversation({
     if (Item.type === 'image') {
       return Item.image_path != null ? (
         <Pressable
+          accessibilityRole="button"
+          onPress={() => setViewerUri(Item.image_path)}
           onLongPress={() =>
             Alert.alert('Görsel', undefined, [
               { text: 'Vazgeç', style: 'cancel' },
@@ -398,6 +402,7 @@ export function ChatConversation({
           )}
         </View>
       </KeyboardAvoidingView>
+      <ImageViewerModal uri={ViewerUri} onClose={() => setViewerUri(null)} />
     </Screen>
   );
 }

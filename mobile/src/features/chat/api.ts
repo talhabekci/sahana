@@ -86,6 +86,7 @@ export type Conversation = {
   badge_icon?: string;
   color?: string;
   avatar_path?: string | null;
+  logo_url?: string | null;
   last_message: string | null;
   last_message_at: string | null;
 };

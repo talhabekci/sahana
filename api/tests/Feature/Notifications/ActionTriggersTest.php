@@ -242,6 +242,22 @@ it('notifies mentioned users on a comment, excluding the post owner (already not
     Notification::assertSentTo($Owner, PostCommentedNotification::class);
 });
 
+it('persists all mentioned users on a comment for later rendering, regardless of notification exclusions', function () {
+    $Owner = User::factory()->create();
+    $Post = Post::factory()->for($Owner)->create();
+    $Commenter = User::factory()->create();
+    $Mentioned = User::factory()->create();
+
+    $Response = $this->actingAs($Commenter)->postJson("/api/v1/posts/{$Post->public_id}/comments", [
+        'body' => '@'.$Mentioned->name.' ve @'.$Commenter->name.' bak bu yorumu',
+        'mentioned_user_ids' => [$Mentioned->public_id, $Commenter->public_id],
+    ])->assertCreated();
+
+    $Response->assertJsonCount(2, 'data.mentions');
+    expect(collect($Response->json('data.mentions'))->pluck('id')->sort()->values()->all())
+        ->toBe(collect([$Mentioned->public_id, $Commenter->public_id])->sort()->values()->all());
+});
+
 it('rejects a mention referencing a non-existent user', function () {
     $Author = User::factory()->create();
 

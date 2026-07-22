@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as WebBrowser from 'expo-web-browser';
 import { memo, useMemo, useState } from 'react';
-import { Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { Post } from './api';
 import VideoDefaultCover from '@/assets/images/video-default-cover.png';
@@ -11,6 +11,7 @@ import { useListingActions } from '@/features/match/useListingActions';
 import { badgeIonicon } from '@/features/team/constants';
 import { PitchPreview } from '@/features/team/PitchPreview';
 import { saveToDevice } from '@/shared/media/saveToDevice';
+import { ImageViewerModal } from '@/shared/ui/ImageViewerModal';
 import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 
 function formatWhen(iso: string): string {
@@ -116,6 +117,8 @@ export const PostCard = memo(function PostCard({
           </Pressable>
         ) : (
           <Pressable
+            accessibilityRole="button"
+            onPress={handlePress}
             onLongPress={() =>
               Alert.alert('Gönderi görseli', undefined, [
                 { text: 'Vazgeç', style: 'cancel' },
@@ -126,23 +129,8 @@ export const PostCard = memo(function PostCard({
           </Pressable>
         ))}
 
-      {detailed && post.image_url != null && (
-        <Modal
-          visible={ViewerOpen}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setViewerOpen(false)}>
-          <Pressable style={styles.viewerBackdrop} onPress={() => setViewerOpen(false)}>
-            <Image source={{ uri: post.image_url }} style={styles.viewerImage} resizeMode="contain" />
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => void saveToDevice(post.image_url as string)}
-              style={styles.viewerSaveButton}
-              hitSlop={8}>
-              <Ionicons name="download-outline" size={22} color={Palette.limeInk} />
-            </Pressable>
-          </Pressable>
-        </Modal>
+      {detailed && (
+        <ImageViewerModal uri={ViewerOpen ? post.image_url ?? null : null} onClose={() => setViewerOpen(false)} />
       )}
 
       {post.video_url != null && (
@@ -372,24 +360,6 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
     borderRadius: Radius.m,
     backgroundColor: Palette.turfRaised,
     marginTop: space(3),
-  },
-  viewerBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.95)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  viewerImage: {
-    width: '100%',
-    height: '100%',
-  },
-  viewerSaveButton: {
-    position: 'absolute',
-    bottom: space(10),
-    alignSelf: 'center',
-    backgroundColor: Palette.lime,
-    borderRadius: Radius.pill,
-    padding: space(3),
   },
   autoCard: {
     marginTop: space(3),

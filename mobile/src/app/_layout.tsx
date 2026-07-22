@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useAuthStore } from '@/features/auth/store';
+import { useNotificationTapNavigation } from '@/features/notifications/useNotificationTapNavigation';
 import { usePushRegistration } from '@/features/notifications/usePushRegistration';
 import { useThemeStore } from '@/features/settings/themeStore';
 import { AnimatedSplash } from '@/shared/ui/AnimatedSplash';
@@ -63,6 +64,7 @@ function RootLayout() {
   const [AnimationDone, setAnimationDone] = useState(false);
 
   usePushRegistration(Ready && Token != null);
+  useNotificationTapNavigation(Ready);
 
   // Splash yalnızca Ready ilk true olduğunda bir kez gizlenir — her rota
   // değişiminde (Segments) tekrar çağrılırsa native taraf reddediyor

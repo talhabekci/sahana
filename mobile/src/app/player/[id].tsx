@@ -21,6 +21,7 @@ import { getPlayerBadges, getPlayerStats } from '@/features/stats/api';
 import { BadgeRow } from '@/features/stats/BadgeRow';
 import { StatsCard } from '@/features/stats/StatsCard';
 import { toApiFailure } from '@/shared/api/client';
+import { Avatar } from '@/shared/ui/Avatar';
 import { Button } from '@/shared/ui/Button';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
@@ -160,6 +161,8 @@ export default function PlayerProfile() {
                 <Ionicons name="ellipsis-horizontal" size={20} color={Palette.moss} />
               </Pressable>
             </View>
+
+            <Avatar uri={Data.avatar_path} name={Data.name} size={56} />
 
             <Text style={styles.name}>{Data.name ?? 'İsimsiz'}</Text>
 

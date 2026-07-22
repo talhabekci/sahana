@@ -69,6 +69,7 @@ export type Comment = {
   id: string;
   body: string;
   author?: PostAuthor;
+  mentions: { id: string; name: string | null }[];
   created_at: string;
 };
 

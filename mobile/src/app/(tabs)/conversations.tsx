@@ -7,6 +7,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { listConversations } from '@/features/chat/api';
 import { badgeIonicon } from '@/features/team/constants';
 import { useRefetchOnForeground } from '@/shared/lib/useRefetchOnForeground';
+import { Avatar } from '@/shared/ui/Avatar';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { ErrorState } from '@/shared/ui/ErrorState';
 import { Screen } from '@/shared/ui/Screen';
@@ -65,13 +66,15 @@ export default function Conversations() {
                 Router.push(item.type === 'team' ? `/team/${item.id}/chat` : `/dm/${item.id}`)
               }
               style={styles.card}>
-              <View style={[styles.avatar, item.type === 'team' && { backgroundColor: item.color ?? Palette.turfRaised }]}>
-                <Ionicons
-                  name={item.type === 'team' ? badgeIonicon(item.badge_icon ?? '') : 'person'}
-                  size={20}
-                  color={item.type === 'team' ? Palette.limeInk : Palette.moss}
-                />
-              </View>
+              {item.type === 'dm' ? (
+                <Avatar uri={item.avatar_path} name={item.title} size={44} />
+              ) : item.logo_url != null ? (
+                <Avatar uri={item.logo_url} name={item.title} size={44} />
+              ) : (
+                <View style={[styles.avatar, { backgroundColor: item.color ?? Palette.turfRaised }]}>
+                  <Ionicons name={badgeIonicon(item.badge_icon ?? '')} size={20} color={Palette.limeInk} />
+                </View>
+              )}
 
               <View style={styles.cardBody}>
                 <View style={styles.cardTop}>

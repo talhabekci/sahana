@@ -23,6 +23,10 @@ class CreateComment
             'post_id' => $Post->id,
             'user_id' => $Author->id,
             'body' => $Body,
+            // Bildirim için aşağıda hariç tutulanlardan (kendisi/gönderi
+            // sahibi) bağımsız — yorumu sonradan render ederken "@Ad Soyad"
+            // metninin tamamı tıklanabilir olsun diye ham liste saklanıyor.
+            'mentioned_user_ids' => $MentionedUserIds !== [] ? $MentionedUserIds : null,
         ]);
 
         if ($Post->user_id !== $Author->id) {

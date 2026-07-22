@@ -32,6 +32,74 @@ import { Avatar } from '@/shared/ui/Avatar';
 import { PaletteTokens, Radius, Type, space, useTheme } from '@/shared/ui/theme';
 import { Screen } from '@/shared/ui/Screen';
 
+function escapeRegExp(Value: string): string {
+  return Value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Yorum metnini `mentions`e göre parçalayıp "@Ad Soyad" kısımlarını lime
+ * renkli + dokunulabilir gösterir (BACKLOG #82).
+ */
+function renderCommentBody(
+  Body: string,
+  Mentions: { id: string; name: string | null }[],
+  onPressMention: (id: string) => void,
+  styles: ReturnType<typeof createStyles>,
+) {
+  const Names = Mentions.filter((Mention) => Mention.name != null).map((Mention) => Mention.name as string);
+
+  if (Names.length === 0) {
+    return <Text style={styles.commentBody}>{Body}</Text>;
+  }
+
+  const Pattern = new RegExp(`(@(?:${Names.map(escapeRegExp).join('|')}))`, 'g');
+
+  return (
+    <Text style={styles.commentBody}>
+      {Body.split(Pattern).map((Part, Index) => {
+        const Mention = Mentions.find((Candidate) => `@${Candidate.name}` === Part);
+
+        return Mention != null ? (
+          <Text key={Index} style={styles.mentionText} onPress={() => onPressMention(Mention.id)}>
+            {Part}
+          </Text>
+        ) : (
+          Part
+        );
+      })}
+    </Text>
+  );
+}
+
+/** Yorum satırı — avatar + isim (tıklanınca profile gider) + gövde (BACKLOG #76). */
+function CommentRow({
+  comment,
+  onPressAuthor,
+  onPressMention,
+}: {
+  comment: Comment;
+  onPressAuthor?: () => void;
+  onPressMention: (id: string) => void;
+}) {
+  const Palette = useTheme();
+  const styles = useMemo(() => createStyles(Palette), [Palette]);
+
+  return (
+    <View style={styles.commentRow}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPressAuthor}
+        disabled={onPressAuthor == null}
+        style={styles.commentHeader}
+        hitSlop={4}>
+        <Avatar uri={comment.author?.avatar_path} name={comment.author?.name} size={28} />
+        <Text style={styles.commentAuthor}>{comment.author?.name ?? 'İsimsiz'}</Text>
+      </Pressable>
+      {renderCommentBody(comment.body, comment.mentions, onPressMention, styles)}
+    </View>
+  );
+}
+
 export default function PostDetail() {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
@@ -146,16 +214,12 @@ export default function PostDetail() {
           ) : (
             <View style={styles.commentList}>
               {(Comments.data as Comment[]).map((Item) => (
-                <View key={Item.id} style={styles.commentRow}>
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={Item.author != null ? () => Router.push(`/player/${Item.author?.id}`) : undefined}
-                    disabled={Item.author == null}
-                    hitSlop={4}>
-                    <Text style={styles.commentAuthor}>{Item.author?.name ?? 'İsimsiz'}</Text>
-                  </Pressable>
-                  <Text style={styles.commentBody}>{Item.body}</Text>
-                </View>
+                <CommentRow
+                  key={Item.id}
+                  comment={Item}
+                  onPressAuthor={Item.author != null ? () => Router.push(`/player/${Item.author?.id}`) : undefined}
+                  onPressMention={(Id) => Router.push(`/player/${Id}`)}
+                />
               ))}
             </View>
           )}
@@ -253,6 +317,12 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
     borderColor: Palette.lineFaint,
     padding: space(3),
   },
+  commentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(2),
+    marginBottom: space(1),
+  },
   commentAuthor: {
     fontFamily: Type.bodyBold,
     fontSize: 13,
@@ -264,6 +334,10 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
     lineHeight: 20,
     color: Palette.chalk,
     marginTop: 2,
+  },
+  mentionText: {
+    fontFamily: Type.bodyBold,
+    color: Palette.lime,
   },
   composer: {
     flexDirection: 'row',
