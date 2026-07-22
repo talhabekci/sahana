@@ -60,6 +60,59 @@ build) bu ortamda yapılamadı — kullanıcı yeni bir build alıp test etmeli.
 App Store/Play Store URL'leri gerçek yayın olunca `routes/web.php`/
 `join.blade.php`'deki `TODO` placeholder'lardan güncellenmeli.
 
+## 2026-07-22 (3) — Gizlilik politikası/KVKK/kullanım şartları web'de yayına alındı
+
+App Store Connect'in zorunlu istediği herkese açık gizlilik politikası
+URL'i eksikti (sadece mobil uygulama içinde `legalContent.ts` vardı, web'de
+karşılığı yoktu — landing sayfasının footer'ındaki üç link de zaten
+`href="#"` placeholder'dı, hiç açılmıyordu). Mobildeki içeriğin birebir
+kopyası `api/config/legal.php`'ye taşındı (iki kod tabanı ayrı olduğu için
+elle senkron tutulmalı, dosyaya not düşüldü), `resources/views/legal.blade.php`
++ `GET /legal/{Slug}` (`privacy|kvkk|terms`, bilinmeyen slug 404) eklendi,
+landing footer linkleri buna bağlandı. İletişim e-postası her iki tarafta
+da (`legalContent.ts` + yeni `config/legal.php`) `support@sahana-app.com`
+olarak düzeltildi (önceki placeholder yanlışlıkla tiresiz `sahanaapp.com`
+yazıyordu). Tinker ile render edilip 3 route'un URL'i doğrulandı, Pint
+temiz.
+
+**App Store Connect'e girilecek URL:** `https://sahana-app.com/legal/privacy`
+
+## 2026-07-22 (2) — Prod: .well-known 403 çözüldü (Apache dot-file kuralları, BACKLOG #81)
+
+`GET /.well-known/apple-app-site-association` deploy sonrası prod'da
+403 dönüyordu (curl → Apache'in kendi 403 sayfası, Laravel'e hiç
+düşmüyordu). İki kademeli teşhis:
+
+1. `httpd.conf`'ta `<DirectoryMatch "^\.|\/\.">  Require all denied`
+   (genel nokta-dizin engeli) ile ayrı bir `<DirectoryMatch "\.well-known/">
+   Require all granted` (muhtemelen daha önceki bir oturumda/Jelastic
+   varsayılanında eklenmiş) çakışıyordu — regex merge sırası güvenilir
+   değildi. `^\.|\/\.` → `^\.|\/\.(?!well-known)` (negatif lookahead)
+   yapılıp restart edildi, ama curl HALA 403 verdi.
+2. `dummy-host.jelastic.com-error_log`'da (asıl vhost log'u, genel
+   `error_log`'da hiç görünmüyordu) `AH01630 client denied by server
+   configuration: .../public/.well-known` net olarak görüldü — path'te
+   sondaki `/` yok, yani Apache `.well-known`'ı (fiziksel dizin
+   olmadığı için) URL→dosya eşlemesinde bir "dosya" gibi ele alıp
+   dokunulmamış `<FilesMatch "^\.">  Require all denied` bloğuna
+   düşürüyordu — asıl engelleyici bu bloktu, DirectoryMatch değil.
+   Aynı negatif lookahead `<FilesMatch "^\.(?!well-known)">` olarak
+   buraya da uygulanınca `curl` 200 döndü, hem
+   `apple-app-site-association` hem `assetlinks.json` doğru JSON içerikle
+   erişilebilir hale geldi.
+
+**Ders:** Bu sunucuda genel Apache access_log/error_log yerine domain'e
+özel `dummy-host.jelastic.com-error_log` gerçek isteği gösteriyor —
+403/404 teşhislerinde önce oraya bakılmalı. Ayrıca dot-prefix güvenlik
+kuralları hem `<DirectoryMatch>` hem `<FilesMatch>` seviyesinde ayrı ayrı
+var, ikisi de aynı anda düzeltilmeli.
+
+**Kalan:** Universal Links'in cihazda gerçekten çalışması için hâlâ yeni
+bir native build gerekiyor (associatedDomains/intentFilters entitlement'ı
+sadece prebuild ile üretiliyor, henüz gönderilen bir TestFlight build'inde
+yok). Gerçek App Store/Play Store URL'leri ve Android SHA-256 fingerprint'i
+hâlâ placeholder.
+
 ## 2026-07-21 (3) — #67 gerçek kök nedeni: Apache'de /apps proxy'si eksikmiş + uygulama içi push bastırma
 
 Bir önceki kayıttaki #67 teşhisi ("muhtemelen REVERB_APP_KEY'dendi")

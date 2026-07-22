@@ -48,7 +48,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
       },
       {
         heading: 'İletişim',
-        body: 'Gizlilikle ilgili sorularını support@sahanaapp.com adresine gönderebilirsin.',
+        body: 'Gizlilikle ilgili sorularını support@sahana-app.com adresine gönderebilirsin.',
       },
     ],
   },
@@ -81,7 +81,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
       },
       {
         heading: 'Başvuru yolu',
-        body: 'Bu haklarını kullanmak için support@sahanaapp.com adresine, kimliğini tevsik edici bilgilerle birlikte yazılı başvuruda bulunabilirsin. Başvurun KVKK\'da öngörülen süre içinde ücretsiz olarak sonuçlandırılır.',
+        body: 'Bu haklarını kullanmak için support@sahana-app.com adresine, kimliğini tevsik edici bilgilerle birlikte yazılı başvuruda bulunabilirsin. Başvurun KVKK\'da öngörülen süre içinde ücretsiz olarak sonuçlandırılır.',
       },
     ],
   },
@@ -122,7 +122,7 @@ export const LEGAL_DOCUMENTS: Record<string, LegalDocument> = {
       },
       {
         heading: 'İletişim',
-        body: 'Sorularını support@sahanaapp.com adresine gönderebilirsin.',
+        body: 'Sorularını support@sahana-app.com adresine gönderebilirsin.',
       },
     ],
   },

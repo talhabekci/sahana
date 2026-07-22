@@ -223,18 +223,25 @@
   gizlilik politikası URL'i (madde G'nin canlıda yayınlanmış hâli)
   hazırlamak, Android submission.
 
-### G. Yasal — gizlilik politikası / KVKK / kullanım şartları — taslak yazıldı, onay bekliyor
+### G. Yasal — gizlilik politikası / KVKK / kullanım şartları — web'de yayında, onay bekliyor
 - **Durum:** Kullanıcı taslağı yazmamı istedi. `mobile/src/features/settings/legalContent.ts`
   içinde üç belge (gizlilik politikası, KVKK aydınlatma metni, kullanım
   şartları) Türkçe taslak olarak yazıldı; `settings/legal/[slug].tsx`
   artık placeholder yerine bu içeriği gösteriyor. İçerik ürünün gerçek veri
   modeline dayanıyor (e-posta ile giriş, profil alanları, medya/mesaj/konum
   verisi, Cloudflare R2 ve FCM/Expo gibi işlemciler, hesap silme akışı).
+- **Web'e taşındı (2026-07-22):** App Store Connect'in zorunlu istediği
+  herkese açık "Privacy Policy URL" alanı için ve landing sayfasının
+  footer'ındaki üç link (`href="#"` placeholder'dı, hiç bağlanmamıştı)
+  için aynı içerik `api/config/legal.php` (mobildeki `legalContent.ts` ile
+  elle senkron tutulan bir kopya) + `resources/views/legal.blade.php` ile
+  `GET /legal/{privacy|kvkk|terms}` altında yayınlandı. İletişim adresi
+  `support@sahana-app.com` olarak hem web hem mobil tarafta güncellendi
+  (önceki placeholder yanlışlıkla tiresiz `sahanaapp.com` idi).
 - **Kalan:** Bu **nihai bir hukuki metin değil** — kullanıcı (istenirse bir
   avukat) tarafından gözden geçirilip onaylanmadan yayına çıkılmamalı.
-  İletişim e-postası da placeholder (`[iletişim e-postası buraya eklenecek]`)
-  — gerçek adres belirlenince doldurulmalı. Onaylanınca bu madde ✅ olarak
-  işaretlenecek.
+  Onaylanınca bu madde ✅ olarak işaretlenecek. App Store Connect'e
+  girilecek URL: `https://sahana-app.com/legal/privacy`.
 
 ### H. Veri yedekleme
 - **Durum:** tech-stack.md `mysqldump + mongodump → R2 (günlük, cron)`

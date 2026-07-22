@@ -68,6 +68,21 @@ Route::get('/.well-known/apple-app-site-association', function () {
     ]);
 });
 
+// Gizlilik politikası/KVKK/kullanım şartları — mobil uygulamadaki
+// legalContent.ts ile aynı içerik (config/legal.php), web'de de servis
+// ediliyor: hem landing sayfası footer linkleri hem de App Store Connect/
+// Play Console'un zorunlu istediği herkese açık gizlilik politikası URL'i
+// için gerekiyordu.
+Route::get('/legal/{Slug}', function (string $Slug) {
+    App::setLocale('tr');
+
+    $Documents = config('legal.documents');
+
+    abort_if(! array_key_exists($Slug, $Documents), 404);
+
+    return view('legal', ['Document' => $Documents[$Slug]]);
+})->whereIn('Slug', array_keys(config('legal.documents')))->name('legal.show');
+
 // Android App Links doğrulaması (BACKLOG #81) — imza SHA-256
 // fingerprint'i henüz yok (ilk signed build/Play Console upload'undan
 // sonra doldurulmalı), şimdilik placeholder.

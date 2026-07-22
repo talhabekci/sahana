@@ -761,9 +761,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="footer-col">
           <h4>{{ __('landing.footer.col_legal') }}</h4>
           <ul>
-            <li><a href="#">{{ __('landing.footer.legal_privacy') }}</a></li>
-            <li><a href="#">{{ __('landing.footer.legal_kvkk') }}</a></li>
-            <li><a href="#">{{ __('landing.footer.legal_terms') }}</a></li>
+            <li><a href="{{ route('legal.show', 'privacy') }}">{{ __('landing.footer.legal_privacy') }}</a></li>
+            <li><a href="{{ route('legal.show', 'kvkk') }}">{{ __('landing.footer.legal_kvkk') }}</a></li>
+            <li><a href="{{ route('legal.show', 'terms') }}">{{ __('landing.footer.legal_terms') }}</a></li>
           </ul>
         </div>
       </div>
