@@ -60,6 +60,45 @@ build) bu ortamda yapılamadı — kullanıcı yeni bir build alıp test etmeli.
 App Store/Play Store URL'leri gerçek yayın olunca `routes/web.php`/
 `join.blade.php`'deki `TODO` placeholder'lardan güncellenmeli.
 
+## 2026-07-23 (6) — 3 hata düzeltmesi + BACKLOG #86: DM "Sohbet Bilgisi" ekranı
+
+Kullanıcı üç somut hata bildirdi:
+- **Geri bildirim ekranında klavye Gönder butonunu kapatıyordu:** yeni
+  `settings/feedback.tsx`'e `KeyboardAvoidingView` eklenmemişti (`Screen`
+  bileşeninin kendi klavye yönetimi yok, `profile-edit.tsx` bunu doğru
+  yapıyordu, ben atlamışım). Aynı ekrana ayrıca ekran görüntüsü ekleme
+  (bug raporları için) eklendi — `feedback` tablosuna `image_path`,
+  backend'de `ImageUploader::store()` ile aynı güvenli hat (gerçek içerik
+  doğrulama + EXIF/GPS temizliği).
+- **Takım sohbetinde kendi mesaj balonumun üstündeki isim okunmuyordu:**
+  `bubbleAuthor` stili her zaman lime renkteydi, kendi (lime zeminli)
+  balonumda lime üstüne lime yazı görünmez oluyordu — `bubbleWhen`'in
+  zaten yaptığı gibi `IsMine` durumunda koyu renge (`authorMine`) çevrildi.
+- Bu iki hata da BACKLOG #83/#85'i tamamlarken atladığım detaylardı —
+  kullanıcı haklı olarak "basit hatalar" diye işaretledi, yeni bir
+  ekran/stil değişikliği yaptıktan sonra klavye davranışı ve renk
+  kontrastını görsel olarak da düşünmek gerekiyor.
+
+**BACKLOG #86:** DM başlığı artık avatar+isim gösteriyor, tıklanınca
+WhatsApp/Instagram tarzı bir "Sohbet Bilgisi" ekranı açılıyor (profile
+git butonu + paylaşılan medya grid'i, yeni `GET /players/{id}/messages/media`
+endpoint'inden beslenen). Kapsam kullanıcıyla netleştirildi (AskUserQuestion):
+paylaşılan linkler bu sürümde yok, medya kaynağı yeni bir endpoint (sadece
+yüklü mesajlarla sınırlı değil), takım sohbeti kapsam dışı.
+
+**Doğrulama:** API'de 2 yeni migration + 2 yeni Pest testi, tüm suite
+312/312 geçti, Pint/Larastan temiz. Mobilde `tsc --noEmit`/`npm run lint`
+temiz (yeni route'lar için `.expo/types/router.d.ts` `expo start` ile
+yeniden üretildi).
+
+## 2026-07-23 (5) — Gerçek Apple ID ile App Store yönlendirmesi
+
+App Store Connect'te uygulama kaydı oluşunca atanan gerçek Apple ID
+(6791144297), `routes/web.php`'deki `/join/{code}` iOS yönlendirmesi ve
+`join.blade.php`'deki masaüstü fallback butonundaki `idXXXXXXXXXX`
+placeholder'ının yerine yazıldı. Android/Play Store linki hâlâ placeholder
+(ilk signed build alınınca doldurulacak).
+
 ## 2026-07-23 (4) — Backlog #83-85: sohbet hizalama, bildirim/splash takılması, geri bildirim ekranı
 
 - **#83:** Takım sohbetinde `ChatConversation`'a `myUserId` hiç

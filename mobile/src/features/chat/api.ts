@@ -112,3 +112,18 @@ export async function listDirectMessages(
 export async function sendDirectMessage(userId: string, payload: SendMessagePayload): Promise<ChatMessage> {
   return postMessage(`/players/${userId}/messages`, payload);
 }
+
+export type ChatMedia = { id: string; image_path: string; created_at: string };
+
+/** BACKLOG #86 — DM "Sohbet Bilgisi" ekranındaki paylaşılan medya grid'i. */
+export async function listDirectMessageMedia(
+  userId: string,
+  before?: string,
+): Promise<{ data: ChatMedia[]; nextCursor: string | null }> {
+  const { data } = await Api.get<{ data: ChatMedia[]; meta: { next_cursor: string | null } }>(
+    `/players/${userId}/messages/media`,
+    { params: before != null ? { before, limit: 30 } : { limit: 30 } },
+  );
+
+  return { data: data.data, nextCursor: data.meta.next_cursor };
+}

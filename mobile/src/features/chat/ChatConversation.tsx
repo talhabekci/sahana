@@ -47,8 +47,10 @@ type Props = {
   showAuthorName?: boolean;
   /** match_ref/lineup_ref balonlarının rotaları için (sadece takım sohbeti). */
   teamId?: string;
-  /** Verilirse başlık dokunulabilir olur (DM'de karşı tarafın profiline gider). */
+  /** Verilirse başlık dokunulabilir olur (DM'de "Sohbet Bilgisi" ekranına gider). */
   onPressTitle?: () => void;
+  /** Verilirse başlıkta isimin yanında küçük bir avatar gösterilir (DM). */
+  avatarUri?: string | null;
 };
 
 /**
@@ -69,6 +71,7 @@ export function ChatConversation({
   showAuthorName = false,
   teamId,
   onPressTitle,
+  avatarUri,
 }: Props) {
   const Palette = useTheme();
   const styles = useMemo(() => createStyles(Palette), [Palette]);
@@ -242,8 +245,9 @@ export function ChatConversation({
             accessibilityRole="button"
             onPress={onPressTitle}
             disabled={onPressTitle == null}
-            style={styles.titleWrapper}
+            style={[styles.titleWrapper, avatarUri !== undefined && styles.titleWrapperWithAvatar]}
             hitSlop={4}>
+            {avatarUri !== undefined && <Avatar uri={avatarUri} name={title} size={30} />}
             <Text style={styles.title} numberOfLines={1}>
               {title}
             </Text>
@@ -289,7 +293,13 @@ export function ChatConversation({
                     <View
                       style={[styles.bubble, IsMine && !MediaBubble ? styles.bubbleMine : styles.bubbleTheirs]}>
                       {showAuthorName && (
-                        <Text style={styles.bubbleAuthor}>{item.author?.name ?? 'İsimsiz'}</Text>
+                        <Text
+                          style={[
+                            styles.bubbleAuthor,
+                            IsMine && !MediaBubble && styles.authorMine,
+                          ]}>
+                          {item.author?.name ?? 'İsimsiz'}
+                        </Text>
                       )}
                       {renderContent(item, IsMine && !MediaBubble)}
                       <Text style={[styles.bubbleWhen, IsMine && !MediaBubble && styles.textMine]}>
@@ -435,6 +445,12 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
   titleWrapper: {
     flex: 1,
   },
+  titleWrapperWithAvatar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space(2),
+  },
   title: {
     textAlign: 'center',
     fontFamily: Type.mono,
@@ -476,6 +492,11 @@ const createStyles = (Palette: PaletteTokens) => StyleSheet.create({
     fontFamily: Type.bodyBold,
     fontSize: 12,
     color: Palette.lime,
+  },
+  // Kendi mesaj balonumun zemini zaten lime — üstteki yazar adı da lime
+  // olursa (bubbleAuthor'ın varsayılanı) hiç okunmuyordu.
+  authorMine: {
+    color: Palette.limeInk,
   },
   bubbleBody: {
     fontFamily: Type.body,

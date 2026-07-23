@@ -11,7 +11,7 @@ class Feedback extends Model
 
     protected $table = 'feedback';
 
-    protected $fillable = ['user_id', 'type', 'message'];
+    protected $fillable = ['user_id', 'type', 'message', 'image_path'];
 
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo

@@ -39,8 +39,7 @@ Route::get('/join/{Code}', function (string $Code) {
     $UserAgent = request()->userAgent() ?? '';
 
     if (preg_match('/iPhone|iPad|iPod/i', $UserAgent) === 1) {
-        // TODO: Gerçek App Store URL'i yayınlanınca güncellenmeli.
-        return redirect('https://apps.apple.com/app/idXXXXXXXXXX');
+        return redirect('https://apps.apple.com/app/id6791144297');
     }
 
     if (preg_match('/Android/i', $UserAgent) === 1) {

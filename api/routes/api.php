@@ -79,6 +79,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         // Modül 7 (DM): birebir mesajlaşma — spec: 07-notifications-chat.md.
         Route::get('/conversations', [ConversationController::class, 'index']);
         Route::get('/players/{PublicId}/messages', [DirectMessageController::class, 'index']);
+        Route::get('/players/{PublicId}/messages/media', [DirectMessageController::class, 'media']);
         Route::post('/players/{PublicId}/messages', [DirectMessageController::class, 'store'])
             ->middleware('throttle:write');
 

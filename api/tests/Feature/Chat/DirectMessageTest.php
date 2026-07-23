@@ -136,3 +136,20 @@ it('does not leak DMs between unrelated user pairs', function () {
 
     $Response->assertJsonCount(0, 'data');
 });
+
+it('lists only image messages for the shared-media screen (BACKLOG #86)', function () {
+    Storage::fake('public');
+    $Me = User::factory()->create();
+    $Other = User::factory()->create();
+
+    $this->actingAs($Me)->postJson("/api/v1/players/{$Other->public_id}/messages", ['type' => 'text', 'body' => 'metin'])->assertCreated();
+    $this->actingAs($Other)->post("/api/v1/players/{$Me->public_id}/messages", [
+        'type' => 'image',
+        'image' => UploadedFile::fake()->image('photo.jpg', 400, 400),
+    ])->assertCreated();
+
+    $Response = $this->actingAs($Me)->getJson("/api/v1/players/{$Other->public_id}/messages/media")->assertOk();
+
+    $Response->assertJsonCount(1, 'data');
+    expect($Response->json('data.0.image_path'))->not->toBeNull();
+});

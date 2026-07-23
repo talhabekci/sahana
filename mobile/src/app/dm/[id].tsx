@@ -102,7 +102,8 @@ export default function DirectChat() {
       sending={Send.isPending}
       onSend={(Payload) => Send.mutate(Payload)}
       myUserId={Me.data?.id}
-      onPressTitle={() => Router.push(`/player/${id}`)}
+      avatarUri={Other.data?.avatar_path}
+      onPressTitle={() => Router.push(`/dm/${id}/info`)}
     />
   );
 }

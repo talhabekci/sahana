@@ -21,6 +21,9 @@ class StoreFeedbackRequest extends FormRequest
         return [
             'type' => ['required', Rule::in(Feedback::TYPES)],
             'message' => ['required', 'string', 'max:2000'],
+            // ImageUploader::store() gerçek görsel içeriğini ayrıca doğrulayıp
+            // EXIF/GPS metadata'sını temizleyerek yeniden JPEG'e encode ediyor.
+            'image' => ['sometimes', 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,heic', 'max:10240'],
         ];
     }
 }

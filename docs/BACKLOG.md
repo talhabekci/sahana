@@ -1311,6 +1311,25 @@
 - **Bağlı modül:** Modül 1 — [01-auth-profile.md](features/01-auth-profile.md)
 - **Talep tarihi:** 2026-07-23
 
+### 86. DM sohbeti — WhatsApp/Instagram tarzı "Sohbet Bilgisi" ekranı ✅
+- **İstek:** DM başlığı (şu an sadece isim, tıklanınca direkt profile
+  gidiyor) avatar+isim gösterecek şekilde güzelleştirilsin; tıklanınca
+  önce bir "Sohbet Bilgisi" ekranı açılsın (profile git butonu + paylaşılan
+  medya grid'i). Amaç büyük uygulamalardaki tanıdık davranışı yakalamak.
+- **Kapsam kararları (kullanıcı onayıyla):** Paylaşılan linkler (mesaj
+  metninden URL tespiti) bu sürümde YOK — ayrı bir gelecek madde. Medya
+  grid'i yeni bir backend endpoint'inden (tüm sohbet geçmişini tarar,
+  sadece o an yüklü mesajlarla sınırlı değil) besleniyor. Takım sohbeti
+  kapsam dışı — sadece DM.
+- **Tamamlandı:** 2026-07-23 — `ListDirectMessageMedia` action +
+  `GET /players/{id}/messages/media` (`type=image` filtreli, aynı cursor
+  deseni). `ChatConversation`'a `avatarUri` prop eklendi (DM başlığında
+  avatar+isim), `onPressTitle` artık yeni `dm/[id]/info.tsx` ekranına
+  gidiyor (avatar+isim, "Profili görüntüle" butonu, paylaşılan medya
+  grid'i — dokununca `ImageViewerModal`). 1 yeni Pest testi.
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-23
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

@@ -57,8 +57,8 @@
         <h1>{{ $team !== null ? $team->name.' takımına davet edildin' : 'Sahana\'ya davet edildin' }}</h1>
         <p>Devam etmek için Sahana uygulamasını indir. Uygulama zaten yüklüyse bu link doğrudan açılır.</p>
         <div class="buttons">
-            {{-- TODO: Gerçek App Store/Play Store linkleri yayınlanınca güncellenmeli. --}}
-            <a href="https://apps.apple.com/app/idXXXXXXXXXX">App Store'da aç</a>
+            {{-- TODO: Gerçek Play Store linki yayınlanınca güncellenmeli. --}}
+            <a href="https://apps.apple.com/app/id6791144297">App Store'da aç</a>
             <a class="secondary" href="https://play.google.com/store/apps/details?id=com.sahanaapp.app">Google Play'de aç</a>
         </div>
     </div>
