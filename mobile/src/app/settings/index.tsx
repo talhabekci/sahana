@@ -102,8 +102,15 @@ export default function Settings() {
           <Pressable
             accessibilityRole="button"
             onPress={() => Router.push('/notifications/preferences')}
-            style={styles.row}>
+            style={[styles.row, styles.rowBorder]}>
             <Text style={styles.rowTitle}>Bildirim tercihleri</Text>
+            <Ionicons name="chevron-forward" size={18} color={Palette.moss} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => Router.push('/settings/feedback')}
+            style={styles.row}>
+            <Text style={styles.rowTitle}>Geri bildirim gönder</Text>
             <Ionicons name="chevron-forward" size={18} color={Palette.moss} />
           </Pressable>
         </View>

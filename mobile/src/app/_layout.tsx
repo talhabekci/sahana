@@ -64,7 +64,11 @@ function RootLayout() {
   const [AnimationDone, setAnimationDone] = useState(false);
 
   usePushRegistration(Ready && Token != null);
-  useNotificationTapNavigation(Ready);
+  // Sadece Ready değil, gerçek gezinme ağacının (Stack) render edildiği
+  // AnimationDone anına kadar bekliyor — aksi hâlde soğuk başlangıçta
+  // Router.push() henüz mount olmamış bir navigator'a düşüp kayboluyor ve
+  // kullanıcı splash'te takılı kalmış gibi görüyordu (BACKLOG #84).
+  useNotificationTapNavigation(Ready && AnimationDone);
 
   // Splash yalnızca Ready ilk true olduğunda bir kez gizlenir — her rota
   // değişiminde (Segments) tekrar çağrılırsa native taraf reddediyor

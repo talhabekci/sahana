@@ -1274,6 +1274,43 @@
 - **Bağlı modül:** Modül 4 — [04-social-feed.md](features/04-social-feed.md)
 - **Talep tarihi:** 2026-07-22
 
+### 83. Bug: takım sohbetinde kendi mesajların sağda görünmüyor ✅
+- **Sorun:** DM'de mesajlar doğru hizalanıyor ama takım sohbetinde
+  `ChatConversation`'a `myUserId` hiç geçilmiyordu — bu yüzden her mesaj
+  "karşı taraf" gibi (solda) render ediliyordu, kimin kendi mesajı olduğu
+  hiç belli olmuyordu.
+- **Tamamlandı:** 2026-07-23 — `team/[id]/chat.tsx`'e DM ekranındaki
+  desenle (`useQuery(['me'], getMe)`) aynı `Me` sorgusu eklenip
+  `ChatConversation`'a `myUserId={Me.data?.id}` geçildi.
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-23
+
+### 84. Bug: uygulama kapalıyken bildirime dokununca splash'te takılı kalıyor ✅
+- **Sorun:** `useNotificationTapNavigation` sadece `Ready` (font/hydration)
+  şartına bakıp `Router.push()` çağırıyordu; ama `_layout.tsx`'te asıl
+  gezinme ağacı (`<Stack>`) `AnimationDone` true olana kadar hiç
+  render edilmiyor (`AnimatedSplash` yerine geçiyor). Soğuk başlangıçta
+  bu iki durum aynı anda gerçekleşmeyebiliyor — push, henüz var olmayan
+  bir navigator'a düşüp kayboluyor ve kullanıcı splash'te takılı kalmış
+  gibi görüyor.
+- **Tamamlandı:** 2026-07-23 — `_layout.tsx`'te `useNotificationTapNavigation`'a
+  geçirilen koşul `Ready`'den `Ready && AnimationDone`'a çevrildi.
+- **Bağlı modül:** Modül 7 — [07-notifications-chat.md](features/07-notifications-chat.md)
+- **Talep tarihi:** 2026-07-23
+
+### 85. Ayarlar'a geri bildirim (hata/öneri) gönderme ekranı ✅
+- **İstek:** Kullanıcılar uygulama içinde hata ile karşılaştıklarında ya da
+  önerileri olduğunda Profil > Ayarlar'dan geri bildirim gönderebilsin.
+- **Tamamlandı:** 2026-07-23 — Yeni `feedback` tablosu (`user_id`,
+  `type: bug|suggestion`, `message`, `status: pending|reviewed`),
+  `POST /api/v1/feedback` (`FeedbackController`, `StoreFeedbackRequest`,
+  `throttle:write`). Mobilde yeni `settings/feedback.tsx` ekranı
+  (tür seçici + çok satırlı metin alanı), Ayarlar'a "Geri bildirim gönder"
+  satırı eklendi. 5 Pest testi (happy path × 2, yetkisiz, geçersiz tür,
+  boş mesaj).
+- **Bağlı modül:** Modül 1 — [01-auth-profile.md](features/01-auth-profile.md)
+- **Talep tarihi:** 2026-07-23
+
 ## Triyaj Kuralı
 Yeni bir istek geldiğinde önce buraya madde olarak eklenir (kod yazılmaz).
 Kullanıcı hangisinin öncelikli olduğunu belirtince, o madde ilgili modülün

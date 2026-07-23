@@ -1,8 +1,9 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 
+import { getMe } from '@/features/auth/api';
 import { ChatMessage, listTeamMessages, sendTeamMessage, SendMessagePayload } from '@/features/chat/api';
 import { ChatConversation } from '@/features/chat/ChatConversation';
 import { setActiveChat } from '@/features/notifications/activeChatContext';
@@ -12,6 +13,7 @@ import { disconnectEcho, getEcho } from '@/shared/api/echo';
 export default function TeamChat() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const QueryClient = useQueryClient();
+  const Me = useQuery({ queryKey: ['me'], queryFn: getMe });
 
   useFocusEffect(
     useCallback(() => {
@@ -84,6 +86,7 @@ export default function TeamChat() {
       }}
       sending={Send.isPending}
       onSend={(Payload) => Send.mutate(Payload)}
+      myUserId={Me.data?.id}
       showAuthorName
       teamId={id}
     />

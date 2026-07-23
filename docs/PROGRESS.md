@@ -60,6 +60,28 @@ build) bu ortamda yapılamadı — kullanıcı yeni bir build alıp test etmeli.
 App Store/Play Store URL'leri gerçek yayın olunca `routes/web.php`/
 `join.blade.php`'deki `TODO` placeholder'lardan güncellenmeli.
 
+## 2026-07-23 (4) — Backlog #83-85: sohbet hizalama, bildirim/splash takılması, geri bildirim ekranı
+
+- **#83:** Takım sohbetinde `ChatConversation`'a `myUserId` hiç
+  geçilmiyordu (DM'de geçiliyordu) — bu yüzden kendi mesajların da
+  "karşı taraf" gibi solda görünüyordu. `team/[id]/chat.tsx`'e DM'deki
+  aynı `useQuery(['me'], getMe)` deseni eklendi.
+- **#84:** `useNotificationTapNavigation` sadece `Ready`'e bakıyordu, ama
+  `_layout.tsx`'te gerçek `<Stack>` `AnimationDone` olana kadar hiç mount
+  olmuyor (`AnimatedSplash` render ediliyor) — soğuk başlangıçta bildirime
+  dokununca `Router.push()` henüz var olmayan bir navigator'a düşüp
+  kayboluyor, kullanıcı splash'te takılı kalmış gibi görüyordu. Koşul
+  `Ready && AnimationDone`'a çevrildi.
+- **#85:** Yeni `feedback` tablosu + `POST /api/v1/feedback`
+  (`FeedbackController`/`StoreFeedbackRequest`, `Report`/`StoreReportRequest`
+  ile aynı ince-controller deseni) + mobilde `settings/feedback.tsx`
+  (bug/öneri seçici + metin alanı), Ayarlar'a link eklendi.
+
+**Doğrulama:** API'de migration çalıştırıldı, 5 yeni Pest testi + tüm suite
+311/311 geçti, Pint/Larastan temiz. Mobilde `tsc --noEmit` temiz (yeni route
+için `.expo/types/router.d.ts`'in `expo start` ile yeniden üretilmesi
+gerekti), `npm run lint` temiz (1 önceden var olan ilgisiz uyarı hariç).
+
 ## 2026-07-23 (3) — Fix: demo:seed-reviewer'daki maç, kimseye görünmüyordu
 
 Kullanıcı prod'da maçı hiç göremedi. Kök neden: `MatchController::index()`

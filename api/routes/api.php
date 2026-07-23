@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\ConversationController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\DirectMessageController;
 use App\Http\Controllers\Api\V1\DistrictController;
+use App\Http\Controllers\Api\V1\FeedbackController;
 use App\Http\Controllers\Api\V1\FeedController;
 use App\Http\Controllers\Api\V1\FollowController;
 use App\Http\Controllers\Api\V1\LineupController;
@@ -156,6 +157,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::delete('/comments/{Comment}', [CommentController::class, 'destroy']);
 
         Route::post('/reports', [ReportController::class, 'store']);
+        Route::post('/feedback', [FeedbackController::class, 'store'])->middleware('throttle:write');
         Route::get('/search', [SearchController::class, 'index']);
     });
 });
