@@ -47,21 +47,34 @@ class SeedReviewerDemo extends Command
         }
 
         if ($Team->members()->count() < 2) {
-            $Teammate = User::factory()->create(['name' => 'Ahmet Yılmaz']);
+            // User::factory()/diğer factory'ler fakerphp/faker'a bağımlı;
+            // bu komut prod'da `composer install --no-dev` sonrası da
+            // çalışabilsin diye burada faker kullanılmıyor, sabit değerler
+            // doğrudan model üzerinden yazılıyor.
+            $Teammate = User::firstOrCreate(
+                ['email' => 'reviewer-demo-teammate@sahana-app.com'],
+                ['name' => 'Ahmet Yılmaz'],
+            );
             $Team->members()->attach($Teammate->id, ['role' => 'member', 'joined_at' => now()]);
         }
 
         if (FootballMatch::where('team_id', $Team->id)->count() === 0) {
-            FootballMatch::factory()->create([
+            FootballMatch::create([
                 'team_id' => $Team->id,
-                'created_by' => $Reviewer->id,
+                'venue_text' => 'Reviewer Halı Saha',
+                'venue_lat' => 41.0082,
+                'venue_lng' => 28.9784,
                 'starts_at' => now()->addDays(3)->setTime(21, 0),
+                'format' => 7,
+                'price_per_player' => 150,
+                'created_by' => $Reviewer->id,
             ])->forceFill(['status' => 'confirmed'])->save();
         }
 
         if (Post::where('user_id', $Reviewer->id)->count() === 0) {
-            Post::factory()->create([
+            Post::create([
                 'user_id' => $Reviewer->id,
+                'type' => 'text',
                 'body' => "Sahana'ya hoş geldin! İlk maçımızı Reviewer FK ile organize ettik. 💪",
             ]);
         }
