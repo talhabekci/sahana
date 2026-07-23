@@ -60,6 +60,45 @@ build) bu ortamda yapılamadı — kullanıcı yeni bir build alıp test etmeli.
 App Store/Play Store URL'leri gerçek yayın olunca `routes/web.php`/
 `join.blade.php`'deki `TODO` placeholder'lardan güncellenmeli.
 
+## 2026-07-23 (2) — Reviewer demo hesabına ekran görüntüsüne uygun zengin içerik
+
+App Store ekran görüntüleri için `demo:seed-reviewer` komutu tamamen
+genişletildi: 6 sabit Türkçe isimli takım arkadaşı (kaleci/defans/orta
+saha/forvet dağılımlı, gerçek `PlayerProfile`'ları) + reviewer = 7 kişilik
+tam bir 7'li kadro, onaylı bir maç, gerçek bir `Lineup` (7 pozisyon,
+`1-3-2-1` diziliş), maç istatistiği (gol/asist), 4 oyuncudan reviewer'a
+puanlama, 2 rozet (`ilk_gol`, `yildiz`), 4 gerçek fotoğraflı gönderi
+(akışta görünsün diye `team_id` set edilerek), takım sohbetinde 5 + DM'de
+2 mesaj (gerçek MongoDB `Message` kaydı), 1 yorum ve 4 gerçek bildirim
+(`FollowedNotification`/`MatchConfirmedNotification`/`PostLikedNotification`/
+`PostCommentedNotification` — production'daki asıl bildirim sınıfları
+üzerinden, elle JSON yazılmadı).
+
+**Görseller:** Stok fotoğraf API'lerinden ikisi denendi ve elendi —
+Pexels'ten rastgele seçilen ID yanlışlıkla Amerikan futbolu çıktı,
+Unsplash'ın anahtar kelimeyle görsel veren eski `source.unsplash.com`
+servisi artık kapalı (503). LoremFlickr çalıştı ama Flickr'ın genel
+havuzundan çektiği için tekil fotoğrafların ticari lisans durumu garanti
+değil — App Store görselleri için kullanılmadı. Wikimedia Commons'ın
+arama API'si (anahtarsız, `action=query&list=search`) ile 4 gerçek
+**CC0** (kamu malı, atıf gerektirmez) halı saha/futbol fotoğrafı bulunup
+indirildi, `sips` ile 1600px/%80 JPEG'e küçültülüp `api/resources/demo-images/`
+altına committed edildi (kaynak/lisans notu: `NOTICE.md`). Seed komutu
+bunları `ImageUploader`'ın kullandığı aynı `Storage::disk(media_disk)`
+üzerinden yüklüyor — prod'da otomatik olarak R2'ye gidecek.
+
+**Düzeltilen bug:** İlk yazımda `Lineup::create(['team_id' => ...])`
+patladı — `Lineup` modelinin `$fillable`'ında `team_id` yok (ilişki FK'sı
+mass-assignment korumasının dışında tutulmuş), `$Team->lineups()->create([...])`
+ilişkisi üzerinden düzeltildi.
+
+Lokalde uçtan uca test edildi (idempotency dahil, tinker ile her tabloya
+gerçekten yazıldığı doğrulandı, bir görsel gerçekten açılıp incelendi),
+test verisi temizlendi, Pint/Larastan temiz, 306/306 test geçti.
+
+**Kalan:** Prod'da `git pull` + `php artisan demo:seed-reviewer` tekrar
+çalıştırılmalı (idempotent, var olan reviewer hesabının üstüne ekler).
+
 ## 2026-07-23 — App Store gönderimi hazırlığı: reviewer demo girişi + içerik, legal onayı
 
 Kullanıcı legal metinleri onayladı (madde G ✅). Kalan store-submission
