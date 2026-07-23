@@ -16,6 +16,10 @@ class VerifyOtpCode
      */
     public function handle(string $Identifier, string $Code): array
     {
+        if ($this->isReviewerDemoMatch($Identifier, $Code)) {
+            return $this->resolveUser($Identifier);
+        }
+
         $Key = SendOtpCode::cacheKey($Identifier);
 
         /** @var array{hash: string, attempts: int}|null $Entry */
@@ -41,6 +45,25 @@ class VerifyOtpCode
 
         Cache::forget($Key);
 
+        return $this->resolveUser($Identifier);
+    }
+
+    private function isReviewerDemoMatch(string $Identifier, string $Code): bool
+    {
+        $DemoEmail = config('services.reviewer_demo.email');
+        $DemoCode = config('services.reviewer_demo.otp_code');
+
+        return is_string($DemoEmail) && $DemoEmail !== ''
+            && is_string($DemoCode) && $DemoCode !== ''
+            && mb_strtolower($Identifier) === mb_strtolower($DemoEmail)
+            && hash_equals($DemoCode, $Code);
+    }
+
+    /**
+     * @return array{user: User, is_new_user: bool}
+     */
+    private function resolveUser(string $Identifier): array
+    {
         $Field = str_contains($Identifier, '@') ? 'email' : 'phone';
         $User = User::where($Field, $Identifier)->first();
         $IsNewUser = $User === null;

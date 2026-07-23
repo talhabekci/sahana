@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    // Apple/Google store reviewer'ı için: bu e-postaya OTP maili hiç
+    // atılmıyor, VerifyOtpCode bunun yerine sabit otp_code'u kabul ediyor.
+    // İkisi de boşsa (varsayılan) bu yol hiç devreye girmez.
+    'reviewer_demo' => [
+        'email' => env('REVIEWER_DEMO_EMAIL'),
+        'otp_code' => env('REVIEWER_DEMO_OTP_CODE'),
+    ],
+
 ];

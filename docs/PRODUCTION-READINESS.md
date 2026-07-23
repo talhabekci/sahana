@@ -214,16 +214,31 @@
   build'de görünmüyor) — kullanıcı bu yüzden iOS build sürecini tamamen
   Xcode'a taşıdı (bkz. PROGRESS.md 2026-07-16). Xcode'dan alınan build
   (1.0.0/8) başarıyla TestFlight'a yüklendi ve cihazda güncelleme olarak
-  göründü; gerçek cihazda API isteklerinin ulaştığı doğrulanmadı (kullanıcı
-  henüz test etmedi). Release akışı `mobile/README.md`'ye yazıldı.
+  göründü.
+- **Cihazda gerçek API trafiği doğrulandı (2026-07-23):** Kullanıcı bu
+  oturumda düzeltilen 401 interceptor/`refetch` bug'larını (stuck spinner
+  sorunu) içeren yeni bir native build alıp TestFlight'ta test etti, sorun
+  yok. Universal Links (`associatedDomains`) entitlement'ını içeren build
+  de alınıp denendi, çalışıyor.
+- **Reviewer login için sabit OTP (2026-07-23):** Giriş e-posta OTP ile
+  yapıldığı için reviewer'ın gerçek zamanlı bir mail kutusuna erişimi
+  olmayabilir — `REVIEWER_DEMO_EMAIL`/`REVIEWER_DEMO_OTP_CODE` env
+  değişkenleri (`config/services.php` "reviewer_demo") tanımlanınca
+  `SendOtpCode`/`VerifyOtpCode` o e-posta için mail atmadan sabit kodu
+  kabul ediyor (süresi dolmuyor — normal kodlardan farklı olarak). Ayrıca
+  `php artisan demo:seed-reviewer` komutu (yeni) o hesaba gerçek görünen
+  bir takım/maç/gönderi ekliyor, reviewer boş bir hesapla karşılaşmasın
+  diye. Test edildi (Pest: `OtpRequestTest`/`VerifyOtpTest`), Pint/Larastan
+  temiz.
 - **Android:** Ele alınmadı, kullanıcı muhtemelen Android Studio'dan manuel
   build alacak (ayrı bir oturum).
-- **Kalan:** Cihazda gerçek API trafiğinin çalıştığını doğrulamak, store
-  listing metni/görselleri (ekran görüntüleri, açıklama, kategori) ve
-  gizlilik politikası URL'i (madde G'nin canlıda yayınlanmış hâli)
-  hazırlamak, Android submission.
+- **Kalan:** Store listing metni/görselleri (ekran görüntüleri, açıklama,
+  kategori) hazırlamak (kullanıcı App Store Connect formunu kendisi
+  dolduracak), Android submission, gerçek App Store/Play Store URL'leri
+  (`routes/web.php`/`join.blade.php`'deki placeholder) uygulama kaydı
+  oluşunca doldurulacak.
 
-### G. Yasal — gizlilik politikası / KVKK / kullanım şartları — web'de yayında, onay bekliyor
+### G. Yasal — gizlilik politikası / KVKK / kullanım şartları ✅ (2026-07-23)
 - **Durum:** Kullanıcı taslağı yazmamı istedi. `mobile/src/features/settings/legalContent.ts`
   içinde üç belge (gizlilik politikası, KVKK aydınlatma metni, kullanım
   şartları) Türkçe taslak olarak yazıldı; `settings/legal/[slug].tsx`
@@ -238,10 +253,9 @@
   `GET /legal/{privacy|kvkk|terms}` altında yayınlandı. İletişim adresi
   `support@sahana-app.com` olarak hem web hem mobil tarafta güncellendi
   (önceki placeholder yanlışlıkla tiresiz `sahanaapp.com` idi).
-- **Kalan:** Bu **nihai bir hukuki metin değil** — kullanıcı (istenirse bir
-  avukat) tarafından gözden geçirilip onaylanmadan yayına çıkılmamalı.
-  Onaylanınca bu madde ✅ olarak işaretlenecek. App Store Connect'e
-  girilecek URL: `https://sahana-app.com/legal/privacy`.
+- **Onaylandı (2026-07-23):** Kullanıcı mevcut taslak metinleri onayladı,
+  yayına çıkılabilir. App Store Connect'e girilecek URL:
+  `https://sahana-app.com/legal/privacy`.
 
 ### H. Veri yedekleme
 - **Durum:** tech-stack.md `mysqldump + mongodump → R2 (günlük, cron)`

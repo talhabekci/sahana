@@ -16,6 +16,13 @@ class SendOtpCode
 
     public function handle(string $Identifier): void
     {
+        if ($this->isReviewerDemo($Identifier)) {
+            // Apple/Google reviewer'ı için: gerçek kod üretilip mail
+            // atılmıyor, VerifyOtpCode sabit REVIEWER_DEMO_OTP_CODE'u kabul
+            // ediyor (bkz. config/services.php "reviewer_demo").
+            return;
+        }
+
         $Code = (string) random_int(100000, 999999);
 
         Cache::put(
@@ -36,5 +43,12 @@ class SendOtpCode
     public static function cacheKey(string $Identifier): string
     {
         return 'otp:'.sha1(mb_strtolower($Identifier));
+    }
+
+    private function isReviewerDemo(string $Identifier): bool
+    {
+        $DemoEmail = config('services.reviewer_demo.email');
+
+        return is_string($DemoEmail) && $DemoEmail !== '' && mb_strtolower($Identifier) === mb_strtolower($DemoEmail);
     }
 }

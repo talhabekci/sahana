@@ -60,6 +60,35 @@ build) bu ortamda yapılamadı — kullanıcı yeni bir build alıp test etmeli.
 App Store/Play Store URL'leri gerçek yayın olunca `routes/web.php`/
 `join.blade.php`'deki `TODO` placeholder'lardan güncellenmeli.
 
+## 2026-07-23 — App Store gönderimi hazırlığı: reviewer demo girişi + içerik, legal onayı
+
+Kullanıcı legal metinleri onayladı (madde G ✅). Kalan store-submission
+maddeleri için:
+
+- **Reviewer OTP bypass:** Giriş e-posta OTP ile yapıldığı için reviewer'ın
+  gerçek zamanlı mail erişimi olmayabilir. `config/services.php`'ye
+  `reviewer_demo.email`/`reviewer_demo.otp_code` (env: `REVIEWER_DEMO_EMAIL`/
+  `REVIEWER_DEMO_OTP_CODE`) eklendi; `SendOtpCode` bu e-postaya mail
+  atmıyor, `VerifyOtpCode` sabit kodu (süresiz, normal 120sn TTL'e tabi
+  değil) kabul ediyor. İkisi de boşken mekanizma tamamen devre dışı — prod
+  `.env`'de sadece review başvurusu sırasında doldurulacak. Pest testleri
+  eklendi (`OtpRequestTest`/`VerifyOtpTest`), Pint/Larastan temiz.
+- **Demo içerik komutu:** `php artisan demo:seed-reviewer` (yeni,
+  `--email` opsiyonel, verilmezse `REVIEWER_DEMO_EMAIL` kullanılır) o
+  hesaba idempotent şekilde bir takım (kaptan olarak reviewer + 1 sahte
+  takım arkadaşı), onaylanmış bir maç ve bir gönderi ekliyor — reviewer
+  boş bir hesapla karşılaşıp uygulamanın ne işe yaradığını anlayamama
+  riskini azaltmak için. Lokalde çalıştırılıp doğrulandı (idempotency
+  dahil), test verisi temizlendi.
+- **Kullanıcı doğrulamaları:** Cihazda gerçek API trafiği (401 interceptor
+  fix'i dahil) yeni bir native build ile test edildi, sorun yok. Universal
+  Links entitlement'ını içeren build de TestFlight'ta denendi, çalışıyor.
+
+**Kalan:** `REVIEWER_DEMO_EMAIL`/`REVIEWER_DEMO_OTP_CODE` prod `.env`'e
+girilip `php artisan demo:seed-reviewer` prod'da çalıştırılmalı (App Store
+Connect başvurusu yapılırken). Store listing metni/görselleri hâlâ
+hazırlanmadı.
+
 ## 2026-07-22 (3) — Gizlilik politikası/KVKK/kullanım şartları web'de yayına alındı
 
 App Store Connect'in zorunlu istediği herkese açık gizlilik politikası

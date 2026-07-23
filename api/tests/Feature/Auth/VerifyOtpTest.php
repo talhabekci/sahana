@@ -94,6 +94,48 @@ it('rejects an expired code', function () {
     ])->assertStatus(422)->assertJsonPath('code', 'otp_expired');
 });
 
+it('accepts the fixed reviewer demo code without a prior /otp call (BACKLOG store submission)', function () {
+    config([
+        'services.reviewer_demo.email' => 'reviewer@sahana-app.com',
+        'services.reviewer_demo.otp_code' => '482913',
+    ]);
+
+    $Response = $this->postJson('/api/v1/auth/verify', [
+        'identifier' => 'reviewer@sahana-app.com',
+        'code' => '482913',
+    ]);
+
+    $Response->assertOk();
+    expect($Response->json('data.token'))->toBeString()->not->toBeEmpty();
+    $this->assertDatabaseHas('users', ['email' => 'reviewer@sahana-app.com']);
+});
+
+it('rejects a wrong code for the reviewer demo email', function () {
+    config([
+        'services.reviewer_demo.email' => 'reviewer@sahana-app.com',
+        'services.reviewer_demo.otp_code' => '482913',
+    ]);
+
+    $this->postJson('/api/v1/auth/verify', [
+        'identifier' => 'reviewer@sahana-app.com',
+        'code' => '000000',
+    ])->assertStatus(422)->assertJsonPath('code', 'otp_expired');
+});
+
+it('never times out for the reviewer demo email, unlike normal codes', function () {
+    config([
+        'services.reviewer_demo.email' => 'reviewer@sahana-app.com',
+        'services.reviewer_demo.otp_code' => '482913',
+    ]);
+
+    $this->travel(1)->days();
+
+    $this->postJson('/api/v1/auth/verify', [
+        'identifier' => 'reviewer@sahana-app.com',
+        'code' => '482913',
+    ])->assertOk();
+});
+
 it('logs out and revokes the current token', function () {
     $Code = requestOtpAndGetCode('oyuncu@example.com');
 

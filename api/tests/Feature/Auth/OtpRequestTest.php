@@ -36,3 +36,14 @@ it('rate limits after three requests for the same identifier', function () {
         ->assertStatus(429)
         ->assertJsonPath('code', 'otp_rate_limited');
 });
+
+it('does not send a mail for the configured reviewer demo email (BACKLOG store submission)', function () {
+    config(['services.reviewer_demo.email' => 'reviewer@sahana-app.com']);
+    Mail::fake();
+
+    $this->postJson('/api/v1/auth/otp', ['identifier' => 'reviewer@sahana-app.com'])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'sent');
+
+    Mail::assertNothingQueued();
+});
