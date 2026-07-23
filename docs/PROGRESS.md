@@ -60,6 +60,32 @@ build) bu ortamda yapılamadı — kullanıcı yeni bir build alıp test etmeli.
 App Store/Play Store URL'leri gerçek yayın olunca `routes/web.php`/
 `join.blade.php`'deki `TODO` placeholder'lardan güncellenmeli.
 
+## 2026-07-23 (3) — Fix: demo:seed-reviewer'daki maç, kimseye görünmüyordu
+
+Kullanıcı prod'da maçı hiç göremedi. Kök neden: `MatchController::index()`
+maç listesini `whereHas('participants', user_id)` ile filtreliyor — seed
+komutu `matches` tablosuna satır ekliyordu ama hiçbir `match_participants`
+(RSVP) kaydı oluşturmuyordu, bu yüzden maç DB'de var olsa da kimsenin
+"Maçlarım" listesinde hiç görünmüyordu (`CreateMatch::handle()`'ın gerçek
+akışında maç kurulunca tüm takım üyeleri otomatik katılımcı olur — seed
+bunu atlamıştı).
+
+Ayrıca ikinci bir bug bulundu ve düzeltildi: `seedRoster()`'daki
+`$Team->isMember($Member)` çağrısı `$Team->members` ilişkisini ilk (o an
+boş) hâliyle önbelleğe alıyor, sonraki `attach()` çağrıları bu önbelleği
+güncellemiyordu — `seedMatchAndLineup()`'taki `foreach ($Team->members ...)`
+bu yüzden sıfır eleman görüyordu (participants hiç oluşmuyordu). Fix:
+`seedRoster()` sonunda `$Team->load('members')` ile ilişki tazeleniyor.
+
+Artık her takım üyesi için katılımcı kaydı ekleniyor (Caner Aydın hariç
+herkes `rsvp=yes` — sohbetteki "sadece Caner izinliymiş" mesajıyla
+tutarlı). Lokalde uçtan uca doğrulandı (`MatchController::index()`'in
+gerçek sorgusu simüle edilip maçın artık reviewer'a göründüğü teyit
+edildi), Pint/Larastan temiz, 306/306 test geçti.
+
+**Kalan:** Prod'da `git pull` + `php artisan demo:seed-reviewer` tekrar
+çalıştırılmalı.
+
 ## 2026-07-23 (2) — Reviewer demo hesabına ekran görüntüsüne uygun zengin içerik
 
 App Store ekran görüntüleri için `demo:seed-reviewer` komutu tamamen

@@ -112,6 +112,12 @@ class SeedReviewerDemo extends Command
             }
         }
 
+        // isMember() yukarıda $Team->members ilişkisini (ilk, olası boş
+        // hâliyle) önbelleğe alıyor; attach() bu önbelleği güncellemiyor.
+        // seedMatchAndLineup() gerçek/güncel üye listesini kullanabilsin diye
+        // ilişki burada zorla tazeleniyor.
+        $Team->load('members');
+
         return $Team;
     }
 
@@ -131,6 +137,23 @@ class SeedReviewerDemo extends Command
                 'created_by' => $Reviewer->id,
             ]);
             $Match->forceFill(['status' => 'confirmed'])->save();
+        }
+
+        if ($Match->participants()->doesntExist()) {
+            // Spec akışı (CreateMatch::handle ile aynı): maç kurulunca takım
+            // üyeleri katılımcı olur. MatchController::index() listeyi
+            // whereHas('participants', user_id) ile filtrelediği için bu
+            // kayıtlar olmadan maç, katılımcı olan hiç kimsenin "Maçlarım"
+            // listesinde görünmüyordu — asıl eksik buydu.
+            foreach ($Team->members as $Member) {
+                $Match->participants()->create([
+                    'user_id' => $Member->id,
+                    'source' => 'team',
+                    // Sohbetteki "sadece Caner izinliymiş" mesajıyla tutarlı.
+                    'rsvp' => $Member->id === $this->Roster['orta-2']->id ? 'no' : 'yes',
+                    'responded_at' => now(),
+                ]);
+            }
         }
 
         if (Lineup::where('match_id', $Match->id)->doesntExist()) {
