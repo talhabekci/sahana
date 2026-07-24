@@ -91,6 +91,25 @@ yüklü mesajlarla sınırlı değil), takım sohbeti kapsam dışı.
 temiz (yeni route'lar için `.expo/types/router.d.ts` `expo start` ile
 yeniden üretildi).
 
+## 2026-07-24 (4) — Fix: prod'da Sentry (API) hiç event almıyordu — yanlış DSN
+
+Kullanıcı Sentry'nin çalışıp çalışmadığını sordu. `php artisan sentry:test`
+"gönderildi" diyordu ama event ID Sentry.io'da (organizasyon genelinde
+event-ID aramasıyla dahi) hiç bulunamadı — ağ erişimi de sorunsuzdu
+(`curl` ile ingest host'una 404/282ms). Kök neden: prod `.env`'deki
+`SENTRY_LARAVEL_DSN` ile Sentry panelindeki API projesinin GERÇEK DSN'i
+**farklı projelere** işaret ediyordu (aynı organizasyon, farklı proje ID +
+key) — muhtemelen bu oturumun başlarında yaşanan proje
+yeniden-oluşturulması sırasında `.env` güncellenmemiş kalmış. Doğru DSN
+`.env`'e yazılıp `config:clear` + `sentry:test` ile doğrulandı, event artık
+Sentry'de görünüyor.
+
+**Kalan:** Mobil tarafın (`@sentry/react-native`, `EXPO_PUBLIC_SENTRY_DSN`)
+da aynı şekilde çalıştığı henüz doğrulanmadı — TestFlight build'i alınırken
+bu env değişkeninin gerçekten build'e gömüldüğünden emin olunmalı (Expo
+public env'ler build-time'da gömülür, sonradan `.env`'i düzeltmek eski
+build'i etkilemez).
+
 ## 2026-07-24 (3) — Fix: erişilebilirlik — footer başlıkları h2'den h4'e atlıyordu
 
 PageSpeed'in Erişilebilirlik denetiminden "Başlık öğeleri sırayla azalan
