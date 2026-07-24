@@ -1,11 +1,25 @@
 <!doctype html>
 <html lang="{{ app()->getLocale() }}">
 <head>
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+<!-- Google Tag Manager — PageSpeed/TBT için geciktirilmiş yükleme: ilk
+     kullanıcı etkileşiminde (scroll/dokunma/tık/tuş) ya da 5sn sonra
+     (etkileşim olmazsa) yüklenir, sayfa açılışını bloklamaz. -->
+<script>(function(w,d,s,l,i){
+  w[l]=w[l]||[];
+  function load(){
+    if (w.__gtmLoaded) return;
+    w.__gtmLoaded = true;
+    w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0], j=d.createElement(s),
+      dl=l!='dataLayer'?'&l='+l:'';
+    j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+    f.parentNode.insertBefore(j,f);
+  }
+  var events = ['scroll','touchstart','mousemove','keydown','click'];
+  events.forEach(function (evt) {
+    w.addEventListener(evt, load, { once: true, passive: true });
+  });
+  setTimeout(load, 5000);
 })(window,document,'script','dataLayer','GTM-PGWQ6SR3');</script>
 <!-- End Google Tag Manager -->
 <meta charset="UTF-8" />
@@ -40,7 +54,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link rel="icon" type="image/png" sizes="512x512" href="/images/icon-512.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Manrope:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
 <script type="application/ld+json">
 {
@@ -468,7 +482,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .footer-brand .brand { margin-bottom: 12px; }
   .footer-brand p { color: var(--moss); font-size: 0.88rem; }
   .footer-cols { display: flex; gap: 60px; flex-wrap: wrap; }
-  .footer-col h4 { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--moss); margin: 0 0 14px; }
+  .footer-col h3 { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--moss); margin: 0 0 14px; }
   .footer-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
   .footer-col a { text-decoration: none; color: var(--chalk); font-size: 0.9rem; }
   .footer-col a:hover { color: var(--lime); }
@@ -752,7 +766,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="footer-cols">
         <div class="footer-col">
-          <h4>{{ __('landing.footer.col_product') }}</h4>
+          <h3>{{ __('landing.footer.col_product') }}</h3>
           <ul>
             <li><a href="#ozellikler">{{ __('landing.nav.features') }}</a></li>
             <li><a href="#nasil-calisir">{{ __('landing.nav.how') }}</a></li>
@@ -760,7 +774,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </ul>
         </div>
         <div class="footer-col">
-          <h4>{{ __('landing.footer.col_legal') }}</h4>
+          <h3>{{ __('landing.footer.col_legal') }}</h3>
           <ul>
             <li><a href="{{ route('legal.show', 'privacy') }}">{{ __('landing.footer.legal_privacy') }}</a></li>
             <li><a href="{{ route('legal.show', 'kvkk') }}">{{ __('landing.footer.legal_kvkk') }}</a></li>

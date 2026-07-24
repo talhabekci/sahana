@@ -91,6 +91,42 @@ yüklü mesajlarla sınırlı değil), takım sohbeti kapsam dışı.
 temiz (yeni route'lar için `.expo/types/router.d.ts` `expo start` ile
 yeniden üretildi).
 
+## 2026-07-24 (3) — Fix: erişilebilirlik — footer başlıkları h2'den h4'e atlıyordu
+
+PageSpeed'in Erişilebilirlik denetiminden "Başlık öğeleri sırayla azalan
+düzende sıralı değil" uyarısı — footer'daki iki sütun başlığı (`Ürün`,
+`Yasal`) `<h4>` idi ama kendilerinden önceki en yakın başlık `<h2>` idi
+(h3 atlanmış). İkisi de `<h3>`'e çevrildi, ilişkili `.footer-col h4` CSS
+seçicisi de `.footer-col h3`'e güncellendi. Render testi + Pint temiz.
+
+## 2026-07-24 (2) — PageSpeed Insights: mobil performans 61→hedeflenen iyileşme
+
+Kullanıcı mobil (61) ve masaüstü (98) PageSpeed raporlarını paylaştı.
+Masaüstü zaten iyiydi, mobildeki asıl sorunlar:
+
+- **Kullanılmayan font ağırlıkları:** Google Fonts URL'i 10 ağırlık/font
+  kombinasyonu istiyordu (`Barlow Condensed:600;700;800`,
+  `Manrope:400;500;600;700;800`, `Space Mono:400;700`). Dosyadaki HER
+  `font-weight` deklarasyonu tek tek taranıp hangi ağırlıkların gerçekten
+  kullanıldığı doğrulandı: **Manrope 500, Manrope 800 ve Barlow Condensed
+  600 hiçbir CSS kuralında kullanılmıyordu.** URL 7 kombinasyona
+  düşürüldü (`Barlow Condensed:700;800`, `Manrope:400;600;700`,
+  `Space Mono:400;700`) — mobildeki "ağ bağımlılık ağacı"nda görülen
+  onlarca küçük .woff2 dosyasının kaynağıydı.
+- **Google Tag Manager (asıl büyük sorun — TBT 1060ms, 126KB kullanılmayan
+  JS):** Kullanıcıyla konuşulup (analitik veri gecikmesi kabul edilerek)
+  GTM'in senkron `gtm.js` yüklemesi ilk kullanıcı etkileşimine
+  (scroll/dokunma/tık/tuş) ya da 5sn'lik bir zaman aşımına ertelendi —
+  `dataLayer` yine hemen tanımlanıyor, sadece asıl script dosyasının
+  indirilip çalıştırılması erteleniyor.
+
+Render testi + font URL'inin 200 döndüğü doğrulandı, Pint temiz.
+
+**Kalan:** GTM container'ının kendi içindeki (Google Tag Manager admin
+panelinde, koddan yapılamaz) kullanılmayan tag/trigger'ların temizlenmesi
+hâlâ ek bir kazanç sağlayabilir — bu kullanıcının kendi yapması gereken
+ayrı bir iş.
+
 ## 2026-07-24 — Fix: Google arama sonucunda favicon jenerik ikon gösteriyordu
 
 Kullanıcı sekmede doğru favicon'u (lime "S") görüyordu ama Google arama
