@@ -83,6 +83,49 @@ oyuncu yok.** Sahana'nın tezi bu boşluk.
 - [ ] 5-10 halı saha oyuncusuyla mini anket (hangi araçları kullanıyorlar?)
 - [ ] Sosyal Halı Saha kapsama listesi: hangi şehirler/sahalar?
 
+## 7. Gelir Modeli — tartışma notu (2026-07-24)
+
+> App Store incelemesi beklenirken yapılan bir strateji tartışmasının
+> özeti. Karar değil, **daha sonra tekrar konuşulacak** açık bir konu.
+
+**Kullanıcının önerisi (uzun vade):** Kullanıcı tabanı oluştuktan sonra
+saha sahiplerine SaaS bir panel satmak — saha müsaitlik takvimi, ödeme,
+saha sahibi ile iletişim son kullanıcı uygulamasından yönetilir, saha
+sahibi kendi panelinden takip eder.
+
+**Değerlendirme:** Meşru bir uzun vadeli yön ama **ayrı bir ürün** —
+şimdi değil:
+- İki taraflı pazar (marketplace) kurmak tavuk-yumurta sorunu: saha
+  sahibine "sana müşteri getiriyorum" diyebilmek için elde önce gerçek
+  kullanıcı hacmi olması lazım.
+- Saha sahipleri küçük/teknolojiye uzak işletmeler — onlara satış soğuk
+  arama/saha ziyareti gerektiren yavaş bir B2B satış işi, bir özellik
+  değil.
+- Rezervasyon/takvim/escrow altyapısı ayrı bir ürün — şu an `sosyalhalisaha_venue_id`
+  ile sadece DIŞARIDAN saha verisi senkronize ediliyor, kendi rezervasyon
+  sistemimiz yok.
+- Zaten madde 5'teki risk tablosunda "Saha işletmelerinin ilgisizliği"
+  v1 için düşük öncelikli ve Modül 8 Faz 2'ye ertelenmiş — bu tartışma o
+  kararla tutarlı.
+- **Ne zaman gündeme alınmalı:** kullanıcı tabanı gerçek trafik/yoğunluk
+  gösterdiğinde ("her hafta X takım geliyor" diye saha sahibine
+  gösterilecek somut bir sayı olduğunda).
+
+**Kısa vadeli (kullanıcı kazandıktan hemen sonraki) değerlendirme:**
+
+| Model | Değerlendirme |
+|---|---|
+| Reklam (AdMob vb.) | Zayıf — düşük kullanıcı sayısında Türkiye eCPM'i çok düşük, ayda birkaç yüz TL bile getirmez. Gerçek ölçek (on binlerce MAU) olmadan anlamsız. |
+| Bireysel kullanıcıya premium abonelik (gelişmiş istatistik vb.) | Zayıf — amatör oyuncu "sosyal" bir araca cebinden para vermeye genelde istekli değil; bu tarz alışkanlık ürünleri (Strava gibi) yıllar ve dev ölçek gerektiriyor. |
+| **Saha ücreti bölüştürme + tahsilat (PSP entegrasyonu, İyzico/PayTR tarzı)** | **En güçlü aday.** Her hafta zaten var olan gerçek bir acı: kaptan 10-14 kişiden saha parasını kovalıyor. Uygulama üzerinden ödeme toplayıp küçük bir hizmet bedeli (%2-3) almak, kullanıcıya yeni bir davranış öğretmiyor — zaten yaptığı bir ödemenin sürtünmesini azaltıyor. Az kullanıcıyla bile her aktif takım = garanti haftalık işlem hacmi. Kıyas: ABD'de TeamSnap tam bu modelle gelir üretiyor. |
+| "Takım Pro" (kaptana aylık/sezonluk ücret: sınırsız üye, hatırlatma, istatistik export) | Ucuz tamamlayıcı — tek başına büyük gelir değil ama ödeme özelliğiyle birlikte çapraz satışı kolaylaştırır. |
+
+**Öneri sıralaması:** önce ödeme/tahsilat özelliğini gerçek gelir kanalı
+olarak inşa etmeyi değerlendir (regülasyon/PSP entegrasyonu var ama saha-
+sahibi-SaaS'ından çok daha ulaşılabilir); reklam ve bireysel premium'u
+"neden olmasın" bonusları olarak arka planda tut; saha sahibi SaaS'ını
+gerçek trafik olmadan gündeme getirme.
+
 ## Kaynaklar
 - [Sosyal Halı Saha](https://sosyalhalisaha.com/) · [Şikayetvar sayfası](https://www.sikayetvar.com/sosyal-hali-saha) · [ekşi sözlük](https://eksisozluk.com/sosyal-halisaha--5213335)
 - [Halısahavar — App Store](https://apps.apple.com/tr/app/hal%C4%B1sahavar/id1583998724?l=tr)

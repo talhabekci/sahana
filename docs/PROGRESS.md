@@ -91,6 +91,28 @@ yüklü mesajlarla sınırlı değil), takım sohbeti kapsam dışı.
 temiz (yeni route'lar için `.expo/types/router.d.ts` `expo start` ile
 yeniden üretildi).
 
+## 2026-07-24 — Fix: Google arama sonucunda favicon jenerik ikon gösteriyordu
+
+Kullanıcı sekmede doğru favicon'u (lime "S") görüyordu ama Google arama
+sonucunda jenerik bir ikon çıktığını fark etti. Kök neden:
+`landing.blade.php`'deki `<link rel="icon">` etiketi gerçek bir dosyaya
+değil, ~11KB'lık gömülü bir `data:image/png;base64,...` URI'ye işaret
+ediyordu. Tarayıcı sekmesi `data:` URI'yi doğrudan render edebiliyor ama
+Google'ın favicon botu bunu bir kaynak olarak "fetch" edemiyor, bu yüzden
+jenerik ikona düşüyordu.
+
+Gerçek `favicon.ico` (16/32/48/64px, doğru Sahana logosu — `convert` ile
+çıkarılıp görsel olarak doğrulandı) ve `images/icon-512.png` dosyaları
+zaten `public/`de ve canlıda 200 dönüyordu, sadece kullanılmıyordu.
+`<link rel="icon">` artık `/favicon.ico` (`sizes="any"`) + `/images/icon-512.png`
+(`type="image/png" sizes="512x512"`) gerçek dosyalarına işaret ediyor.
+Sayfadaki diğer iki `<img src="data:...">` (satır ~488/748, küçük logo
+görselleri) favicon'la ilgisiz, dokunulmadı.
+
+**Kalan:** Google'ın yeni favicon'u indekslemesi zaman alabilir (genelde
+birkaç gün) — Google Search Console'da "Request Indexing" ile
+hızlandırılabilir.
+
 ## 2026-07-23 (5) — Gerçek Apple ID ile App Store yönlendirmesi
 
 App Store Connect'te uygulama kaydı oluşunca atanan gerçek Apple ID
